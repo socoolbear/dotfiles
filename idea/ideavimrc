@@ -1,0 +1,21 @@
+set showmode
+set scrolloff=5
+set history=1000
+set incsearch
+set smartcase
+set nohlsearch
+set belloff=all
+set visualbell
+set noerrorbells
+
+" ---------- Custom Hotkeys -
+:set iskeyword-=_
+# let mapleader = ","
+:imap jj <Esc>
+:nmap <Space><Space> :
+:nmap <leader>s :split<Cr>
+:nmap <leader>vs :vsplit<Cr>
+
+nnoremap [[ [mzz
+nnoremap ]] ]mzz
+nmap t :action Run <cr>

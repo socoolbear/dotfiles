@@ -53,5 +53,3 @@ git clone https://github.com/socoolbear/dotfiles.git ~/.dotfiles
 
 ${HOME}/dotfiles/install
 ```
-
-# dotfiles

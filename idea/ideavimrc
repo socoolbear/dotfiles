@@ -7,15 +7,7 @@ set nohlsearch
 set belloff=all
 set visualbell
 set noerrorbells
+set surround
 
 " ---------- Custom Hotkeys -
-:set iskeyword-=_
-# let mapleader = ","
-:imap jj <Esc>
-:nmap <Space><Space> :
-:nmap <leader>s :split<Cr>
-:nmap <leader>vs :vsplit<Cr>
-
-nnoremap [[ [mzz
-nnoremap ]] ]mzz
 nmap t :action Run <cr>

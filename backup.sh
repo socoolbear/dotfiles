@@ -3,4 +3,7 @@
 BACKUP_DOTFILES=$HOME/backup_dotfiles
 
 mkdir -p "$BACKUP_DOTFILES"
-cp -f "$HOME"/.zshrc "$BACKUP_DOTFILES"/zshrc
+
+cp -i "$HOME"/.zshrc "$BACKUP_DOTFILES"/zshrc
+cp -i "$HOME"/.vimrc "$BACKUP_DOTFILES"/vimrc
+cp -i "$HOME"/.ideavimrc "$BACKUP_DOTFILES"/ideavimrc

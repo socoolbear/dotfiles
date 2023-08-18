@@ -9,5 +9,9 @@ set visualbell
 set noerrorbells
 set surround
 
-" ---------- Custom Hotkeys -
+:set iskeyword-=_
+:nmap <leader>s :split<Cr>
+:nmap <leader>vs :vsplit<Cr>
+nnoremap [[ [mzz
+nnoremap ]] ]mzz
 nmap t :action Run <cr>

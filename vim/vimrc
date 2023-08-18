@@ -89,8 +89,3 @@ au Bufenter *.\(html\|js\|css\) set tabstop=2
 "<C-w> |,  <C-w> H  "Collapse
 
 " ---------- Custom Hotkeys -
-:set iskeyword-=_
-:nmap <leader>s :split<Cr>
-:nmap <leader>vs :vsplit<Cr>
-nnoremap [[ [mzz
-nnoremap ]] ]mzz

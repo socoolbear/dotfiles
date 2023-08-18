@@ -1,3 +1,0 @@
-alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
-alias k='kubectl'
-alias he='helm'

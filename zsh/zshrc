@@ -67,10 +67,15 @@ unsetopt sharehistory
 #--------------------------------------------------------------------------
 # Aliases
 #--------------------------------------------------------------------------
-if [ -f ~/.aliases ]; then
-    source $HOME/.aliases
+if [ -x "$(command -v bat)" ]; then
+    alias cat="bat"
+elif [ -x "$(command -v batcat)" ]; then
+    alias cat="batcat"
 fi
+alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
+alias k='kubectl'
+alias he='helm'
 
 if [ -f ~/.private-exports ]; then
-    source $HOME/.private-export
+    source $HOME/.private-exports
 fi

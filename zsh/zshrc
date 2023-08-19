@@ -79,7 +79,11 @@ alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 [ -x "$(command -v bat)" ] && alias cat="bat" || alias cat="batcat"
 [ -x "$(command -v lvim)" ] && alias vim="lvim"
 
+
 #--------------------------------------------------------------------------
-# Privates
+# Miscellaneous
 #--------------------------------------------------------------------------
 [ -f ~/.private-exports ] && source $HOME/.private-exports
+
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm

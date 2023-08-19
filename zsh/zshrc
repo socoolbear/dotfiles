@@ -40,7 +40,7 @@ source $ZSH/oh-my-zsh.sh
 #--------------------------------------------------------------------------
 typeset -U PATH path cdpath fpath
 export GOPATH=$HOME/go
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
   export GOROOT="$(brew --prefix golang)/libexec"
 else
   export GOROOT="/usr/local/go"

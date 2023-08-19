@@ -2,7 +2,7 @@
 
 ### Get Started
 #### Prerequisites
-- curl wget fzf zsh tmux git make gcc g++
+- curl wget fzf zsh tmux git make gcc g++ bat
 - mkdir ~/code  ~/.local/bin
 - kitty
 - nerd fonts

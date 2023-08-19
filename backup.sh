@@ -14,4 +14,4 @@ cp -i "$HOME"/.gitignore_global "$BACKUP_DOTFILES"/gitignore_global
 cp -ir "$HOME"/.config/kitty "$BACKUP_DOTFILES"/kitty
 cp -ir "$HOME"/.config/lvim "$BACKUP_DOTFILES"/lvim
 cp -ir "$HOME"/.config/phpactor "$BACKUP_DOTFILES"/phpactor
-cp -ir "$HOME"/.nvm "$BACKUP_DOTFILES"/nvm
+cp -ir "$HOME"/.nvm/default-packages "$BACKUP_DOTFILES"/nvm-default-packages

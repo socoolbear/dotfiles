@@ -19,8 +19,9 @@ plugins=(
     docker
     docker-compose
     z
+    npm
+    nvm
 #     artisan
-#     npm
 #     vi-mode
 #     composer
 #     cp

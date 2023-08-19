@@ -13,11 +13,9 @@ ln -sf "$DOTFILES"/vim/vimrc "$HOME"/.vimrc
 ln -sf "$DOTFILES"/idea/ideavimrc "$HOME"/.ideavimrc
 ln -sf "$DOTFILES"/tmux/tmux.conf "$HOME"/.tmux.conf
 
-#ln -sf "$DOTFILES"/scripts/t "$HOME"/.local/bin/t
-#
-#rm -rf "$HOME"/.config/kitty
-#ln -s "$DOTFILES"/kitty "$HOME"/.config/kitty
-#
+rm -rf "$HOME"/.config/kitty
+ln -sf "$DOTFILES"/kitty "$HOME"/.config/kitty
+
 #ln -sf "$DOTFILES"/git/gitconfig "$HOME"/.gitconfig
 #
 #ln -sf "$DOTFILES"/git/gitignore_global "$HOME"/.gitignore_global

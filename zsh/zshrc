@@ -31,6 +31,8 @@ plugins=(
 #     autojump
 )
 
+# export ZSH_TMUX_AUTOSTART=true
+
 source $ZSH/oh-my-zsh.sh
 
 #--------------------------------------------------------------------------
@@ -60,7 +62,6 @@ cdpath=(
 export EDITOR=vim
 export GIT_EDITOR=vim
 export FZF_DEFAULT_COMMAND='ag -u -g ""'
-# export ZSH_TMUX_AUTOSTART=true
 
 unsetopt sharehistory
 

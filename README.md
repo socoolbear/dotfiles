@@ -2,8 +2,9 @@
 
 ### Get Started
 #### Prerequisites
-- curl, wget, fzf, zsh, tmux, git
+- curl, wget, fzf, zsh, tmux, git, nerd fonts, kitty
 - zsh + oh-my-zshell
+- mkdir ~/code
   
 #### Install
 ```shell

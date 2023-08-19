@@ -16,6 +16,9 @@ ln -sf "$DOTFILES"/tmux/tmux.conf "$HOME"/.tmux.conf
 rm -rf "$HOME"/.config/kitty
 ln -sf "$DOTFILES"/kitty "$HOME"/.config/kitty
 
+rm -rf "$HOME"/.config/lvim
+ln -sf "$DOTFILES"/lvim "$HOME"/.config/lvim
+
 #ln -sf "$DOTFILES"/git/gitconfig "$HOME"/.gitconfig
 #
 #ln -sf "$DOTFILES"/git/gitignore_global "$HOME"/.gitignore_global

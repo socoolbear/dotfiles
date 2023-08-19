@@ -9,3 +9,4 @@ cp -i "$HOME"/.vimrc "$BACKUP_DOTFILES"/vimrc
 cp -i "$HOME"/.ideavimrc "$BACKUP_DOTFILES"/ideavimrc
 cp -i "$HOME"/.tmux.conf "$BACKUP_DOTFILES"/tmuxconf
 cp -ir "$HOME"/.config/kitty "$BACKUP_DOTFILES"/kitty
+cp -ir "$HOME"/.config/nvim "$BACKUP_DOTFILES"/nvim

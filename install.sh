@@ -18,15 +18,12 @@ ln -sf "$DOTFILES"/kitty "$HOME"/.config/kitty
 
 rm -rf "$HOME"/.config/lvim
 ln -sf "$DOTFILES"/lvim "$HOME"/.config/lvim
+
 ln -sf "$DOTFILES"/git/gitconfig "$HOME"/.gitconfig
-ln -sf "$DOTFILES"/git/gitignore_global "$HOME"/.gitignore_global#
+ln -sf "$DOTFILES"/git/gitignore_global "$HOME"/.gitignore_global
 
-#rm -rf "$HOME"/.config/phpactor
-#ln -s "$DOTFILES"/phpactor "$HOME"/.config/phpactor
-#
-#mkdir -p "$HOME"/.nvm
-#ln -sf "$DOTFILES"/nvm/default-packages "$HOME"/.nvm/default-packages
-#
-#rm -rf "$HOME"/.config/nvim
-#ln -s "$DOTFILES"/nvim "$HOME"/.config/nvim
+rm -rf "$HOME"/.nvm
+ln -sf "$DOTFILES"/nvm "$HOME"/.nvm
 
+rm -rf "$HOME"/.config/phpactor
+ln -s "$DOTFILES"/phpactor "$HOME"/.config/phpactor

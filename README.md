@@ -7,9 +7,11 @@
 - kitty
 - nerd fonts
 - zsh + oh-my-zshell, zsh-autosuggestions zsh-syntax-highlighting
-  
+- nvm
+ 
 #### Install
 ```shell
 git clone https://github.com/socoolbear/dotfiles.git ~/.dotfiles
 
 ${HOME}/dotfiles/install
+```

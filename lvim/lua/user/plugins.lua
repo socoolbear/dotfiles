@@ -55,10 +55,24 @@ lvim.plugins = {
 --         after = 'tokyonight.nvim',
         dependencies = {
           'arkav/lualine-lsp-progress',
-          'kyazdani42/nvim-web-devicons',
+          'nvim-tree/nvim-web-devicons',
         },
         config = function()
           require('user/plugins/lualine')
+        end,
+    },
+    {
+        'akinsho/bufferline.nvim',
+        dependencies = 'nvim-tree/nvim-web-devicons',
+--        after = 'onedark.nvim',
+        config = function()
+          require('user/plugins/bufferline')
+        end,
+    },
+    {
+        'lukas-reineke/indent-blankline.nvim',
+        config = function()
+          require('user/plugins/indent-blankline')
         end,
     }
 }

@@ -14,7 +14,7 @@ lvim.plugins = {
         config = function()
           require('user/plugins/lualine')
         end,
-    }
+    },
 }
 
 lvim.builtin.lualine.style = "default"

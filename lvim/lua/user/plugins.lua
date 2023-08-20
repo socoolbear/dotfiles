@@ -49,5 +49,16 @@ lvim.plugins = {
         config = function()
           require('user/plugins/cmp')
         end,
+    },
+    {
+        'nvim-lualine/lualine.nvim',
+--         after = 'tokyonight.nvim',
+        dependencies = {
+          'arkav/lualine-lsp-progress',
+          'kyazdani42/nvim-web-devicons',
+        },
+        config = function()
+          require('user/plugins/lualine')
+        end,
     }
 }

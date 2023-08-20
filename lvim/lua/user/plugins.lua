@@ -7,5 +7,14 @@ lvim.plugins = {
           vim.keymap.set('n', '<F1>', ':FloatermToggle<CR>')
           vim.keymap.set('t', '<F1>', '<C-\\><C-n>:FloatermToggle<CR>')
         end
+    },
+    {
+        'nvim-lualine/lualine.nvim',
+        dependencies = 'nvim-tree/nvim-web-devicons',
+        config = function()
+          require('user/plugins/lualine')
+        end,
     }
 }
+
+lvim.builtin.lualine.style = "default"

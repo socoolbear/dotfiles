@@ -1,4 +1,5 @@
 let mapleader=' '              "The default leader is `\` , but a commaa is much batter.
+let maplocalleader=' '
 
 set showmode
 set scrolloff=5

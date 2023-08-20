@@ -1,3 +1,5 @@
+let mapleader=' '              "The default leader is `\` , but a commaa is much batter.
+
 set showmode
 set scrolloff=5
 set history=1000
@@ -8,6 +10,8 @@ set belloff=all
 set visualbell
 set noerrorbells
 set surround
+set commentary
+set easymotion
 
 :set iskeyword-=_
 :nmap <leader>s :split<Cr>

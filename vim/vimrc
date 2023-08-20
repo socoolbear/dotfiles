@@ -1,3 +1,6 @@
+let mapleader=' '              "The default leader is `\` , but a commaa is much batter.
+let maplocalleader=' '
+
 set expandtab
 set shiftwidth=4
 set tabstop=4

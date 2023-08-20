@@ -24,6 +24,3 @@ ln -sf "$DOTFILES"/lvim "$HOME"/.config/lvim
 
 mkdir -p "$HOME"/.nvm
 ln -sf "$DOTFILES"/nvm/default-packages "$HOME"/.nvm/default-packages
-
-rm -rf "$HOME"/.config/phpactor
-ln -s "$DOTFILES"/phpactor "$HOME"/.config/phpactor

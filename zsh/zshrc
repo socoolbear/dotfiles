@@ -14,23 +14,21 @@ plugins=(
 	git
 	zsh-autosuggestions
 	zsh-syntax-highlighting
-	fzf
     docker
     docker-compose
     z
     npm
-    nvm
+    vi-mode
+	fzf # 충돌로 인해 vi-mode 보다 뒤에 위치 시킴
+    composer
+    httpie
+#     nvm
 #     artisan
-#     vi-mode
-#     composer
 #     cp
-#     dnf
-#     httpie
 #     rsync
-#     autojump
 )
 
-if [ ${FIG_JETBRAINS_SHELL_INTEGRATION} != 1 ]; then
+if [[ -z "$INTELLIJ_ENVIRONMENT_READER" && -z "$FIG_JETBRAINS_SHELL_INTEGRATION" ]]; then
     export ZSH_TMUX_AUTOSTART=true
     plugins+=(tmux)
 fi

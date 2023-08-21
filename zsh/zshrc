@@ -15,7 +15,6 @@ plugins=(
 	zsh-autosuggestions
 	zsh-syntax-highlighting
 	fzf
-    tmux
     docker
     docker-compose
     z
@@ -31,7 +30,10 @@ plugins=(
 #     autojump
 )
 
-export ZSH_TMUX_AUTOSTART=true
+if [ ${FIG_JETBRAINS_SHELL_INTEGRATION} != 1 ]; then
+    export ZSH_TMUX_AUTOSTART=true
+    plugins+=(tmux)
+fi
 
 source $ZSH/oh-my-zsh.sh
 

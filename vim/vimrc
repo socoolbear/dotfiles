@@ -32,6 +32,3 @@ set backup
 set backupdir:remove('.')
 
 set iskeyword-=_
-
-nnoremap [[ [mzz
-nnoremap ]] ]mzz

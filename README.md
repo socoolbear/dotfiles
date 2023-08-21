@@ -2,12 +2,11 @@
 
 ### Get Started
 #### Prerequisites
-- curl wget fzf zsh tmux git make gcc g++ bat nodejs npm
+- curl wget fzf zsh tmux git make gcc g++ bat nodejs npm nvm
 - mkdir ~/code  ~/.local/bin
 - kitty
 - nerd fonts
 - zsh + oh-my-zshell, zsh-autosuggestions zsh-syntax-highlighting
-- nvm
  
 #### Install
 ```shell

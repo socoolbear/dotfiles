@@ -15,7 +15,6 @@ set completeopt=menuone,longest,preview
 set title
 set mouse=a
 set termguicolors
-set spell
 set ignorecase
 set smartcase
 set list
@@ -27,9 +26,6 @@ set sidescrolloff=8
 set clipboard=unnamedplus
 set confirm
 set signcolumn=yes
-set undofile
-set backup
-set backupdir:remove('.')
 
 set iskeyword-=_
 

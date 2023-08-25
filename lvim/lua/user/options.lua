@@ -34,3 +34,4 @@ vim.opt.updatetime = 4001 -- Set updatime to 1ms longer than the default to prev
 vim.opt.redrawtime = 10000 -- Allow more time for loading syntax on large files
 vim.opt.exrc = true
 vim.opt.secure = true
+vim.opt.whichwrap = "b,s"

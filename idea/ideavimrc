@@ -2,7 +2,7 @@ let mapleader=' '              "The default leader is `\` , but a commaa is much
 let maplocalleader=' '
 
 set showmode
-set scrolloff=5
+set scrolloff=8
 set history=1000
 set incsearch
 set smartcase
@@ -13,6 +13,9 @@ set noerrorbells
 set surround
 set commentary
 set easymotion
+set number
+set relativenumber
+
 
 :set iskeyword-=_
 :nmap <leader>s :split<Cr>

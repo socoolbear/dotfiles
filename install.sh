@@ -22,8 +22,7 @@ ln -sf "$DOTFILES"/lvim "$HOME"/.config/lvim
 #ln -sf "$DOTFILES"/git/gitconfig "$HOME"/.gitconfig
 #ln -sf "$DOTFILES"/git/gitignore_global "$HOME"/.gitignore_global
 
-mkdir -p "$HOME"/.config/karabiner
-ln -sf "$DOTFILES"/karabiner.json "$HOME"/.config/karabiner/karabiner.json
+ln -sf "$DOTFILES"/karabiner "$HOME"/.config/karabiner
 
 mkdir -p "$HOME"/.nvm
 ln -sf "$DOTFILES"/nvm/default-packages "$HOME"/.nvm/default-packages

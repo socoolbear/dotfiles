@@ -6,6 +6,7 @@ mkdir -p "$BACKUP_DOTFILES"
 
 cp -i "$HOME"/.zshrc "$BACKUP_DOTFILES"/zshrc
 cp -i "$HOME"/.vimrc "$BACKUP_DOTFILES"/vimrc
+cp -i "$HOME"/.gvimrc "$BACKUP_DOTFILES"/gvimrc
 cp -i "$HOME"/.ideavimrc "$BACKUP_DOTFILES"/ideavimrc
 cp -i "$HOME"/.tmux.conf "$BACKUP_DOTFILES"/tmuxconf
 cp -i "$HOME"/.gitconfig "$BACKUP_DOTFILES"/gitconfig

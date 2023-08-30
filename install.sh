@@ -10,6 +10,7 @@ fi
 
 ln -sf "$DOTFILES"/zsh/zshrc "$HOME"/.zshrc
 ln -sf "$DOTFILES"/vim/vimrc "$HOME"/.vimrc
+ln -sf "$DOTFILES"/vim/gvimrc "$HOME"/.gvimrc
 ln -sf "$DOTFILES"/idea/ideavimrc "$HOME"/.ideavimrc
 ln -sf "$DOTFILES"/tmux/tmux.conf "$HOME"/.tmux.conf
 

@@ -7,8 +7,8 @@ ZSH_THEME="robbyrussell"
 HYPHEN_INSENSITIVE="true"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="yyyy-mm-dd"
-VI_MODE_SET_CURSOR=true
-VI_MODE_RESET_PROMPT_ON_MODE_CHANGE=true
+# VI_MODE_SET_CURSOR=true
+# VI_MODE_RESET_PROMPT_ON_MODE_CHANGE=true
 
 plugins=(
 	git
@@ -18,7 +18,7 @@ plugins=(
     docker-compose
     z
     npm
-    vi-mode
+#     vi-mode
 	fzf # 충돌로 인해 vi-mode 보다 뒤에 위치 시킴
     composer
     httpie

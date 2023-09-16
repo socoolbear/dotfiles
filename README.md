@@ -5,7 +5,9 @@
 #### Prerequisites
 
 - curl wget fzf zsh tmux git make gcc g++ bat nodejs npm nvm openssh
-  - brew install curl wget fzf zsh tmux git make gcc bat nodejs npm nvm
+  - mac
+    - brew install curl wget fzf zsh tmux git make gcc bat nodejs npm nvm awscli helm
+- helm diff plugin
 - ssh-keygen -t rsa -C "socoolbear"
   - cat ~/.ssh/id_rsa.pub ----> add github.com SSH key
 - mkdir -p ~/code  ~/.local/bin
@@ -23,10 +25,11 @@
 
 - oh-my-zshell
     - agnoster theme : [multi line setting](https://gist.github.com/socoolbear/d59447cfaffc24ee914e27fe3019cd81)
+- Karabiner-Elements
+- git-secret gnupg
 - lunar vim install
     - install.sh : unblock lunar vim
     - lazy.git
-- Karabiner-Elements
 
 #### Install
 

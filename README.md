@@ -4,15 +4,18 @@
 
 #### Prerequisites
 
-- curl wget fzf zsh tmux git make gcc g++ bat nodejs npm nvm
-- mkdir ~/code  ~/.local/bin
+- curl wget fzf zsh tmux git make gcc g++ bat nodejs npm nvm openssh
+  - brew install curl wget fzf zsh tmux git make gcc bat nodejs npm nvm
+- ssh-keygen -t rsa -C "socoolbear"
+  - cat ~/.ssh/id_rsa.pub ----> add github.com SSH key
+- mkdir -p ~/code  ~/.local/bin
 - kitty, nerd fonts
-    - ssh remote tmux error fix
-        - ~/.ssh/config >> SetEnv TERM=xterm
+  - ssh remote tmux error fix
+    - ~/.ssh/config : SetEnv TERM=xterm
+  - https://github.com/ronniedroid/getnf
 - zsh + oh-my-zshell
     - zsh-autosuggestions
     - zsh-syntax-highlighting
-    - zsh-vi-mode
 - httpie
 
 #### optional

@@ -13,6 +13,7 @@
   - ssh remote tmux error fix
     - ~/.ssh/config : SetEnv TERM=xterm
   - https://github.com/ronniedroid/getnf
+    - JetBrainsMono
 - zsh + oh-my-zshell
     - zsh-autosuggestions
     - zsh-syntax-highlighting

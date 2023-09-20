@@ -81,7 +81,7 @@ alias k='kubectl'
 alias he='helm'
 alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 
-[ -x "$(command -v bat)" ] && alias cat="bat" || alias cat="batcat"
+[ -x "$(command -v bat)" ] && alias cat="bat --paging=never" || alias cat="batcat --paging=never"
 [ -x "$(command -v lvim)" ] && alias vim="lvim"
 
 

@@ -94,6 +94,6 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 bindkey "^[[1;3C" forward-word
-bindkey "^[[1;3D" backward-wordexport LANG=en_US.UTF-8
+bindkey "^[[1;3D" backward-wordexport
 
 export LANG=en_US.UTF-8 # k9s 깨짐 문제 개

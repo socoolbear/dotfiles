@@ -20,6 +20,8 @@
     - zsh-autosuggestions
     - zsh-syntax-highlighting
 - httpie
+- tmux plugin manager & plugin install (prefix + I)
+ 
 
 #### optional
 
@@ -38,3 +40,4 @@ git clone https://github.com/socoolbear/dotfiles.git ~/.dotfiles
 
 ${HOME}/dotfiles/install
 ```
+

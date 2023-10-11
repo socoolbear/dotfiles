@@ -50,7 +50,9 @@ if [ "$(uname)" = "Darwin" ]; then
 else
   export GOROOT="/usr/local/go"
 fi
-# export PATH=$PATH:$HOME/bin:$HOME/.composer/vendor/bin:/usr/local/bin:${GOPATH}/bin:${GOROOT}/bin
+
+export ANDROID_HOME=$HOME/Library/Android/sdk
+
 path=(
     $HOME/.local/bin
     $HOME/.config/composer/vendor/bin
@@ -58,8 +60,8 @@ path=(
     $GOROOT/bin
     $HOME/.cargo/bin
     ./vendor/bin
-    ${ANDROID_HOME}tools/
-    ${ANDROID_HOME}platform-tools/
+    ${ANDROID_HOME}/emulator
+    ${ANDROID_HOME}/platform-tools
     $path
 )
 

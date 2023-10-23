@@ -21,3 +21,4 @@ set relativenumber
 nnoremap [[ [mzz
 nnoremap ]] ]mzz
 nmap t :action Run <cr>
+set ideajoin

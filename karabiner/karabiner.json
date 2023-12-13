@@ -124,7 +124,7 @@
                         "product_id": 666,
                         "vendor_id": 76
                     },
-                    "ignore": false,
+                    "ignore": true,
                     "manipulate_caps_lock_led": true,
                     "simple_modifications": [],
                     "treat_as_built_in_keyboard": false

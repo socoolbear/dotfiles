@@ -52,6 +52,11 @@ else
 fi
 
 export ANDROID_HOME=$HOME/Library/Android/sdk
+export GEM_HOME="$HOME/.rbenv/versions/3.3.0/lib/ruby/gems/3.3.0"
+export GEM_PATH="$HOME/.rbenv/versions/3.3.0/lib/ruby/gems/3.3.0"
+export RBENV_PATH=$HOME/.rbenv/shims
+# export PATH="$HOME/.rbenv/shims:$PATH"
+
 
 path=(
     $HOME/.local/bin
@@ -62,6 +67,7 @@ path=(
     ./vendor/bin
     ${ANDROID_HOME}/emulator
     ${ANDROID_HOME}/platform-tools
+    $RBENV_PATH
     $path
 )
 

@@ -139,3 +139,5 @@ export HERD_PHP_82_INI_SCAN_DIR="/Users/gimbong-yeon/Library/Application Support
 
 # 1password ssh configuration
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"

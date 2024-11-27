@@ -124,20 +124,3 @@ export LANG=en_US.UTF-8 # k9s 깨짐 문제 개
 # unset __conda_setup
 # # <<< conda initialize <<<
 
-
-
-# Herd injected PHP binary.
-export PATH="/Users/gimbong-yeon/Library/Application Support/Herd/bin/":$PATH
-
-
-# Herd injected PHP 8.3 configuration.
-export HERD_PHP_83_INI_SCAN_DIR="/Users/gimbong-yeon/Library/Application Support/Herd/config/php/83/"
-
-
-# Herd injected PHP 8.2 configuration.
-export HERD_PHP_82_INI_SCAN_DIR="/Users/gimbong-yeon/Library/Application Support/Herd/config/php/82/"
-
-# 1password ssh configuration
-export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"

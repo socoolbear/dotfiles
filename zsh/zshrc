@@ -68,6 +68,7 @@ path=(
     ${ANDROID_HOME}/emulator
     ${ANDROID_HOME}/platform-tools
     $RBENV_PATH
+    /opt/homebrew/opt/mysql/bin
     $path
 )
 
@@ -123,4 +124,3 @@ export LANG=en_US.UTF-8 # k9s 깨짐 문제 개
 # fi
 # unset __conda_setup
 # # <<< conda initialize <<<
-

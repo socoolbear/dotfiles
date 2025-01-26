@@ -9,7 +9,7 @@ set smartindent
 set autoindent
 set wrap
 set number
-set relativenumber
+"set relativenumber
 set wildmode=longest:full,full
 set completeopt=menuone,longest,preview
 set title
@@ -25,7 +25,7 @@ set scrolloff=8
 set sidescrolloff=8
 set clipboard^=unnamed,unnamedplus
 set confirm
-set signcolumn=yes
+"set signcolumn=yes
 
 set iskeyword-=_
 

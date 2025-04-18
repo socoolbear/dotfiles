@@ -26,15 +26,20 @@ plugins=(
 #     rsync
 )
 
-if [[ -z "$INTELLIJ_ENVIRONMENT_READER" && -z "$FIG_JETBRAINS_SHELL_INTEGRATION" ]]; then
-    export ZSH_TMUX_AUTOSTART=true
-    plugins+=(tmux)
-fi
+is_intellij_terminal() {
+    [[ -n "$INTELLIJ_ENVIRONMENT_READER" || -n "$FIG_JETBRAINS_SHELL_INTEGRATION" || -n "$TERMINAL_EMULATOR" ]]
+}
 
 if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
    ZSH_TMUX_AUTOSTART=false
 else
-   ZSH_TMUX_AUTOSTART=true
+    if is_intellij_terminal; then
+#       echo "IntelliJ 터미널에서 실행 중입니다"
+    else
+#       echo "외부 터미널에서 실행 중입니다"
+        export ZSH_TMUX_AUTOSTART=true
+        plugins+=(tmux)
+    fi
 fi
 
 
@@ -45,8 +50,8 @@ source $ZSH/oh-my-zsh.sh
 #--------------------------------------------------------------------------
 typeset -U PATH path cdpath fpath
 export GOPATH=$HOME/go
-if [ "$(uname)" = "Darwin" ]; then
-  export GOROOT="$(brew --prefix golang)/libexec"
+if [ "$(/usr/bin/uname)" = "Darwin" ]; then
+  export GOROOT="$(/opt/homebrew/bin/brew --prefix golang)/libexec"
 else
   export GOROOT="/usr/local/go"
 fi
@@ -55,10 +60,15 @@ export ANDROID_HOME=$HOME/Library/Android/sdk
 export GEM_HOME="$HOME/.rbenv/versions/3.3.0/lib/ruby/gems/3.3.0"
 export GEM_PATH="$HOME/.rbenv/versions/3.3.0/lib/ruby/gems/3.3.0"
 export RBENV_PATH=$HOME/.rbenv/shims
+export NVM_DIR="$HOME/.nvm"
 # export PATH="$HOME/.rbenv/shims:$PATH"
 
-
 path=(
+    /usr/local/bin
+    /usr/bin
+    /bin
+    /usr/sbin
+    /sbin
     $HOME/.local/bin
     $HOME/.config/composer/vendor/bin
     $GOPATH/bin
@@ -68,6 +78,7 @@ path=(
     ${ANDROID_HOME}/emulator
     ${ANDROID_HOME}/platform-tools
     $RBENV_PATH
+    $NVM_DIR
     /opt/homebrew/opt/mysql/bin
     /opt/homebrew/opt/libpq/bin
     $path
@@ -99,11 +110,7 @@ alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 # Miscellaneous
 #--------------------------------------------------------------------------
 [ -f ~/.private-exports ] && source $HOME/.private-exports
-
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 
 bindkey "^[[1;3C" forward-word

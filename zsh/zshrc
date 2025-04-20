@@ -1,3 +1,7 @@
+is_intellij_terminal() {
+    [[ -n "$INTELLIJ_ENVIRONMENT_READER" || -n "$FIG_JETBRAINS_SHELL_INTEGRATION" || -n "$TERMINAL_EMULATOR" ]]
+}
+
 #--------------------------------------------------------------------------
 # Oh My Zsh
 #--------------------------------------------------------------------------
@@ -26,10 +30,6 @@ plugins=(
 #     rsync
 )
 
-is_intellij_terminal() {
-    [[ -n "$INTELLIJ_ENVIRONMENT_READER" || -n "$FIG_JETBRAINS_SHELL_INTEGRATION" || -n "$TERMINAL_EMULATOR" ]]
-}
-
 if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
    ZSH_TMUX_AUTOSTART=false
 else
@@ -41,7 +41,6 @@ else
         plugins+=(tmux)
     fi
 fi
-
 
 source $ZSH/oh-my-zsh.sh
 

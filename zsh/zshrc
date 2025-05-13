@@ -13,7 +13,6 @@ HYPHEN_INSENSITIVE="true"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="yyyy-mm-dd"
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # nvm 로드
 
 plugins=(
 	git
@@ -104,6 +103,9 @@ export FZF_DEFAULT_COMMAND='ag -u -g ""'
 
 unsetopt sharehistory
 
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # nvm 로드
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
 #--------------------------------------------------------------------------
 # Aliases
 #--------------------------------------------------------------------------
@@ -113,7 +115,6 @@ alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 
 [ -x "$(command -v bat)" ] && alias cat="bat --paging=never" || alias cat="batcat --paging=never"
 [ -x "$(command -v lvim)" ] && alias vim="lvim"
-
 
 #--------------------------------------------------------------------------
 # Miscellaneous

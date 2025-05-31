@@ -13,6 +13,7 @@ HYPHEN_INSENSITIVE="true"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="yyyy-mm-dd"
 export NVM_DIR="$HOME/.nvm"
+export HOMEBREW_AUTO_UPDATE_SECS="86400"
 
 plugins=(
 	git

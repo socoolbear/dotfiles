@@ -56,7 +56,6 @@ if is_intellij_terminal || is_vscode_terminal; then
     )
 fi
 
-        export ZSH_TMUX_AUTOSTART=false
 source $ZSH/oh-my-zsh.sh
 
 #--------------------------------------------------------------------------

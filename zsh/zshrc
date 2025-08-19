@@ -38,7 +38,7 @@ plugins=(
 )
 
 if [[ -z "$SSH_CLIENT" && -z "$SSH_TTY" ]]; then
-    if ! is_intellij_terminal; then
+    if ! is_intellij_terminal && ! is_vscode_terminal; then
 #       echo "외부 터미널에서 실행 중입니다"
         export ZSH_TMUX_AUTOSTART=true
         plugins+=(tmux)
@@ -46,7 +46,7 @@ if [[ -z "$SSH_CLIENT" && -z "$SSH_TTY" ]]; then
 fi
 
 # Idea 예외처리
-if is_intellij_terminal || is_vscode_terminal; then
+if is_intellij_terminal; then
     path=(
         $NVM_BIN  # nvm.sh가 로드되면 NVM_BIN이 설정됩니다
         $HOME/.yarn/bin
@@ -117,6 +117,7 @@ unsetopt sharehistory
 alias k='kubectl'
 alias he='helm'
 alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
+alias pn='pnpm'
 
 [ -x "$(command -v bat)" ] && alias cat="bat --paging=never" || alias cat="batcat --paging=never"
 [ -x "$(command -v lvim)" ] && alias vim="lvim"
@@ -145,3 +146,14 @@ export LANG=en_US.UTF-8 # k9s 깨짐 문제 개
 # fi
 # unset __conda_setup
 # # <<< conda initialize <<<
+
+# bun completions
+[ -s "/Users/gimbong-yeon/.bun/_bun" ] && source "/Users/gimbong-yeon/.bun/_bun"
+
+# pnpm
+export PNPM_HOME="/Users/gimbong-yeon/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

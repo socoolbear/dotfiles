@@ -17,6 +17,12 @@
     - ~/.ssh/config : SetEnv TERM=xterm
   - https://github.com/ronniedroid/getnf
     - JetBrainsMono
+
+#### optional
+- mac accent popup disable  ( when keyboard long press ) 
+```shell
+    defaults write -g ApplePressAndHoldEnabled -bool false
+```
 - oh-my-zshell
     - agnoster theme : [multi line setting](https://gist.github.com/socoolbear/d59447cfaffc24ee914e27fe3019cd81)
 - Karabiner-Elements

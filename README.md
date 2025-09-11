@@ -40,3 +40,10 @@ ${HOME}/dotfiles/install
 - slack, forti-client, jetbrains, notion, obsidian, postman, zoom,
 - rectangle, alfred, 1password, discord, google-chrome, figma,
 - docker, runcat
+
+## post
+- git
+  - set global name, email
+  - split account  : .gitconfig > IncludeIf
+- alfred : plugin setting
+ 

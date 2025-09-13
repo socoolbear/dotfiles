@@ -50,4 +50,4 @@ ${HOME}/dotfiles/install
 - alfred : plugin setting
 - obsidean : valute setting
 - forti-client : vpn setting
- 
+- claude : etc setting 

@@ -39,11 +39,15 @@ ${HOME}/dotfiles/install
 ## etc apps
 - slack, forti-client, jetbrains, notion, obsidian, postman, zoom,
 - rectangle, alfred, 1password, discord, google-chrome, figma,
+- claude code, claude desktop, gpt desktop
 - docker, runcat
 
 ## post
+- copy .zsh_history from old
 - git
   - set global name, email
   - split account  : .gitconfig > IncludeIf
 - alfred : plugin setting
+- obsidean : valute setting
+- forti-client : vpn setting
  

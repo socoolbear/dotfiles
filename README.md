@@ -51,3 +51,4 @@ ${HOME}/dotfiles/install
 - obsidean : valute setting
 - forti-client : vpn setting
 - claude : etc setting 
+- jetbrains : terminal font - 13, jetbrains mono

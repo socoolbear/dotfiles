@@ -37,10 +37,11 @@ ${HOME}/dotfiles/install
 ```
 
 ## etc apps
-- slack, forti-client, jetbrains, notion, obsidian, postman, zoom,
+- slack, k9s, forti-client, jetbrains, notion, obsidian, postman, zoom,
 - rectangle, alfred, 1password, discord, google-chrome, figma,
 - claude code, claude desktop, gpt desktop
 - docker, runcat
+- kakao Talk
 
 ## post
 - copy .zsh_history from old

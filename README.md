@@ -21,7 +21,7 @@
 ### optional
 - mac accent popup disable  ( when keyboard long press ) 
 ```shell
-    defaults write -g ApplePressAndHoldEnabled -bool false
+defaults write -g ApplePressAndHoldEnabled -bool false
 ```
 - oh-my-zshell
     - agnoster theme : [multi line setting](https://gist.github.com/socoolbear/d59447cfaffc24ee914e27fe3019cd81)

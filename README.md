@@ -1,6 +1,6 @@
 # Dotfiles
 
-### Prerequisites
+## Prerequisites
 - curl wget fzf zsh tmux git make gcc g++ bat nodejs npm nvm openssh
   - mac
     - brew install curl wget fzf zsh tmux git make gcc bat nodejs npm nvm awscli
@@ -18,7 +18,7 @@
   - https://github.com/ronniedroid/getnf
     - JetBrainsMono
 
-#### optional
+### optional
 - mac accent popup disable  ( when keyboard long press ) 
 ```shell
     defaults write -g ApplePressAndHoldEnabled -bool false
@@ -36,20 +36,5 @@ git clone https://github.com/socoolbear/dotfiles.git ~/.dotfiles
 ${HOME}/dotfiles/install
 ```
 
-## etc apps
-- slack, k9s, forti-client, jetbrains, notion, obsidian, postman, zoom,
-- rectangle, alfred, 1password, discord, google-chrome, figma,
-- claude code, claude desktop, gpt desktop
-- docker, runcat
-- kakao Talk
-
-## post
-- copy .zsh_history from old
-- git
-  - set global name, email
-  - split account  : .gitconfig > IncludeIf
-- alfred : plugin setting
-- obsidean : valute setting
-- forti-client : vpn setting
-- claude : etc setting 
-- jetbrains : terminal font - 13, jetbrains mono
+## ETC
+- [install note](/docs/install-note.md)

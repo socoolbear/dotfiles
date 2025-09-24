@@ -1,9 +1,14 @@
 # Dotfiles
 
 ## Prerequisites
-- curl wget fzf zsh tmux git make gcc g++ bat nodejs npm nvm openssh
+- default tools
   - mac
-    - brew install curl wget fzf zsh tmux git make gcc bat nodejs npm nvm awscli
+    - ```
+      brew install \
+       curl wget fzf zsh tmux git make gcc  bat \
+       nodejs npm nvm pnpm \
+       awscli
+      ```
 - enable "1password ssh agent"
   - or 
     - ssh-keygen -t rsa -C "socoolbear"

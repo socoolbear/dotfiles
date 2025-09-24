@@ -6,9 +6,13 @@
     - ```
       brew install \
        curl wget fzf zsh tmux git make gcc  bat \
-       nodejs npm nvm pnpm \
+       nodejs npm nvm \
        awscli
       ```
+- pnpm
+```shell
+npm install -g pnpm@latest-10
+```
 - enable "1password ssh agent"
   - or 
     - ssh-keygen -t rsa -C "socoolbear"

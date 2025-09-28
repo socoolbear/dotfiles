@@ -39,3 +39,5 @@ op item edit "myproject-env" --vault="my-vault" ENV_CONTENT="$(cat .env)"
       - claude-code : setting sync
       - [super claude](https://github.com/SuperClaude-Org/SuperClaude_Framework)
       - [claude-code-requirements-builder](https://github.com/rizethereum/claude-code-requirements-builder)
+- jetbrains ide 단축키 충돌 방지 (cmd + shift + A)
+  - 설정 > 키보드 단축키 > 서비스 > 텍스트 > 터미널에서 man 페이지 인덱스 검색 off

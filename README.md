@@ -9,9 +9,10 @@
        nodejs npm nvm \
        awscli
       ```
-- pnpm
+- pnpm, nest cli
 ```shell
 npm install -g pnpm@latest-10
+npm install -g @nestjs/cli
 ```
 - enable "1password ssh agent"
   - or 

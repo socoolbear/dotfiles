@@ -149,10 +149,10 @@ export LANG=en_US.UTF-8 # k9s 깨짐 문제 개
 # # <<< conda initialize <<<
 
 # bun completions
-[ -s "/Users/gimbong-yeon/.bun/_bun" ] && source "/Users/gimbong-yeon/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # pnpm
-export PNPM_HOME="/Users/gimbong-yeon/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;

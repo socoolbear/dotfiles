@@ -16,6 +16,7 @@ ln -sf "$DOTFILES"/vim/vimrc "$HOME"/.vimrc
 ln -sf "$DOTFILES"/vim/gvimrc "$HOME"/.gvimrc
 ln -sf "$DOTFILES"/idea/ideavimrc "$HOME"/.ideavimrc
 ln -sf "$DOTFILES"/tmux/tmux.conf "$HOME"/.tmux.conf
+ln -sf "$DOTFILES"/claude/settings.json "$HOME"/.claude/settings.json
 
 rm -rf "$HOME"/.config/kitty
 ln -sf "$DOTFILES"/kitty "$HOME"/.config/kitty

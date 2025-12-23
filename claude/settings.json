@@ -1,0 +1,8 @@
+{
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "document-skills@anthropic-agent-skills": true,
+    "ai-ready@cc-plugins": true
+  },
+  "alwaysThinkingEnabled": true
+}

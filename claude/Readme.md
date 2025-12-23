@@ -1,0 +1,2 @@
+- install claude plugin : anthropics/skills
+- ~/.claude/* 내용들 이관

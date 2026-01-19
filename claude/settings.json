@@ -2,7 +2,7 @@
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "document-skills@anthropic-agent-skills": true,
-    "ai-ready@cc-plugins": true
+    "ralph-loop@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true
 }

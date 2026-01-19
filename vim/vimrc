@@ -9,11 +9,9 @@ set smartindent
 set autoindent
 set wrap
 set number
-"set relativenumber
 set wildmode=longest:full,full
 set completeopt=menuone,longest,preview
 set title
-set mouse=a
 set termguicolors
 set ignorecase
 set smartcase
@@ -25,9 +23,13 @@ set scrolloff=8
 set sidescrolloff=8
 set clipboard^=unnamed,unnamedplus
 set confirm
+
 "set signcolumn=yes
+"set relativenumber
 
 set iskeyword-=_
+
+" set mouse=a
 
 nnoremap [[ [mzz
 nnoremap ]] ]mzz

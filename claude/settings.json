@@ -2,7 +2,8 @@
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "document-skills@anthropic-agent-skills": true,
-    "ralph-loop@claude-plugins-official": true
+    "ralph-loop@claude-plugins-official": true,
+    "opgg-essentials@opgg-plugins": true
   },
   "alwaysThinkingEnabled": true
 }

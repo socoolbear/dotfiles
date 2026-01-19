@@ -37,12 +37,10 @@ plugins=(
 #     rsync
 )
 
-if [[ -z "$SSH_CLIENT" && -z "$SSH_TTY" ]]; then
-    if ! is_intellij_terminal && ! is_vscode_terminal; then
-#       echo "외부 터미널에서 실행 중입니다"
-        export ZSH_TMUX_AUTOSTART=true
-        plugins+=(tmux)
-    fi
+# kitty 터미널에서만 tmux 자동 시작
+if [[ -n "$KITTY_WINDOW_ID" ]]; then
+    export ZSH_TMUX_AUTOSTART=true
+    plugins+=(tmux)
 fi
 
 # Idea 예외처리

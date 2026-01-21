@@ -5,5 +5,10 @@
     "ralph-loop@claude-plugins-official": true,
     "opgg-essentials@opgg-plugins": true
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/scripts/statusline.sh",
+    "padding": 0
+  }
 }

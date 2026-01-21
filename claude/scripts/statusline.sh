@@ -1,15 +1,7 @@
 #!/bin/bash
 
-# Claude Code Status Line Script
-# Displays: Model | Directory | Git Branch & Status | Tokens | MCP Servers
-
-# ANSI Color Codes
-CYAN='\033[36m'
-BLUE='\033[34m'
-GREEN='\033[32m'
-YELLOW='\033[33m'
-RED='\033[31m'
-RESET='\033[0m'
+# Claude Code Status Line Script (Agnoster-style)
+# Displays: User@Host | Directory | Git Branch & Status | Model | Tokens
 
 # Read JSON from stdin
 json=$(cat)
@@ -27,11 +19,29 @@ cache_creation=$(echo "$json" | jq -r '.context_window.current_usage.cache_creat
 cache_read=$(echo "$json" | jq -r '.context_window.current_usage.cache_read_input_tokens // 0')
 used_tokens=$((input_tokens + output_tokens + cache_creation + cache_read))
 
-# Get directory basename
+# Get current directory
 if [ -n "$current_dir" ]; then
-    dir_name=$(basename "$current_dir")
+    dir_path="${current_dir/#$HOME/~}"
 else
-    dir_name=$(basename "$(pwd)")
+    dir_path="${PWD/#$HOME/~}"
+fi
+
+# Get MCP server count
+mcp_count=0
+if [ -f "$HOME/.claude.json" ]; then
+    user_mcp=$(jq '.mcpServers | length' "$HOME/.claude.json" 2>/dev/null || echo 0)
+    mcp_count=$((mcp_count + user_mcp))
+fi
+if [ -n "$current_dir" ] && [ -f "$current_dir/.mcp.json" ]; then
+    proj_mcp=$(jq '.mcpServers | length' "$current_dir/.mcp.json" 2>/dev/null || echo 0)
+    mcp_count=$((mcp_count + proj_mcp))
+fi
+
+# Format MCP info
+if [ "$mcp_count" -gt 0 ]; then
+    mcp_info="🔌 $mcp_count"
+else
+    mcp_info="🔌 0"
 fi
 
 # Get Git info if in a git repository
@@ -40,17 +50,14 @@ if [ -n "$current_dir" ] && [ -d "$current_dir/.git" ] || git -C "${current_dir:
     if cd "${current_dir:-.}" 2>/dev/null; then
         branch=$(git branch --show-current 2>/dev/null)
         if [ -n "$branch" ]; then
-            # Count staged, modified, and untracked files
-            staged=$(git diff --cached --numstat 2>/dev/null | wc -l | tr -d ' ')
-            modified=$(git diff --numstat 2>/dev/null | wc -l | tr -d ' ')
-            untracked=$(git ls-files --others --exclude-standard 2>/dev/null | wc -l | tr -d ' ')
-
-            git_status=""
-            [ "$staged" -gt 0 ] && git_status+=" ${YELLOW}✚${staged}${RESET}"
-            [ "$modified" -gt 0 ] && git_status+=" ${YELLOW}✱${modified}${RESET}"
-            [ "$untracked" -gt 0 ] && git_status+=" ${YELLOW}◌${untracked}${RESET}"
-
-            git_info=" | ${GREEN}🌿 ${branch}${RESET}${git_status}"
+            # Check if working directory is clean
+            if git diff-index --quiet HEAD -- 2>/dev/null; then
+                # Clean status
+                git_info=$(printf " \033[32m⎇ %s\033[0m" "$branch")
+            else
+                # Dirty status
+                git_info=$(printf " \033[33m⎇ %s ±\033[0m" "$branch")
+            fi
         fi
     fi
 fi
@@ -75,17 +82,13 @@ remaining_fmt=$(format_tokens "$remaining_tokens")
 # Determine context color based on percentage
 context_int=${context_pct%.*}
 if [ "$context_int" -le 50 ]; then
-    context_color=$GREEN
+    context_color=$'\033[32m'  # Green
 elif [ "$context_int" -le 80 ]; then
-    context_color=$YELLOW
+    context_color=$'\033[33m'  # Yellow
 else
-    context_color=$RED
+    context_color=$'\033[31m'  # Red
 fi
 
-# Build output
-output="${CYAN}[${model}]${RESET}"
-output+=" ${BLUE}📁 ${dir_name}${RESET}"
-output+="${git_info}"
-output+=" | ${context_color}🔤 ${used_fmt}/${total_fmt} (${remaining_fmt} left)${RESET}"
-
-echo -e "$output"
+# Build output (dir [git] | model | mcp | tokens)
+printf "\033[34m%s\033[0m%s | \033[35m%s\033[0m | \033[36m%s\033[0m | %s%s/%s (%s left)\033[0m" \
+    "$dir_path" "$git_info" "$model" "$mcp_info" "$context_color" "$used_fmt" "$total_fmt" "$remaining_fmt"

@@ -1,6 +1,7 @@
 .idea
 .github
 .prompts
+.claude/plans
 
 # START Ruler Generated Files
 /.agent/rules/ruler.md

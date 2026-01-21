@@ -32,3 +32,6 @@ ln -sf "$DOTFILES"/karabiner "$HOME"/.config/karabiner
 
 mkdir -p "$HOME"/.nvm
 ln -sf "$DOTFILES"/nvm/default-packages "$HOME"/.nvm/default-packages
+
+mkdir -p "$HOME"/.claude
+ln -sf "$DOTFILES"/claude/commands/handoff.md "$HOME"/.claude/commands/handoff.md

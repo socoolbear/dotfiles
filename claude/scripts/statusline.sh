@@ -1,14 +1,13 @@
 #!/bin/bash
 
 # Claude Code Status Line Script
-# Displays: Model | Directory | Git Branch & Status | Cost | Context Usage
+# Displays: Model | Directory | Git Branch & Status | Tokens | MCP Servers
 
 # ANSI Color Codes
 CYAN='\033[36m'
 BLUE='\033[34m'
 GREEN='\033[32m'
 YELLOW='\033[33m'
-MAGENTA='\033[35m'
 RED='\033[31m'
 RESET='\033[0m'
 
@@ -18,8 +17,15 @@ json=$(cat)
 # Parse JSON using jq
 model=$(echo "$json" | jq -r '.model.display_name // "Unknown"')
 current_dir=$(echo "$json" | jq -r '.workspace.current_dir // ""')
-cost=$(echo "$json" | jq -r '.cost.total_cost_usd // 0')
 context_pct=$(echo "$json" | jq -r '.context_window.used_percentage // 0')
+context_window_size=$(echo "$json" | jq -r '.context_window.context_window_size // 200000')
+
+# Calculate used tokens from current_usage
+input_tokens=$(echo "$json" | jq -r '.context_window.current_usage.input_tokens // 0')
+output_tokens=$(echo "$json" | jq -r '.context_window.current_usage.output_tokens // 0')
+cache_creation=$(echo "$json" | jq -r '.context_window.current_usage.cache_creation_input_tokens // 0')
+cache_read=$(echo "$json" | jq -r '.context_window.current_usage.cache_read_input_tokens // 0')
+used_tokens=$((input_tokens + output_tokens + cache_creation + cache_read))
 
 # Get directory basename
 if [ -n "$current_dir" ]; then
@@ -49,12 +55,22 @@ if [ -n "$current_dir" ] && [ -d "$current_dir/.git" ] || git -C "${current_dir:
     fi
 fi
 
-# Format cost (show 2-4 decimal places depending on value)
-if (( $(echo "$cost < 0.01" | bc -l) )); then
-    cost_fmt=$(printf "%.4f" "$cost")
-else
-    cost_fmt=$(printf "%.2f" "$cost")
-fi
+# Format tokens (K for thousands)
+format_tokens() {
+    local tokens=$1
+    if [ "$tokens" -ge 1000000 ]; then
+        printf "%.1fM" "$(echo "scale=1; $tokens / 1000000" | bc)"
+    elif [ "$tokens" -ge 1000 ]; then
+        printf "%.1fK" "$(echo "scale=1; $tokens / 1000" | bc)"
+    else
+        printf "%d" "$tokens"
+    fi
+}
+
+used_fmt=$(format_tokens "$used_tokens")
+total_fmt=$(format_tokens "$context_window_size")
+remaining_tokens=$((context_window_size - used_tokens))
+remaining_fmt=$(format_tokens "$remaining_tokens")
 
 # Determine context color based on percentage
 context_int=${context_pct%.*}
@@ -70,7 +86,6 @@ fi
 output="${CYAN}[${model}]${RESET}"
 output+=" ${BLUE}📁 ${dir_name}${RESET}"
 output+="${git_info}"
-output+=" | ${MAGENTA}💰 \$${cost_fmt}${RESET}"
-output+=" | ${context_color}📊 ${context_int}%${RESET}"
+output+=" | ${context_color}🔤 ${used_fmt}/${total_fmt} (${remaining_fmt} left)${RESET}"
 
 echo -e "$output"

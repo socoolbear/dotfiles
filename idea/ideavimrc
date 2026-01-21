@@ -14,7 +14,7 @@ set surround
 set commentary
 set easymotion
 set number
-set relativenumber
+"set relativenumber
 
 
 :set iskeyword-=_

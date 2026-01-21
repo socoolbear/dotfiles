@@ -34,5 +34,7 @@ mkdir -p "$HOME"/.nvm
 ln -sf "$DOTFILES"/nvm/default-packages "$HOME"/.nvm/default-packages
 
 mkdir -p "$HOME"/.claude
+mkdir -p "$HOME"/.claude/commands
 ln -sf "$DOTFILES"/claude/commands/handoff.md "$HOME"/.claude/commands/handoff.md
-ln -sf "$DOTFILES"/claude/scripts/statusline.sh "$HOME"/.claude/script/statusline.sh
+mkdir -p "$HOME"/.claude/scripts
+ln -sf "$DOTFILES"/claude/scripts/statusline.sh "$HOME"/.claude/scripts/statusline.sh

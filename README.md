@@ -42,9 +42,15 @@ defaults write -g ApplePressAndHoldEnabled -bool false
 
 ```shell
 git clone https://github.com/socoolbear/dotfiles.git ~/.dotfiles
-
-${HOME}/dotfiles/install
+cd ~/.dotfiles
+make sync
 ```
+
+### Make Commands
+
+- `make sync` - dotfiles 심볼릭 링크 생성 (oh-my-zsh 자동 설치 포함)
+- `make clean` - 모든 심볼릭 링크 제거
+- `make backup` - 기존 dotfiles 백업 (`~/backup_dotfiles/` 에 저장)
 
 ## ETC
 - [install note](/docs/install-note.md)

@@ -13,6 +13,13 @@ INPUT=$(cat)
 NOTIFICATION_TYPE=$(echo "$INPUT" | jq -r '.notification_type // "unknown"')
 MESSAGE=$(echo "$INPUT" | jq -r '.message // "Claude Code 알림"')
 
+# 비활성화할 알림 유형 (알림 안 받을 것들)
+case "$NOTIFICATION_TYPE" in
+  "idle_prompt")
+    exit 0
+    ;;
+esac
+
 # 알림 유형에 따른 제목 및 우선순위 설정
 case "$NOTIFICATION_TYPE" in
   "permission_prompt")
@@ -21,12 +28,12 @@ case "$NOTIFICATION_TYPE" in
     PRIORITY="high"
     TAGS="lock,claude"
     ;;
-#  "idle_prompt")
-#    TITLE="⏳ 입력 대기"
-#    SOUND="Glass"
-#    PRIORITY="default"
-#    TAGS="hourglass,claude"
-#    ;;
+  "idle_prompt")
+    TITLE="⏳ 입력 대기"
+    SOUND="Glass"
+    PRIORITY="default"
+    TAGS="hourglass,claude"
+    ;;
   "auth_success")
     TITLE="✅ 인증 성공"
     SOUND="Hero"
@@ -47,8 +54,17 @@ case "$NOTIFICATION_TYPE" in
     ;;
 esac
 
-# macOS 알림 표시
-osascript -e "display notification \"$MESSAGE\" with title \"$TITLE\" sound name \"$SOUND\"" 2>/dev/null &
+# macOS 알림 표시 (terminal-notifier 사용)
+# 설치: brew install terminal-notifier
+if command -v terminal-notifier &>/dev/null; then
+  terminal-notifier \
+    -title "$TITLE" \
+    -message "$MESSAGE" \
+    -sound "$SOUND" \
+    -group "claude-code" \
+    -activate "com.mitchellh.ghostty" \
+    &>/dev/null &
+fi
 
 # ntfy.sh 푸시 알림 전송
 curl -s \

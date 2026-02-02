@@ -20,7 +20,7 @@ This is a personal dotfiles repository for macOS development environment configu
 
 - `zsh/` - Zsh configuration with Oh My Zsh
 - `vim/` - Vim/GVim configurations
-- `tmux/` - Tmux configuration with TPM plugins
+- `tmux/` - Tmux configuration with gpakosz/.tmux (oh-my-tmux)
 - `git/` - Git config and global gitignore
 - `kitty/` - Kitty terminal configuration
 - `lvim/` - LunarVim configuration
@@ -37,7 +37,7 @@ The `install.sh` script creates these symlinks:
 - `vim/vimrc` → `~/.vimrc`
 - `vim/gvimrc` → `~/.gvimrc`
 - `idea/ideavimrc` → `~/.ideavimrc`
-- `tmux/tmux.conf` → `~/.tmux.conf`
+- `tmux/tmux.conf.local` → `~/.config/tmux/tmux.conf.local`
 - `claude/settings.json` → `~/.claude/settings.json`
 - `kitty/` → `~/.config/kitty`
 - `lvim/` → `~/.config/lvim`

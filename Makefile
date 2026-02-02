@@ -35,6 +35,9 @@ sync: ohmyzsh
 	rm -rf $(HOME)/.config/kitty
 	ln -sf $(DOTFILES)/kitty $(HOME)/.config/kitty
 
+	rm -rf $(HOME)/.config/ghostty
+	ln -sf $(DOTFILES)/ghostty $(HOME)/.config/ghostty
+
 	rm -rf $(HOME)/.config/lvim
 	ln -sf $(DOTFILES)/lvim $(HOME)/.config/lvim
 

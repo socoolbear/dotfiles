@@ -13,17 +13,7 @@
   "hooks": {
     "Notification": [
       {
-        "matcher": "permission_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/scripts/notify.sh",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "idle_prompt",
+        "matcher": "",
         "hooks": [
           {
             "type": "command",

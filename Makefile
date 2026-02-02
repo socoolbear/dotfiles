@@ -30,6 +30,7 @@ sync: ohmyzsh
 	[ -L $(HOME)/.nvm/default-packages ] || ln -sf $(DOTFILES)/nvm/default-packages $(HOME)/.nvm/default-packages
 	[ -L $(HOME)/.claude/commands/handoff.md ] || ln -sf $(DOTFILES)/claude/commands/handoff.md $(HOME)/.claude/commands/handoff.md
 	[ -L $(HOME)/.claude/scripts/notify.sh ] || ln -sf $(DOTFILES)/claude/scripts/notify.sh $(HOME)/.claude/scripts/notify.sh
+	[ -L $(HOME)/.claude/scripts/notify-stop.sh ] || ln -sf $(DOTFILES)/claude/scripts/notify-stop.sh $(HOME)/.claude/scripts/notify-stop.sh
 
 	# 디렉토리 심볼릭 링크 (기존 제거 후 링크)
 	rm -rf $(HOME)/.config/kitty
@@ -52,7 +53,8 @@ clean:
 	rm -f $(HOME)/.tmux.conf
 	rm -f $(HOME)/.claude/settings.json
 	rm -f $(HOME)/.claude/commands/handoff.md
-	rm -f $(HOME)/.claude/scripts/statusline.sh
+	rm -f $(HOME)/.claude/scripts/notify.sh
+	rm -f $(HOME)/.claude/scripts/notify-stop.sh
 	rm -f $(HOME)/.nvm/default-packages
 	rm -rf $(HOME)/.config/kitty
 	rm -rf $(HOME)/.config/lvim

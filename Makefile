@@ -1,4 +1,4 @@
-.PHONY: all clean sync ohmyzsh backup
+.PHONY: all clean sync ohmyzsh ohmytmux backup
 
 DOTFILES := $(shell pwd)
 
@@ -11,7 +11,14 @@ ohmyzsh:
 		git clone https://github.com/zsh-users/zsh-syntax-highlighting "$(HOME)/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"; \
 	fi
 
-sync: ohmyzsh
+ohmytmux:
+	@mkdir -p $(HOME)/.config/tmux
+	@if [ ! -d "$(HOME)/.config/tmux/.tmux" ]; then \
+		git clone --single-branch https://github.com/gpakosz/.tmux.git $(HOME)/.config/tmux/.tmux; \
+	fi
+	@[ -L $(HOME)/.config/tmux/tmux.conf ] || ln -sf $(HOME)/.config/tmux/.tmux/.tmux.conf $(HOME)/.config/tmux/tmux.conf
+
+sync: ohmyzsh ohmytmux
 	# 디렉토리 생성
 	mkdir -p $(HOME)/.local/bin
 	mkdir -p $(HOME)/.config
@@ -25,7 +32,9 @@ sync: ohmyzsh
 	[ -L $(HOME)/.vimrc ] || ln -sf $(DOTFILES)/vim/vimrc $(HOME)/.vimrc
 	[ -L $(HOME)/.gvimrc ] || ln -sf $(DOTFILES)/vim/gvimrc $(HOME)/.gvimrc
 	[ -L $(HOME)/.ideavimrc ] || ln -sf $(DOTFILES)/idea/ideavimrc $(HOME)/.ideavimrc
-	[ -L $(HOME)/.tmux.conf ] || ln -sf $(DOTFILES)/tmux/tmux.conf $(HOME)/.tmux.conf
+	# oh-my-tmux 사용 (XDG 경로: ~/.config/tmux)
+	rm -f $(HOME)/.tmux.conf
+	[ -L $(HOME)/.config/tmux/tmux.conf.local ] || ln -sf $(DOTFILES)/tmux/tmux.conf.local $(HOME)/.config/tmux/tmux.conf.local
 	[ -L $(HOME)/.claude/settings.json ] || ln -sf $(DOTFILES)/claude/settings.json $(HOME)/.claude/settings.json
 	[ -L $(HOME)/.nvm/default-packages ] || ln -sf $(DOTFILES)/nvm/default-packages $(HOME)/.nvm/default-packages
 	[ -L $(HOME)/.claude/commands/handoff.md ] || ln -sf $(DOTFILES)/claude/commands/handoff.md $(HOME)/.claude/commands/handoff.md
@@ -51,6 +60,9 @@ clean:
 	rm -f $(HOME)/.gvimrc
 	rm -f $(HOME)/.ideavimrc
 	rm -f $(HOME)/.tmux.conf
+	rm -f $(HOME)/.config/tmux/tmux.conf.local
+	rm -rf $(HOME)/.config/tmux/.tmux
+	rm -f $(HOME)/.config/tmux/tmux.conf
 	rm -f $(HOME)/.claude/settings.json
 	rm -f $(HOME)/.claude/commands/handoff.md
 	rm -f $(HOME)/.claude/scripts/notify.sh
@@ -66,7 +78,7 @@ backup:
 	-cp -i $(HOME)/.vimrc $(HOME)/backup_dotfiles/vimrc
 	-cp -i $(HOME)/.gvimrc $(HOME)/backup_dotfiles/gvimrc
 	-cp -i $(HOME)/.ideavimrc $(HOME)/backup_dotfiles/ideavimrc
-	-cp -i $(HOME)/.tmux.conf $(HOME)/backup_dotfiles/tmuxconf
+	-cp -i $(HOME)/.config/tmux/tmux.conf.local $(HOME)/backup_dotfiles/tmux.conf.local
 	-cp -i $(HOME)/.gitconfig $(HOME)/backup_dotfiles/gitconfig
 	-cp -i $(HOME)/.gitignore_global $(HOME)/backup_dotfiles/gitignore_global
 	-cp -ir $(HOME)/.config/karabiner $(HOME)/backup_dotfiles/karabiner

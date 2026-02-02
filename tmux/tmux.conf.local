@@ -1,0 +1,34 @@
+# ~/.dotfiles/tmux/tmux.conf.local
+# gpakosz/.tmux 사용자 커스터마이징 파일
+
+# -- 기본 설정 오버라이드 --
+set -g history-limit 10000                # gpakosz 기본값 5000 → 10000
+set -s escape-time 0                      # gpakosz 기본값 10 → 0 (vim 모드 전환 지연 제거)
+
+# -- gpakosz 에 없는 추가 설정 --
+set -g mouse on
+setw -g mode-keys vi
+setw -g aggressive-resize on
+set -g detach-on-destroy off
+
+# -- Vi 모드 키 바인딩 --
+bind -T copy-mode-vi v send -X begin-selection
+bind P paste-buffer
+
+# -- Powerline 테마 활성화 --
+tmux_conf_theme_left_separator_main='\uE0B0'
+tmux_conf_theme_left_separator_sub='\uE0B1'
+tmux_conf_theme_right_separator_main='\uE0B2'
+tmux_conf_theme_right_separator_sub='\uE0B3'
+
+# -- 상태바 색상 (기존 다크 테마 유지) --
+tmux_conf_theme_colour_1="#242631"    # 배경
+tmux_conf_theme_colour_2="#7C7D83"    # 텍스트
+tmux_conf_theme_colour_3="#E9E9EA"    # 활성 창 텍스트
+
+# -- 플러그인 --
+set -g @plugin 'tmux-plugins/tmux-yank'
+
+# -- 키 바인딩 (gpakosz 기본 바인딩 오버라이드) --
+unbind r
+bind r source-file ~/.config/tmux/tmux.conf \; display-message 'tmux.conf reloaded' #!important

@@ -28,10 +28,11 @@ plugins=(
     httpie
 )
 
-# kitty 터미널에서만 tmux 자동 시작
-if [[ -n "$KITTY_WINDOW_ID" ]]; then
+# kitty 또는 ghostty 터미널에서 tmux 자동 시작
+if [[ -n "$KITTY_WINDOW_ID" || -n "$GHOSTTY_RESOURCES_DIR" ]]; then
     export ZSH_TMUX_AUTOSTART=true
     plugins+=(tmux)
+    cd $HOME/code
 fi
 
 # Idea 예외처리

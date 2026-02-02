@@ -2,6 +2,7 @@
 .github
 .prompts
 .claude/plans
+.omc
 
 # START Ruler Generated Files
 /.agent/rules/ruler.md

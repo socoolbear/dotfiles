@@ -1,14 +1,37 @@
 {
+  "statusLine": {
+    "type": "command",
+    "command": "node /Users/socoolbear/.claude/hud/omc-hud.mjs"
+  },
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "document-skills@anthropic-agent-skills": true,
-    "ralph-loop@claude-plugins-official": true,
-    "opgg-essentials@opgg-plugins": true
+    "opgg-essentials@opgg-plugins": true,
+    "oh-my-claudecode@omc": true
   },
   "alwaysThinkingEnabled": true,
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/scripts/statusline.sh",
-    "padding": 0
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/scripts/notify.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/scripts/notify.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   }
 }

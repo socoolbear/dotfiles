@@ -29,7 +29,7 @@ sync: ohmyzsh
 	[ -L $(HOME)/.claude/settings.json ] || ln -sf $(DOTFILES)/claude/settings.json $(HOME)/.claude/settings.json
 	[ -L $(HOME)/.nvm/default-packages ] || ln -sf $(DOTFILES)/nvm/default-packages $(HOME)/.nvm/default-packages
 	[ -L $(HOME)/.claude/commands/handoff.md ] || ln -sf $(DOTFILES)/claude/commands/handoff.md $(HOME)/.claude/commands/handoff.md
-	[ -L $(HOME)/.claude/scripts/statusline.sh ] || ln -sf $(DOTFILES)/claude/scripts/statusline.sh $(HOME)/.claude/scripts/statusline.sh
+	[ -L $(HOME)/.claude/scripts/notify.sh ] || ln -sf $(DOTFILES)/claude/scripts/notify.sh $(HOME)/.claude/scripts/notify.sh
 
 	# 디렉토리 심볼릭 링크 (기존 제거 후 링크)
 	rm -rf $(HOME)/.config/kitty

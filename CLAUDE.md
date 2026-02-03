@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> 상세한 AI 에이전트 가이드는 `@AGENTS.md` 를 참조하세요.
+
 ## Repository Overview
 
 Personal dotfiles repository for macOS development environment. Manages configurations for zsh, vim, tmux, git, kitty, ghostty, LunarVim, Karabiner-Elements, IdeaVim, Claude Code, and NVM.

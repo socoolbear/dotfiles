@@ -1,15 +1,4 @@
 {
-  "statusLine": {
-    "type": "command",
-    "command": "node /Users/socoolbear/.claude/hud/omc-hud.mjs"
-  },
-  "enabledPlugins": {
-    "typescript-lsp@claude-plugins-official": true,
-    "document-skills@anthropic-agent-skills": true,
-    "opgg-essentials@opgg-plugins": true,
-    "oh-my-claudecode@omc": true
-  },
-  "alwaysThinkingEnabled": true,
   "hooks": {
     "Notification": [
       {
@@ -35,5 +24,17 @@
         ]
       }
     ]
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node /Users/socoolbear/.claude/hud/omc-hud.mjs"
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "document-skills@anthropic-agent-skills": true,
+    "opgg-essentials@opgg-plugins": true,
+    "oh-my-claudecode@omc": true,
+    "mgrep@Mixedbread-Grep": true
+  },
+  "alwaysThinkingEnabled": true
 }

@@ -17,12 +17,13 @@ description: 어떤 프로젝트에서든 일관된 .claude/ 디렉토리 구조
 
 ```
 .claude/
+├── settings.local.json  # 로컬 설정 (plansDirectory 등)
 ├── rules/           # 항상 적용되는 규칙
 │   └── coding-style.md
 ├── commands/        # 프로젝트 전용 슬래시 명령어
 ├── plans/           # 작업 계획서 (.gitignore)
-├── agents/          # 커스텀 에이전트 정의 (선택사항)
-└── skills/          # 워크플로우/도메인 지식 (선택사항)
+├── agents/          # 커스텀 에이전트 정의
+└── skills/          # 워크플로우/도메인 지식
 ```
 
 ### 3. AGENTS.md 생성
@@ -35,11 +36,20 @@ description: 어떤 프로젝트에서든 일관된 .claude/ 디렉토리 구조
 - 코딩 스타일 가이드라인
 - AI 응답 가이드라인
 
-### 4. `.gitignore` 업데이트
+### 4. CLAUDE.md 참조 파일 생성
+
+`CLAUDE.md` 파일을 `AGENTS.md`를 참조하는 형태로 생성합니다:
+
+```markdown
+# Reference
+@AGENTS.md
+```
+
+### 5. `.gitignore` 업데이트
 
 `.claude/plans/` 디렉토리를 제외 목록에 추가합니다.
 
-### 5. 기본 Rules 파일 생성
+### 6. 기본 Rules 파일 생성
 
 `coding-style.md` 파일을 생성하여 프로젝트 언어에 맞는 코딩 스타일 가이드를 작성합니다.
 
@@ -89,15 +99,26 @@ Task(
 mkdir -p .claude/rules
 mkdir -p .claude/commands
 mkdir -p .claude/plans
-```
-
-**선택사항** (필요시):
-```bash
 mkdir -p .claude/agents
 mkdir -p .claude/skills
 ```
 
-### Step 4: `AGENTS.md` 생성
+### Step 4: `settings.local.json` 생성
+
+`.claude/settings.local.json` 파일을 생성하여 로컬 설정을 정의합니다:
+
+```json
+{
+  "plansDirectory": ".claude/plans"
+}
+```
+
+**주의사항:**
+- 이 파일은 프로젝트별 로컬 설정을 담습니다
+- `plansDirectory`는 Claude Code가 계획 파일을 저장할 위치를 지정합니다
+- 이 파일은 git에 커밋되어 팀원들과 공유됩니다
+
+### Step 5: `AGENTS.md` 생성
 
 프로젝트 분석 결과를 바탕으로 맞춤형 `AGENTS.md` 생성:
 
@@ -166,11 +187,25 @@ mkdir -p .claude/skills
 
 ## 관련 파일
 
-- `CLAUDE.md`: 프로젝트 기본 지침 (간략)
+- `CLAUDE.md`: AGENTS.md 참조 파일
 - `AGENTS.md`: AI 에이전트 상세 가이드 (이 파일)
 ```
 
-### Step 5: `coding-style.md` 생성
+### Step 6: `CLAUDE.md` 참조 파일 생성
+
+`CLAUDE.md` 파일을 생성하여 `AGENTS.md`를 참조하도록 합니다:
+
+```markdown
+# Reference
+@AGENTS.md
+```
+
+**설명:**
+- `CLAUDE.md`는 Claude Code가 기본으로 읽는 파일입니다
+- `@AGENTS.md` 구문으로 실제 가이드 내용을 참조합니다
+- 모든 상세 정보는 `AGENTS.md`에 집중하여 관리합니다
+
+### Step 7: `coding-style.md` 생성
 
 `.claude/rules/coding-style.md` 파일을 생성하여 감지된 언어에 맞는 코딩 스타일 가이드 작성.
 
@@ -250,7 +285,7 @@ mkdir -p .claude/skills
 - `Clone` 최소화
 ```
 
-### Step 6: `.gitignore` 업데이트
+### Step 8: `.gitignore` 업데이트
 
 `.gitignore` 파일에 `.claude/plans/` 추가:
 
@@ -263,7 +298,7 @@ mkdir -p .claude/skills
 - `.gitignore` 파일이 없으면 생성
 - 이미 존재하는 경우 중복 체크 후 추가
 
-### Step 7: 검증 및 요약
+### Step 9: 검증 및 요약
 
 생성된 파일들을 확인하고 사용자에게 요약 보고:
 
@@ -274,10 +309,14 @@ mkdir -p .claude/skills
 
 ```
 .claude/
+├── settings.local.json      ✅ 생성됨
 ├── rules/
 │   └── coding-style.md      ✅ 생성됨
 ├── commands/                ✅ 생성됨
 ├── plans/                   ✅ 생성됨 (.gitignore 추가)
+├── agents/                  ✅ 생성됨
+├── skills/                  ✅ 생성됨
+CLAUDE.md                    ✅ 생성됨 (AGENTS.md 참조)
 AGENTS.md                    ✅ 생성됨
 .gitignore                   ✅ 업데이트됨
 ```
@@ -361,9 +400,17 @@ AGENTS.md                    ✅ 생성됨
 ✅ .claude/rules/ 생성
 ✅ .claude/commands/ 생성
 ✅ .claude/plans/ 생성
+✅ .claude/agents/ 생성
+✅ .claude/skills/ 생성
+
+settings.local.json 생성 중...
+✅ .claude/settings.local.json 생성 완료
 
 AGENTS.md 생성 중...
 ✅ AGENTS.md 생성 완료
+
+CLAUDE.md 생성 중...
+✅ CLAUDE.md 생성 완료 (AGENTS.md 참조)
 
 coding-style.md 생성 중...
 ✅ .claude/rules/coding-style.md 생성 완료

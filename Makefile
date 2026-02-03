@@ -38,6 +38,7 @@ sync: ohmyzsh ohmytmux
 	[ -L $(HOME)/.claude/settings.json ] || ln -sf $(DOTFILES)/claude/settings.json $(HOME)/.claude/settings.json
 	[ -L $(HOME)/.nvm/default-packages ] || ln -sf $(DOTFILES)/nvm/default-packages $(HOME)/.nvm/default-packages
 	[ -L $(HOME)/.claude/commands/handoff.md ] || ln -sf $(DOTFILES)/claude/commands/handoff.md $(HOME)/.claude/commands/handoff.md
+	[ -L $(HOME)/.claude/commands/scaffold-claude.md ] || ln -sf $(DOTFILES)/claude/commands/scaffold-claude.md $(HOME)/.claude/commands/scaffold-claude.md
 	[ -L $(HOME)/.claude/scripts/notify.sh ] || ln -sf $(DOTFILES)/claude/scripts/notify.sh $(HOME)/.claude/scripts/notify.sh
 	[ -L $(HOME)/.claude/scripts/notify-stop.sh ] || ln -sf $(DOTFILES)/claude/scripts/notify-stop.sh $(HOME)/.claude/scripts/notify-stop.sh
 
@@ -70,6 +71,7 @@ clean:
 	rm -f $(HOME)/.config/tmux/tmux.conf
 	rm -f $(HOME)/.claude/settings.json
 	rm -f $(HOME)/.claude/commands/handoff.md
+	rm -f $(HOME)/.claude/commands/scaffold-claude.md
 	rm -f $(HOME)/.claude/scripts/notify.sh
 	rm -f $(HOME)/.claude/scripts/notify-stop.sh
 	rm -rf $(HOME)/.claude/rules

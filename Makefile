@@ -25,7 +25,6 @@ sync: ohmyzsh ohmytmux
 	mkdir -p $(HOME)/.nvm
 	mkdir -p $(HOME)/.claude
 	mkdir -p $(HOME)/.claude/commands
-	mkdir -p $(HOME)/.claude/scripts
 
 	# 단일 파일 심볼릭 링크
 	[ -L $(HOME)/.zshrc ] || ln -sf $(DOTFILES)/zsh/zshrc $(HOME)/.zshrc
@@ -39,8 +38,6 @@ sync: ohmyzsh ohmytmux
 	[ -L $(HOME)/.nvm/default-packages ] || ln -sf $(DOTFILES)/nvm/default-packages $(HOME)/.nvm/default-packages
 	[ -L $(HOME)/.claude/commands/handoff.md ] || ln -sf $(DOTFILES)/claude/commands/handoff.md $(HOME)/.claude/commands/handoff.md
 	[ -L $(HOME)/.claude/commands/scaffold-claude.md ] || ln -sf $(DOTFILES)/claude/commands/scaffold-claude.md $(HOME)/.claude/commands/scaffold-claude.md
-	[ -L $(HOME)/.claude/scripts/notify.sh ] || ln -sf $(DOTFILES)/claude/scripts/notify.sh $(HOME)/.claude/scripts/notify.sh
-	[ -L $(HOME)/.claude/scripts/notify-stop.sh ] || ln -sf $(DOTFILES)/claude/scripts/notify-stop.sh $(HOME)/.claude/scripts/notify-stop.sh
 
 	# .claude 디렉토리 심볼릭 링크
 	mkdir -p $(HOME)/.claude/rules
@@ -72,8 +69,6 @@ clean:
 	rm -f $(HOME)/.claude/settings.json
 	rm -f $(HOME)/.claude/commands/handoff.md
 	rm -f $(HOME)/.claude/commands/scaffold-claude.md
-	rm -f $(HOME)/.claude/scripts/notify.sh
-	rm -f $(HOME)/.claude/scripts/notify-stop.sh
 	rm -rf $(HOME)/.claude/rules
 	rm -f $(HOME)/.nvm/default-packages
 	rm -rf $(HOME)/.config/kitty

@@ -29,7 +29,7 @@ plugins=(
 )
 
 # kitty 또는 ghostty 터미널에서 tmux 자동 시작
-if [[ -n "$KITTY_WINDOW_ID" || -n "$GHOSTTY_RESOURCES_DIR" ]]; then
+if [[ -n "$KITTY_WINDOW_ID" || -n "$GHOSTTY_TERMINAL" ]]; then
     export ZSH_TMUX_AUTOSTART=true
     plugins+=(tmux)
     cd $HOME/code
@@ -118,7 +118,10 @@ bindkey "^[[1;3D" backward-word
 
 export LANG=en_US.UTF-8 # k9s 깨짐 문제 해결
 
-# bun completions
+# bun
+export TMPDIR=/tmp
+export BUN_RUNTIME_TRANSPILER_CACHE_PATH=/tmp/bun-cache
+export BUN_INSTALL_CACHE_DIR=/tmp/bun-cache
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # pnpm

@@ -8,6 +8,11 @@
             "type": "command",
             "command": "$HOME/.claude/scripts/notify.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "~/.local/bin/claude-notify",
+            "timeout": 10
           }
         ]
       }
@@ -19,6 +24,11 @@
           {
             "type": "command",
             "command": "$HOME/.claude/scripts/notify-stop.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "~/.local/bin/claude-notify",
             "timeout": 10
           }
         ]

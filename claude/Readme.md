@@ -9,3 +9,5 @@
     ```aiignore
     CLAUDE_CODE_TASK_LIST_ID=$(basename "$PWD") claude --dangerously-skip-permissions
     ```
+- ripgrep 설치
+- mgrep 설치

@@ -48,9 +48,7 @@ make backup
 | `idea/ideavimrc` | `~/.ideavimrc` |
 | `tmux/tmux.conf.local` | `~/.config/tmux/tmux.conf.local` |
 | `claude/settings.json` | `~/.claude/settings.json` |
-| `claude/commands/handoff.md` | `~/.claude/commands/handoff.md` |
-| `claude/scripts/notify.sh` | `~/.claude/scripts/notify.sh` |
-| `claude/scripts/notify-stop.sh` | `~/.claude/scripts/notify-stop.sh` |
+| `claude/scripts/*.sh` | `~/.claude/scripts/` (모든 스크립트) |
 | `nvm/default-packages` | `~/.nvm/default-packages` |
 
 ### 디렉토리
@@ -115,6 +113,19 @@ tmux 설정은 [gpakosz/.tmux](https://github.com/gpakosz/.tmux) (oh-my-tmux) �
 ### TypeScript 특정
 
 - Nullish coalescing 연산자 `??` 사용 (`||` 대신)
+- Optional chaining `?.` 적극 활용
+
+### Shell Script 특정
+
+- `set -e` 또는 `set -euo pipefail` 사용
+- 변수는 `${VAR}` 형태로 중괄호 사용
+- 문자열 비교시 `[[` 사용 (`[` 대신)
+
+### Makefile 특정
+
+- `.PHONY` 타겟 명시
+- 조건부 실행은 `[ -L ... ] ||` 또는 `[ -d ... ] ||` 패턴 사용
+- 에러 무시가 필요한 명령은 `-` 접두사 사용
 
 ## AI 응답 가이드라인
 

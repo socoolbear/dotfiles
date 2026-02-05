@@ -30,7 +30,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "node /Users/socoolbear/.claude/hud/omc-hud.mjs"
+    "command": "node ~/.claude/hud/omc-hud.mjs"
   },
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,

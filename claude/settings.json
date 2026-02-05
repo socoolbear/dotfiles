@@ -1,4 +1,7 @@
 {
+  "include": [
+    "~/.claude/omc-instructions.md"
+  ],
   "hooks": {
     "Notification": [
       {

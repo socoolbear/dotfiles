@@ -58,6 +58,10 @@ sync: ohmyzsh ohmytmux
 	rm -rf $(HOME)/.config/karabiner
 	ln -sf $(DOTFILES)/karabiner $(HOME)/.config/karabiner
 
+	# OpenCode 설정
+	mkdir -p $(HOME)/.config/opencode
+	[ -L $(HOME)/.config/opencode/oh-my-opencode.json ] || ln -sf $(DOTFILES)/opencode/oh-my-opencode.json $(HOME)/.config/opencode/oh-my-opencode.json
+
 clean:
 	rm -f $(HOME)/.zshrc
 	rm -f $(HOME)/.vimrc
@@ -76,6 +80,7 @@ clean:
 	rm -rf $(HOME)/.config/kitty
 	rm -rf $(HOME)/.config/lvim
 	rm -rf $(HOME)/.config/karabiner
+	rm -f $(HOME)/.config/opencode/oh-my-opencode.json
 
 backup:
 	mkdir -p $(HOME)/backup_dotfiles

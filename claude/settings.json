@@ -1,7 +1,7 @@
 {
-  "include": [
-    "~/.claude/omc-instructions.md"
-  ],
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "hooks": {
     "Notification": [
       {
@@ -37,7 +37,10 @@
     "document-skills@anthropic-agent-skills": true,
     "opgg-essentials@opgg-plugins": true,
     "oh-my-claudecode@omc": true,
-    "mgrep@Mixedbread-Grep": true
+    "figma@claude-plugins-official": true
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "include": [
+    "~/.claude/omc-instructions.md"
+  ]
 }

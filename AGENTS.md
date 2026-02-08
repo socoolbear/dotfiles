@@ -48,7 +48,10 @@ make backup
 | `idea/ideavimrc` | `~/.ideavimrc` |
 | `tmux/tmux.conf.local` | `~/.config/tmux/tmux.conf.local` |
 | `claude/settings.json` | `~/.claude/settings.json` |
-| `claude/scripts/*.sh` | `~/.claude/scripts/` (모든 스크립트) |
+| `claude/.mcp.json` | `~/.mcp.json` |
+| `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
+| `claude/commands/handoff.md` | `~/.claude/commands/handoff.md` |
+| `claude/commands/scaffold-claude.md` | `~/.claude/commands/scaffold-claude.md` |
 | `nvm/default-packages` | `~/.nvm/default-packages` |
 
 ### 디렉토리

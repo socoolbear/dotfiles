@@ -1,0 +1,8 @@
+# ntfy.sh for Claude Code notifications
+export NTFY_TOKEN="xxx"
+export NTFY_TOPIC="xxx"
+export MXBAI_API_KEY="xxx"
+
+# MCP Servers
+export EXA_API_KEY="xxx"
+export GITHUB_PERSONAL_ACCESS_TOKEN="xxx"

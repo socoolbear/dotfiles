@@ -35,9 +35,10 @@
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "document-skills@anthropic-agent-skills": true,
-    "opgg-essentials@opgg-plugins": true,
     "oh-my-claudecode@omc": true,
-    "figma@claude-plugins-official": true
+    "figma@claude-plugins-official": true,
+    "opgg-essentials@opgg-plugins": true,
+    "claude-mem@thedotmack": true
   },
   "alwaysThinkingEnabled": true,
   "include": [

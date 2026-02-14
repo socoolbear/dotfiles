@@ -134,3 +134,5 @@ esac
 
 # rbenv
 eval "$(rbenv init - --no-rehash zsh)"
+
+alias claude-mem='bun "~/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs"'

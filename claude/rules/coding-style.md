@@ -12,11 +12,6 @@
 - **함수명**: 동사 사용 (예: `createSymlink`, `backupFile`, `installPackage`)
 - **변수명**: 명사 사용 (예: `dotfilesPath`, `targetDir`, `configFile`)
 
-## TypeScript Specific
-
-- Nullish coalescing: `??` 사용 (`||` 대신)
-- Optional chaining: `?.` 적극 활용
-
 ## Shell Script Specific
 
 - `set -e` 또는 `set -euo pipefail` 사용

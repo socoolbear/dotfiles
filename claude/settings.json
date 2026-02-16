@@ -34,11 +34,11 @@
   },
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
-    "document-skills@anthropic-agent-skills": true,
-    "figma@claude-plugins-official": true,
+    "document-skills@anthropic-agent-skills": false,
+    "figma@claude-plugins-official": false,
     "opgg-essentials@opgg-plugins": true,
     "claude-mem@thedotmack": true,
-    "oh-my-claudecode@omc": true
+    "oh-my-claudecode@omc": false
   },
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,

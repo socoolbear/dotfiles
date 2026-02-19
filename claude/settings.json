@@ -1,4 +1,8 @@
 {
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/scripts/statusline-command.sh"
+  },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
@@ -28,21 +32,13 @@
       }
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "node ~/.claude/hud/omc-hud.mjs"
-  },
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "document-skills@anthropic-agent-skills": false,
     "figma@claude-plugins-official": false,
     "opgg-essentials@opgg-plugins": true,
-    "claude-mem@thedotmack": true,
-    "oh-my-claudecode@omc": false
+    "claude-mem@thedotmack": true
   },
   "alwaysThinkingEnabled": true,
-  "skipDangerousModePermissionPrompt": true,
-  "include": [
-    "~/.claude/omc-instructions.md"
-  ]
+  "skipDangerousModePermissionPrompt": true
 }

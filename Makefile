@@ -46,6 +46,10 @@ sync: ohmyzsh ohmytmux
 	rm -rf $(HOME)/.claude/rules
 	ln -sf $(DOTFILES)/claude/rules $(HOME)/.claude/rules
 
+	mkdir -p $(HOME)/.claude/scripts
+	rm -rf $(HOME)/.claude/scripts
+	ln -sf $(DOTFILES)/claude/scripts $(HOME)/.claude/scripts
+
 	# 디렉토리 심볼릭 링크 (기존 제거 후 링크)
 	rm -rf $(HOME)/.config/kitty
 	ln -sf $(DOTFILES)/kitty $(HOME)/.config/kitty
@@ -78,6 +82,7 @@ clean:
 	rm -f $(HOME)/.claude/commands/handoff.md
 	rm -f $(HOME)/.claude/commands/scaffold-claude.md
 	rm -rf $(HOME)/.claude/rules
+	rm -rf $(HOME)/.claude/scripts
 	rm -f $(HOME)/.nvm/default-packages
 	rm -rf $(HOME)/.config/kitty
 	rm -rf $(HOME)/.config/lvim

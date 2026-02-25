@@ -36,6 +36,7 @@ sync: ohmyzsh ohmytmux
 	[ -L $(HOME)/.config/tmux/tmux.conf.local ] || ln -sf $(DOTFILES)/tmux/tmux.conf.local $(HOME)/.config/tmux/tmux.conf.local
 	[ -L $(HOME)/.claude/settings.json ] || ln -sf $(DOTFILES)/claude/settings.json $(HOME)/.claude/settings.json
 	[ -L $(HOME)/.claude/CLAUDE.md ] || ln -sf $(DOTFILES)/claude/CLAUDE.md $(HOME)/.claude/CLAUDE.md
+	[ -L $(HOME)/.claude/AGENTS.md ] || ln -sf $(DOTFILES)/claude/AGENTS.md $(HOME)/.claude/AGENTS.md
 	[ -L $(HOME)/.mcp.json ] || ln -sf $(DOTFILES)/claude/.mcp.json $(HOME)/.mcp.json
 	[ -L $(HOME)/.nvm/default-packages ] || ln -sf $(DOTFILES)/nvm/default-packages $(HOME)/.nvm/default-packages
 	[ -L $(HOME)/.claude/commands/handoff.md ] || ln -sf $(DOTFILES)/claude/commands/handoff.md $(HOME)/.claude/commands/handoff.md
@@ -78,6 +79,7 @@ clean:
 	rm -f $(HOME)/.config/tmux/tmux.conf
 	rm -f $(HOME)/.claude/settings.json
 	rm -f $(HOME)/.claude/CLAUDE.md
+	rm -f $(HOME)/.claude/AGENTS.md
 	rm -f $(HOME)/.mcp.json
 	rm -f $(HOME)/.claude/commands/handoff.md
 	rm -f $(HOME)/.claude/commands/scaffold-claude.md

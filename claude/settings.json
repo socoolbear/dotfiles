@@ -21,11 +21,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/review-on-stop.sh",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "~/.local/bin/claude-notify",
             "timeout": 10
           }
@@ -47,5 +42,6 @@
     "ralph-wiggum@claude-code-plugins": true
   },
   "alwaysThinkingEnabled": true,
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "effortLevel": "high"
 }

@@ -2,6 +2,9 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "hooks": {
     "Notification": [
       {
@@ -90,9 +93,31 @@
     "opgg-essentials@opgg-plugins": true,
     "claude-mem@thedotmack": true,
     "ralph-loop@claude-plugins-official": true,
-    "ralph-wiggum@claude-code-plugins": true
+    "ralph-wiggum@claude-code-plugins": true,
+    "skill-creator@claude-plugins-official": true,
+    "php-lsp@claude-plugins-official": true,
+    "codex@openai-codex": true,
+    "harness-engineering@socoolbear-cc-marketplace": true,
+    "documents@socoolbear-cc-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    },
+    "socoolbear-cc-marketplace": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/socoolbear/cc-marketplace.git"
+      }
+    }
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
-  "effortLevel": "high"
+  "skipAutoPermissionPrompt": true,
+  "editorMode": "vim",
+  "autoCompactEnabled": false
 }

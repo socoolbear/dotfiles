@@ -98,7 +98,8 @@
     "php-lsp@claude-plugins-official": true,
     "codex@openai-codex": true,
     "harness-engineering@socoolbear-cc-marketplace": true,
-    "documents@socoolbear-cc-marketplace": true
+    "documents@socoolbear-cc-marketplace": true,
+    "harness@socoolbear-cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -117,7 +118,7 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true,
   "editorMode": "vim",
-  "autoCompactEnabled": false
+  "autoCompactEnabled": false,
+  "skipAutoPermissionPrompt": true
 }

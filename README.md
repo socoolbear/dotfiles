@@ -5,7 +5,7 @@
   - mac
     - ```
       brew install \
-       curl wget fzf zsh tmux git make gcc  bat \
+       curl wget zoxide fzf zsh tmux git make gcc  bat \
        nodejs npm nvm \
        awscli
       ```

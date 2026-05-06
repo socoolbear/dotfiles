@@ -7,25 +7,6 @@
 
 macOS 개발 환경을 위한 개인 dotfiles 저장소. Makefile 기반 심볼릭 링크 관리를 통해 설정 파일들을 한 곳에서 관리합니다.
 
-## 프로젝트 구조
-
-| 디렉토리 | 설명 | 대상 경로 | 자동 링크 |
-|----------|------|-----------|-----------|
-| `zsh/` | Zsh 설정 (oh-my-zsh) | `~/.zshrc` | ✅ |
-| `vim/` | Vim/GVim 설정 | `~/.vimrc`, `~/.gvimrc` | ✅ |
-| `idea/` | IdeaVim (JetBrains IDE) | `~/.ideavimrc` | ✅ |
-| `tmux/` | Tmux 설정 (oh-my-tmux) | `~/.config/tmux/` | ✅ |
-| `kitty/` | Kitty 터미널 | `~/.config/kitty/` | ✅ |
-| `ghostty/` | Ghostty 터미널 | `~/.config/ghostty/` | ✅ |
-| `lvim/` | LunarVim | `~/.config/lvim/` | ✅ |
-| `karabiner/` | 키보드 리맵핑 | `~/.config/karabiner/` | ✅ |
-| `claude/` | Claude Code 글로벌 설정 | `~/.claude/`, `~/.mcp.json` | ✅ (부분) |
-| `nvm/` | NVM 기본 패키지 | `~/.nvm/default-packages` | ✅ |
-| `opencode/` | OpenCode 설정 | `~/.config/opencode/` | ✅ |
-| `git/` | Git 설정 (alias / delta / include) | `~/.gitconfig`, `~/.gitignore_global` | ✅ |
-| `copilot/` | GitHub Copilot 인스트럭션 템플릿 | 프로젝트별 `.github/` | ❌ (수동 복사) |
-| `.claude/` | 프로젝트 로컬 Claude 설정 | 로컬 전용 | — |
-
 ## 명령어
 
 ```bash
@@ -42,93 +23,16 @@ make backup      # 기존 dotfiles 백업 (~/backup_dotfiles/)
 make help        # 명령어 목록 출력
 ```
 
-## 심볼릭 링크 매핑
+## 상세 가이드
 
-### 단일 파일
+| 주제 | 참조 |
+|------|------|
+| 디렉토리 구조 + 심볼릭 링크 매핑 + `.claude/` 구조 | `@docs/structure.md` |
+| Makefile 동작 원리 + claude/ 하위 구성 + backup 한계 | `@docs/architecture.md` |
+| Bootstrap / 새 장비 설치 노트 | `@docs/install-note.md` |
+| 비-Makefile 마이그레이션 파일 목록 | `@docs/migration-files.md` |
 
-| Source | Target |
-|--------|--------|
-| `zsh/zshrc` | `~/.zshrc` |
-| `vim/vimrc` | `~/.vimrc` |
-| `vim/gvimrc` | `~/.gvimrc` |
-| `idea/ideavimrc` | `~/.ideavimrc` |
-| `git/gitconfig` | `~/.gitconfig` |
-| `git/gitignore_global` | `~/.gitignore_global` |
-| `tmux/tmux.conf.local` | `~/.config/tmux/tmux.conf.local` |
-| `claude/settings.json` | `~/.claude/settings.json` |
-| `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
-| `claude/AGENTS.md` | `~/.claude/AGENTS.md` |
-| `claude/.mcp.json` | `~/.mcp.json` *(주의: `~/.claude/` 가 아닌 홈 루트)* |
-| `claude/commands/*.md` | `~/.claude/commands/<name>.md` *(와일드카드 자동 발견)* |
-| `nvm/default-packages` | `~/.nvm/default-packages` |
-| `opencode/oh-my-opencode.json` | `~/.config/opencode/oh-my-opencode.json` |
-
-> `claude/commands/*.md` 는 Makefile 의 `COMMANDS` 와일드카드가 자동 발견하므로, 새 명령을 추가해도 Makefile 수정 불필요.
-
-### Git 설정과 호스트 로컬 설정
-
-`git/gitconfig` 는 `[include] path = ~/.gitconfig_local` 을 가지고 있습니다. 호스트별 `user.email`, `includeIf` 등은 `~/.gitconfig_local` (저장소 외부) 에 두면 자동 로드됩니다.
-
-기존 `~/.gitconfig` 가 실파일인 채로 `make sync` 를 실행하면 안전장치가 발동해 마이그레이션 안내 후 중단합니다:
-
-```bash
-mv ~/.gitconfig ~/.gitconfig_local
-make sync
-```
-
-### 디렉토리
-
-| Source | Target |
-|--------|--------|
-| `kitty/` | `~/.config/kitty/` |
-| `ghostty/` | `~/.config/ghostty/` |
-| `lvim/` | `~/.config/lvim/` |
-| `karabiner/` | `~/.config/karabiner/` |
-| `claude/rules/` | `~/.claude/rules/` |
-| `claude/scripts/` | `~/.claude/scripts/` |
-| `claude/docs/` | `~/.claude/docs/` |
-
-## 아키텍처
-
-### Makefile 기반 관리
-
-- **단일 파일**: `[ -L ... ] || ln -sf` 패턴으로 멱등 심볼릭 링크
-- **디렉토리**: `rm -rf` 후 `ln -sf` 패턴으로 전체 교체
-- **프레임워크**: oh-my-zsh, oh-my-tmux 자동 설치
-
-### oh-my-tmux 주의사항
-
-- `tmux.conf` 는 oh-my-tmux 가 관리 (수정 금지)
-- `tmux.conf.local` 만 커스터마이징
-- 위치: `~/.config/tmux/` (XDG 표준)
-
-### claude/ 하위 구성
-
-- `claude/settings.json` — Claude Code 글로벌 설정 (hooks, 권한, 환경변수)
-- `claude/.mcp.json` — MCP 서버 정의 (홈 루트 `~/.mcp.json` 으로 링크)
-- `claude/CLAUDE.md` / `claude/AGENTS.md` — 글로벌 인스트럭션
-- `claude/rules/` — 자동 로드되는 규칙 모음 (예: `coding-style.md`)
-- `claude/scripts/` — Hook 등에서 호출하는 유틸 스크립트 (예: `notify.sh`, `statusline-command.sh`)
-- `claude/docs/` — `claude/AGENTS.md` 가 `@docs/...` 로 참조하는 상세 가이드 (워크플로우, 피드백 라우팅 등)
-- `claude/commands/` — 슬래시 명령어 정의
-
-### `make backup` 의 한계
-
-`make backup` 은 zsh, vim, idea, tmux, git, kitty, lvim, karabiner, nvm 만 백업합니다. 다음은 백업 대상이 아니므로 필요시 직접 처리:
-- `~/.config/ghostty/`
-- `~/.config/opencode/`
-- `~/.claude/` (settings.json 등)
-- `~/.mcp.json`
-
-## .claude 디렉토리 구조
-
-```
-.claude/
-├── plans/                  # 작업 계획서 (계획 모드에서 자동 생성)
-├── rules/
-│   └── coding-style.md     # 코딩 스타일 규칙 (자동 로드)
-└── settings.local.json     # 프로젝트 로컬 설정
-```
+> 위 표의 `@docs/...` 항목은 해당 작업에 진입할 때 **반드시 먼저 읽어야 함** 을 의미합니다.
 
 ## 작업 완료 체크리스트
 

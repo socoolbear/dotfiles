@@ -1,41 +1,27 @@
 # 설치 후 작업 노트
 
-새 macOS 장치 셋업 시 dotfiles 설치 외에 수동으로 처리할 항목들.
+새 macOS 장치 셋업 시 dotfiles 설치 외에 **수동으로 처리할 항목들**.
+
+> 패키지/도구 설치는 `Brewfile` (`make brew`) 와 `Brewfile.apps` (`make brew-apps`) 가 처리합니다. 본 문서는 자동화되지 않는 잔여 작업만 다룹니다.
 
 ## 참고
 
 - [홈 디렉토리에서 옮길 파일 가이드](./migration-files.md)
 
-## 필수 앱
+## GUI 앱
 
-- **업무/협업**: Slack, Notion, Zoom, Discord
-- **개발**: JetBrains, Postman, Docker, K9s
-- **AI**: Claude Code, Claude Desktop, ChatGPT Desktop
-- **유틸**: Rectangle, Alfred, 1Password, RunCat
-- **네트워크**: FortiClient (VPN)
-- **브라우저/디자인**: Google Chrome, Figma
-- **문서**: Obsidian
-- **메신저**: KakaoTalk
+후보군은 `Brewfile.apps` 에 카테고리별 (협업/개발/AI/유틸/브라우저/네트워크 등) 로 주석 처리되어 있습니다. 새 장비에서 필요한 항목의 주석을 해제한 뒤:
 
-## 터미널 도구
-
-`Brewfile` 에 카테고리별로 선언되어 있습니다. `make brew` 로 일괄 설치하세요.
-
-빠른 참조 (자세한 내용은 `Brewfile` 의 카테고리 헤더):
-- **코어 대체**: `ripgrep`, `fd`, `bat`, `eza`, `zoxide`, `the_silver_searcher`
-- **검색/히스토리**: `fzf`, `atuin`
-- **데이터 처리**: `jq`, `yq`, `httpie`
-- **코드 품질**: `ast-grep`, `difftastic`, `shellcheck`, `shfmt`, `ruff`
-- **Git/TUI**: `gh`, `git-delta`, `lazygit`, `yazi`
-- **프롬프트**: `starship`
-- **버전 매니저**: `mise` (Node, Go 등 통합. 글로벌 매니페스트는 `mise/config.toml`)
+```bash
+make brew-apps    # mas 항목 사용 시 사전에 App Store 로그인 필요
+```
 
 ## 셋업 작업
 
 ### Shell
 
-- 이전 장치의 `~/.zsh_history` 복사 (또는 atuin 동기화)
-- 시크릿 환경 변수: `cp zsh/private.export.example ~/.private-exports` 후 토큰 입력 (NTFY/EXA/GitHub 등). zshrc 가 존재 시 자동 로드.
+- `~/.zsh_history` 마이그레이션은 [migration-files 의 비교 표](./migration-files.md#zsh-history-동기화-옵션-비교) 참조 (atuin 권장).
+- 시크릿 환경 변수: `cp zsh/private.export.example ~/.private-exports` 후 토큰 입력 (NTFY/EXA/GitHub 등). zshrc 가 자동 로드합니다.
 
 ### Git
 
@@ -64,16 +50,14 @@
 
 - **Alfred**: 플러그인/Workflow 설정
 - **Obsidian**: vault 설정
-- **JetBrains**: 터미널 폰트 (JetBrains Mono 13pt)
-
-### JetBrains 단축키 충돌 방지
-
-- `cmd + shift + A` 충돌 해결
-- 설정 → 키보드 단축키 → 서비스 → 텍스트 → "터미널에서 man 페이지 인덱스 검색" off
+- **JetBrains**:
+  - 터미널 폰트 (JetBrains Mono 13pt)
+  - `cmd + shift + A` 충돌 해결: 설정 → 키보드 단축키 → 서비스 → 텍스트 → "터미널에서 man 페이지 인덱스 검색" off
 
 ### Claude
 
-- claude-desktop, claude-code 설정 동기화
+`make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, AGENTS.md, rules, scripts, docs, commands) 와 `~/.mcp.json` 을 심링크합니다. 추가 자료:
+
 - [SuperClaude](https://github.com/SuperClaude-Org/SuperClaude_Framework)
 - [claude-code-requirements-builder](https://github.com/rizethereum/claude-code-requirements-builder)
 

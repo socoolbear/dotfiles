@@ -25,8 +25,7 @@
 
 ## `make backup` 의 한계
 
-`make backup` 은 zsh, vim, idea, tmux, git, kitty, karabiner, mise 만 백업합니다. 다음은 백업 대상이 아니므로 필요시 직접 처리:
+`make backup` 은 zsh, vim, idea, tmux, git, ghostty, karabiner, mise 만 백업합니다. 다음은 백업 대상이 아니므로 필요시 직접 처리:
 
-- `~/.config/ghostty/`
 - `~/.claude/` (settings.json 등)
 - `~/.mcp.json`

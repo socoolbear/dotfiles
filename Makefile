@@ -67,7 +67,6 @@ LINKS_SINGLE := \
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
 LINKS_DIR := \
-    kitty:.config/kitty \
     ghostty:.config/ghostty \
     karabiner:.config/karabiner \
     claude/rules:.claude/rules \
@@ -238,6 +237,6 @@ backup:
 	-cp -L -i $(HOME)/.config/mise/config.toml $(HOME)/backup_dotfiles/mise-config.toml
 	# 디렉토리 (실파일 또는 심링크 모두 처리)
 	-cp -RL $(HOME)/.config/karabiner $(HOME)/backup_dotfiles/karabiner 2>/dev/null
-	-cp -RL $(HOME)/.config/kitty $(HOME)/backup_dotfiles/kitty 2>/dev/null
+	-cp -RL $(HOME)/.config/ghostty $(HOME)/backup_dotfiles/ghostty 2>/dev/null
 	@echo "==> 백업 완료: $(HOME)/backup_dotfiles/"
 	@echo "==> 가장 중요한 파일: gitconfig_local, private-exports (repo 외부 데이터)"

@@ -50,7 +50,7 @@ mkdir -p ~/code ~/.local/bin
 
 ### 터미널 세팅
 
-- Kitty + Nerd Font (JetBrainsMono 권장)
+- Ghostty + Nerd Font (JetBrainsMono 권장)
 - SSH 원격 tmux 256색 이슈: `~/.ssh/config` 에 `SetEnv TERM=xterm` 추가
 
 ### 선택 사항
@@ -89,5 +89,4 @@ make fresh
 ## 더 보기
 
 - [설치 후 작업 노트](docs/install-note.md)
-- [홈 디렉토리에서 옮길 파일 가이드](docs/migration-files.md)
 - [AI 에이전트 가이드](AGENTS.md)

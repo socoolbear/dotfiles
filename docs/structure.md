@@ -8,7 +8,6 @@
 | `vim/` | Vim/GVim 설정 | `~/.vimrc`, `~/.gvimrc` | ✅ |
 | `idea/` | IdeaVim (JetBrains IDE) | `~/.ideavimrc` | ✅ |
 | `tmux/` | Tmux 설정 (oh-my-tmux) | `~/.config/tmux/` | ✅ |
-| `kitty/` | Kitty 터미널 | `~/.config/kitty/` | ✅ |
 | `ghostty/` | Ghostty 터미널 | `~/.config/ghostty/` | ✅ |
 | `karabiner/` | 키보드 리맵핑 | `~/.config/karabiner/` | ✅ |
 | `claude/` | Claude Code 글로벌 설정 | `~/.claude/`, `~/.mcp.json` | ✅ (부분) |
@@ -43,7 +42,6 @@
 
 | Source | Target |
 |--------|--------|
-| `kitty/` | `~/.config/kitty/` |
 | `ghostty/` | `~/.config/ghostty/` |
 | `karabiner/` | `~/.config/karabiner/` |
 | `claude/rules/` | `~/.claude/rules/` |

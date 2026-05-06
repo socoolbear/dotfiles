@@ -30,8 +30,7 @@ make help        # 명령어 목록 출력
 |------|------|
 | 디렉토리 구조 + 심볼릭 링크 매핑 + `.claude/` 구조 | `@docs/structure.md` |
 | Makefile 동작 원리 + claude/ 하위 구성 + backup 한계 | `@docs/architecture.md` |
-| Bootstrap / 새 장비 설치 노트 | `@docs/install-note.md` |
-| 비-Makefile 마이그레이션 파일 목록 | `@docs/migration-files.md` |
+| Bootstrap / 새 장비 설치 노트 + 홈 디렉토리에서 옮길 파일 | `@docs/install-note.md` |
 
 > 위 표의 `@docs/...` 항목은 해당 작업에 진입할 때 **반드시 먼저 읽어야 함** 을 의미합니다.
 

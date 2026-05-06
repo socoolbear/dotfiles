@@ -10,7 +10,6 @@ DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
 DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/socoolbear/dotfiles.git}"
 
 step() { printf '\n==> %s\n' "$1"; }
-warn() { printf 'WARN: %s\n' "$1"; }
 
 #--------------------------------------------------------------------------
 # 1. Xcode Command Line Tools
@@ -55,20 +54,11 @@ cd "$DOTFILES"
 mkdir -p "$HOME/code" "$HOME/.local/bin"
 
 #--------------------------------------------------------------------------
-# 5. Make 타겟들
+# 5. dotfiles 자동화 — make fresh 로 위임 (brew + sync + mise + npm + macos)
 #--------------------------------------------------------------------------
 
-step "Brewfile 적용 (코어)"
-make brew
-
-step "심볼릭 링크 생성"
-make sync
-
-step "NPM globals 설치"
-make npm || warn "node/npm 미설치. 'nvm install --lts' 후 'make npm' 재실행."
-
-step "macOS defaults 적용"
-make macos
+step "make fresh"
+make fresh
 
 #--------------------------------------------------------------------------
 # 6. 후속 안내
@@ -82,6 +72,7 @@ cat <<'EOF'
   - ~/.gitconfig_local 에 호스트별 user.email / includeIf 작성
   - ~/.private-exports 에 토큰 입력 (zsh/private.export.example 참고)
   - 1Password / JetBrains / Alfred 등 라이센스 / 계정 입력
+  - 자세한 후속 작업: docs/install-note.md 참조
 
 새 셸 시작: exec zsh
 EOF

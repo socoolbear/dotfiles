@@ -9,8 +9,10 @@
 | 파일 | 용도 | 비고 |
 |------|------|------|
 | `~/.ssh/config` | SSH host alias, 포트, ProxyJump 등 | 평문이지만 hostname 정도라 OK |
-| `~/.gitconfig` | Git 전역 설정 | user.email 외엔 민감하지 않음 |
+| `~/.gitconfig_local` | Git user.email / `includeIf` (호스트별) | 본 dotfiles 의 `git/gitconfig` 가 `[include]` 로 자동 로드 |
 | `~/.aws/config` | profile 이름·region | credentials 와 분리되어 있어 안전 |
+
+> `~/.gitconfig` 자체는 본 dotfiles 의 `git/gitconfig` 로 심링크되므로 옮기지 말 것. 호스트별 user.email 은 `~/.gitconfig_local` 에 작성합니다 ([install-note](./install-note.md#git) 참조).
 
 ## ⚠️ 민감 정보 — repo 추가 시 선별/마스킹 필요
 
@@ -35,25 +37,7 @@
 
 ## 💡 추가로 옮길 가치 있는 것들
 
-### Homebrew 패키지 목록 (강력 추천)
-
-```bash
-# 기존 장치에서
-brew bundle dump --file=Brewfile
-
-# 새 장치에서
-brew bundle --file=Brewfile
-```
-
-### macOS 시스템 설정
-
-`defaults write` 스크립트로 환경설정 자동화:
-
-```bash
-# 예시
-defaults write com.apple.dock autohide -bool true
-defaults write NSGlobalDomain AppleShowAllExtensions -bool true
-```
+> Homebrew 패키지 목록과 macOS 시스템 설정은 본 dotfiles 가 이미 처리합니다 (`Brewfile` / `make macos`). 아래는 dotfiles 외부 항목.
 
 ### VS Code / Cursor 설정
 

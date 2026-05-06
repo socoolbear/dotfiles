@@ -49,8 +49,6 @@ brew "mas"
 brew "ripgrep"
 # Simple, fast and user-friendly alternative to find
 brew "fd"
-# zshrc 의 FZF_DEFAULT_COMMAND 에서 사용하는 ag (the_silver_searcher)
-brew "the_silver_searcher"
 # Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
 # Modern, maintained replacement for ls

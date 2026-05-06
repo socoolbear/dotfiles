@@ -7,13 +7,11 @@ is_intellij_terminal() {
 #--------------------------------------------------------------------------
 
 export ZSH=$HOME/.oh-my-zsh
-ZSH_THEME="agnoster"
-ZSH_TMUX_AUTOSTART=false
+ZSH_THEME=""
+export ZSH_TMUX_AUTOSTART=false
 HYPHEN_INSENSITIVE="true"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="yyyy-mm-dd"
-export HOMEBREW_AUTO_UPDATE_SECS="86400"
-export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
 
 plugins=(
     git
@@ -31,7 +29,7 @@ plugins=(
 if [[ -n "$KITTY_WINDOW_ID" || -n "$GHOSTTY_TERMINAL" ]]; then
     export ZSH_TMUX_AUTOSTART=true
     plugins+=(tmux)
-    cd $HOME/code
+    [[ -o login ]] && cd $HOME/code
 fi
 
 # Idea 예외처리
@@ -51,6 +49,8 @@ source $ZSH/oh-my-zsh.sh
 #--------------------------------------------------------------------------
 typeset -U PATH path cdpath fpath
 
+export HOMEBREW_AUTO_UPDATE_SECS="86400"
+export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
 export ANDROID_HOME=$HOME/Library/Android/sdk
 
 path=(
@@ -78,7 +78,9 @@ cdpath=(
 
 export EDITOR=vim
 export GIT_EDITOR=vim
-export FZF_DEFAULT_COMMAND='ag -u -g ""'
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 
 unsetopt sharehistory
 
@@ -91,7 +93,16 @@ alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 alias pn='pnpm'
 
 [ -x "$(command -v bat)" ] && alias cat="bat --paging=never" || alias cat="batcat --paging=never"
-[ -x "$(command -v lvim)" ] && alias vim="lvim"
+
+[ -x "$(command -v eza)" ] && {
+    alias ls='eza --group-directories-first'
+    alias ll='eza -l --git --group-directories-first'
+    alias la='eza -la --git --group-directories-first'
+    alias lt='eza --tree --level=2'
+}
+
+[ -x "$(command -v lazygit)" ] && alias lg='lazygit'
+[ -x "$(command -v yazi)" ] && alias yz='yazi'
 
 #--------------------------------------------------------------------------
 # Miscellaneous
@@ -104,7 +115,6 @@ bindkey "^[[1;3D" backward-word
 export LANG=en_US.UTF-8 # k9s 깨짐 문제 해결
 
 # bun
-export TMPDIR=/tmp
 export BUN_RUNTIME_TRANSPILER_CACHE_PATH=/tmp/bun-cache
 export BUN_INSTALL_CACHE_DIR=/tmp/bun-cache
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
@@ -120,8 +130,9 @@ esac
 # mise — Node, Go 등 통합 버전 관리 (nvm/rbenv 대체). PATH prepend 하므로 기존 PATH 설정 이후에 호출.
 eval "$(mise activate zsh)"
 
-alias claude-mem='bun "~/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs"'
+alias claude-mem='bun "$HOME/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs"'
 
 # tools
 eval "$(zoxide init zsh)"
+eval "$(atuin init zsh)"
 eval "$(starship init zsh)"

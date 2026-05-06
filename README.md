@@ -2,33 +2,34 @@
 
 macOS 개발 환경을 위한 개인 dotfiles. Makefile 기반 심볼릭 링크로 관리합니다.
 
+## 한 줄 셋업 (새 장비)
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/socoolbear/dotfiles/master/bootstrap.sh | bash
+```
+
+위 스크립트는 Xcode CLT → Homebrew → dotfiles clone → `make brew` → `make sync` → `make npm` → `make macos` 순으로 실행합니다.
+
 ## 사전 준비
 
-### 필수 도구 (Homebrew)
+### Homebrew
 
 ```shell
-brew install \
-  curl wget zsh tmux git make gcc bat \
-  nvm \
-  awscli
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-> `node` / `npm` 은 `nvm install <version>` 으로 설치 (Homebrew node 와 충돌 방지)
+### 패키지 / 앱 (Brewfile)
 
-### 폰트
+코어 CLI 도구는 `Brewfile`, GUI 앱은 `Brewfile.apps` 로 분리되어 선언되어 있습니다.
 
 ```shell
-brew install --cask font-jetbrains-mono-nerd-font
+make brew         # 코어 도구 (formula + tap)
+make brew-apps    # GUI 앱 (cask + mas) — 새 장비에서만 선택적으로 실행
 ```
+
+`Brewfile.apps` 의 GUI 앱 후보들은 주석 처리되어 있으니 새 장비에서 필요한 항목만 주석을 해제한 뒤 실행하세요. Mac App Store 항목 (`mas`) 사용 시 사전에 App Store 로그인이 필요합니다.
 
 다른 Nerd Font 가 필요하면 [getnf](https://github.com/ronniedroid/getnf) 사용.
-
-### 패키지 매니저 / CLI
-
-```shell
-npm install -g pnpm@latest-10
-npm install -g @nestjs/cli
-```
 
 ### SSH
 
@@ -54,31 +55,35 @@ mkdir -p ~/code ~/.local/bin
 
 ### 선택 사항
 
-- 키 길게 누름 시 액센트 팝업 비활성화
-
-  ```shell
-  defaults write -g ApplePressAndHoldEnabled -bool false
-  ```
+- macOS 시스템 기본값은 `make macos` 가 처리 (`macos/defaults.sh` 참고)
 - oh-my-zsh
   - agnoster 테마 [멀티라인 설정](https://gist.github.com/socoolbear/d59447cfaffc24ee914e27fe3019cd81)
 - Karabiner-Elements
 - git include 분리 (work / personal 계정) — [install-note 참조](docs/install-note.md#git)
 
-## 설치
+## 설치 (수동)
 
 ```shell
 git clone https://github.com/socoolbear/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
-make sync
+make fresh
 ```
 
 ### Make 명령어
 
 | 명령 | 설명 |
 |------|------|
+| `make fresh` | 새 장비용: `brew + sync + npm + macos` 일괄 실행 |
+| `make update` | 일상 동기화: `brew + sync` 만 |
+| `make brew` | `Brewfile` 적용 (코어 CLI 도구) |
+| `make brew-apps` | `Brewfile.apps` 적용 (GUI 앱 + Mac App Store) |
 | `make sync` | 심볼릭 링크 생성 (oh-my-zsh, oh-my-tmux 자동 설치 포함) |
+| `make npm` | NPM globals 설치 (`nvm/default-packages` 매니페스트 + `@nestjs/cli`) |
+| `make macos` | macOS 시스템 기본값 적용 (`macos/defaults.sh`) |
+| `make bootstrap` | 새 장비 1-shot 부트스트랩 (Xcode CLT + Homebrew 설치 포함) |
 | `make clean` | 모든 심볼릭 링크 제거 |
 | `make backup` | 기존 dotfiles 를 `~/backup_dotfiles/` 에 백업 |
+| `make help` | 본 명령어 목록을 터미널에 출력 |
 
 ## 더 보기
 

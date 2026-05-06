@@ -19,11 +19,14 @@
 
 ## 터미널 도구
 
-- **코어 대체**: `ripgrep`, `fd`, `bat`, `eza`, `zoxide`
-- **검색 / 히스토리**: `fzf`, `atuin`
+`Brewfile` 에 카테고리별로 선언되어 있습니다. `make brew` 로 일괄 설치하세요.
+
+빠른 참조 (자세한 내용은 `Brewfile` 의 카테고리 헤더):
+- **코어 대체**: `ripgrep`, `fd`, `bat`, `eza`, `zoxide`, `the_silver_searcher`
+- **검색/히스토리**: `fzf`, `atuin`
 - **데이터 처리**: `jq`, `yq`, `httpie`
-- **코드 검색 / 품질**: `ast-grep`, `difftastic`, `shellcheck`, `shfmt`, `ruff`
-- **Git / TUI**: `gh`, `git-delta`, `lazygit`, `yazi`
+- **코드 품질**: `ast-grep`, `difftastic`, `shellcheck`, `shfmt`, `ruff`
+- **Git/TUI**: `gh`, `git-delta`, `lazygit`, `yazi`
 - **프롬프트**: `starship`
 
 ## 셋업 작업
@@ -31,27 +34,41 @@
 ### Shell
 
 - 이전 장치의 `~/.zsh_history` 복사 (또는 atuin 동기화)
+- 시크릿 환경 변수: `cp zsh/private.export.example ~/.private-exports` 후 토큰 입력 (NTFY/EXA/GitHub 등). zshrc 가 존재 시 자동 로드.
 
 ### Git
 
-- 전역 user.name / user.email 설정
-- 계정 분리: `~/.gitconfig` 의 `IncludeIf` 사용 (work / personal)
+- `~/.gitconfig` 는 dotfiles 의 `git/gitconfig` 로 자동 심링크됩니다 (alias / delta / `[include]`).
+- 호스트별 user.email / `includeIf` 는 `~/.gitconfig_local` 에 작성:
+
+  ```
+  [user]
+      name = socoolbear
+      email = socoolbear@gmail.com
+
+  [includeIf "gitdir:~/code/work/"]
+      path = ~/code/work/.gitconfig-work
+  ```
+
+- 기존 `~/.gitconfig` 가 실파일이면 `make sync` 가 마이그레이션 안내 후 중단합니다:
+  `mv ~/.gitconfig ~/.gitconfig_local && make sync`
+- dotfiles `git/gitconfig` 는 `[commit] gpgsign = true` 를 설정합니다. 이 머신에 GPG 키가 없으면 `~/.gitconfig_local` 에 다음을 추가해 끄세요:
+
+  ```
+  [commit]
+      gpgsign = false
+  ```
 
 ### 앱별 설정
 
 - **Alfred**: 플러그인/Workflow 설정
 - **Obsidian**: vault 설정
-- **FortiClient**: VPN 프로필
 - **JetBrains**: 터미널 폰트 (JetBrains Mono 13pt)
 
 ### JetBrains 단축키 충돌 방지
 
 - `cmd + shift + A` 충돌 해결
 - 설정 → 키보드 단축키 → 서비스 → 텍스트 → "터미널에서 man 페이지 인덱스 검색" off
-
-### GitHub Copilot
-
-- [copilot 디렉토리](../copilot) 의 인스트럭션 파일을 프로젝트 루트의 `.github/` 로 복사
 
 ### Claude
 

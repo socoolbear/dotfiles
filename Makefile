@@ -72,7 +72,8 @@ LINKS_DIR := \
     lvim:.config/lvim \
     karabiner:.config/karabiner \
     claude/rules:.claude/rules \
-    claude/scripts:.claude/scripts
+    claude/scripts:.claude/scripts \
+    claude/docs:.claude/docs
 
 # claude/commands/*.md — 와일드카드 자동 발견 (파일 추가 시 Makefile 수정 불필요)
 COMMANDS := $(notdir $(wildcard $(DOTFILES)/claude/commands/*.md))

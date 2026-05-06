@@ -206,6 +206,6 @@ brew "wireshark"
 #--------------------------------------------------------------------------
 
 # OpenAI's coding agent that runs in your terminal
-brew "codex"
+cask "codex"
 # Anthropic's official CLI for Claude
 cask "claude-code"

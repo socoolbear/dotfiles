@@ -16,7 +16,6 @@
 # Taps
 #--------------------------------------------------------------------------
 
-tap "anomalyco/tap"
 tap "derailed/k9s"
 tap "oven-sh/bun"
 
@@ -148,9 +147,8 @@ brew "mise"
 #--------------------------------------------------------------------------
 # 언어 / 런타임 — Node
 #--------------------------------------------------------------------------
+# Node 런타임 자체는 mise (mise/config.toml) 로 관리. 패키지 매니저만 brew.
 
-# Open-source, cross-platform JavaScript runtime environment
-brew "node"
 # Fast, disk space efficient package manager
 brew "pnpm"
 # JavaScript package manager
@@ -193,13 +191,6 @@ brew "pandoc"
 brew "weasyprint"
 # PDF rendering library (based on the xpdf-3.0 code base)
 brew "poppler"
-
-#--------------------------------------------------------------------------
-# 네트워크
-#--------------------------------------------------------------------------
-
-# Network analyzer and capture tool - without graphical user interface
-brew "wireshark"
 
 #--------------------------------------------------------------------------
 # AI / 코딩 에이전트

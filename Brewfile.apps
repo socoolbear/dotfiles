@@ -16,16 +16,12 @@
 
 # Command-line interface for 1Password
 cask "1password-cli"
-# Compact TeX distribution as alternative to the full TeX Live / MacTeX
-cask "basictex"
 # Nerd Font (터미널 / 에디터 폰트)
 cask "font-jetbrains-mono-nerd-font"
 # Terminal emulator that uses platform-native UI and GPU acceleration
 cask "ghostty"
-# JDK from the Eclipse Foundation (Adoptium)
-cask "temurin@17"
-# Rust-based terminal
-cask "warp"
+# Network protocol analyzer (GUI)
+cask "wireshark"
 
 #--------------------------------------------------------------------------
 # 협업 / 메신저 (선택)
@@ -33,7 +29,6 @@ cask "warp"
 
 # cask "slack"
 # cask "notion"
-# cask "discord"
 # cask "zoom"
 
 #--------------------------------------------------------------------------
@@ -69,15 +64,10 @@ cask "warp"
 # cask "obsidian"
 
 #--------------------------------------------------------------------------
-# 네트워크 (선택)
-#--------------------------------------------------------------------------
-
-# cask "forticlient-vpn"
-
-#--------------------------------------------------------------------------
 # 터미널 / 키보드 (선택 — 이미 설정 디렉토리 보유)
 #--------------------------------------------------------------------------
 
+# cask "warp"
 # cask "karabiner-elements"
 
 #--------------------------------------------------------------------------

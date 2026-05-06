@@ -140,28 +140,25 @@ brew "mysql-client"
 brew "redis"
 
 #--------------------------------------------------------------------------
+# 언어 / 런타임 — 버전 매니저
+#--------------------------------------------------------------------------
+
+# Polyglot runtime manager (Node, Go 등 통합. nvm/rbenv 대체).
+# 글로벌 매니페스트: dotfiles/mise/config.toml → ~/.config/mise/config.toml
+brew "mise"
+
+#--------------------------------------------------------------------------
 # 언어 / 런타임 — Node
 #--------------------------------------------------------------------------
 
 # Open-source, cross-platform JavaScript runtime environment
 brew "node"
-# Manage multiple Node.js versions
-brew "nvm"
 # Fast, disk space efficient package manager
 brew "pnpm"
 # JavaScript package manager
 brew "yarn"
 # Incredibly fast JavaScript runtime, bundler, transpiler and package manager
 brew "oven-sh/bun/bun"
-
-#--------------------------------------------------------------------------
-# 언어 / 런타임 — Ruby
-#--------------------------------------------------------------------------
-
-# Ruby version manager
-brew "rbenv"
-# Install various Ruby versions and implementations
-brew "ruby-build"
 
 #--------------------------------------------------------------------------
 # 언어 / 런타임 — Python

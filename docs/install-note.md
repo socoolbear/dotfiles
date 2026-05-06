@@ -28,6 +28,7 @@
 - **코드 품질**: `ast-grep`, `difftastic`, `shellcheck`, `shfmt`, `ruff`
 - **Git/TUI**: `gh`, `git-delta`, `lazygit`, `yazi`
 - **프롬프트**: `starship`
+- **버전 매니저**: `mise` (Node, Go 등 통합. 글로벌 매니페스트는 `mise/config.toml`)
 
 ## 셋업 작업
 

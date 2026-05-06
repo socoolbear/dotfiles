@@ -1,5 +1,5 @@
 .PHONY: all clean sync ohmyzsh ohmytmux backup brew brew-core brew-apps \
-        npm macos bootstrap fresh update help
+        mise npm macos bootstrap fresh update help
 
 # Makefile 위치 기반 (cwd 와 독립) — make -C / -f 에서도 안전
 DOTFILES := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
@@ -15,14 +15,15 @@ help:
 	@echo ""
 	@echo "  [새 장비]"
 	@echo "    bootstrap     Xcode CLT + Homebrew + clone + fresh (one-shot)"
-	@echo "    fresh         brew + sync + npm + macos"
+	@echo "    fresh         brew + sync + mise + npm + macos"
 	@echo ""
 	@echo "  [일상 동기화]"
 	@echo "    update        brew + sync"
 	@echo "    sync          심볼릭 링크 생성 (oh-my-zsh, oh-my-tmux 자동 설치)"
 	@echo "    brew          Brewfile 적용 (코어 CLI 도구)"
 	@echo "    brew-apps     Brewfile.apps 적용 (GUI 앱 + Mac App Store)"
-	@echo "    npm           NPM globals (nvm/default-packages + @nestjs/cli)"
+	@echo "    mise          mise/config.toml 의 글로벌 도구 설치 (node, go)"
+	@echo "    npm           NPM globals (npm/globals.txt + @nestjs/cli)"
 	@echo "    macos         macOS 시스템 기본값 (macos/defaults.sh)"
 	@echo ""
 	@echo "  [관리]"
@@ -62,7 +63,7 @@ LINKS_SINGLE := \
     claude/CLAUDE.md:.claude/CLAUDE.md \
     claude/AGENTS.md:.claude/AGENTS.md \
     claude/.mcp.json:.mcp.json \
-    nvm/default-packages:.nvm/default-packages \
+    mise/config.toml:.config/mise/config.toml \
     opencode/oh-my-opencode.json:.config/opencode/oh-my-opencode.json
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
@@ -115,7 +116,7 @@ sync: ohmyzsh ohmytmux
 	fi
 
 	@# 디렉토리 생성
-	@mkdir -p $(HOME)/.local/bin $(HOME)/.config $(HOME)/.nvm \
+	@mkdir -p $(HOME)/.local/bin $(HOME)/.config $(HOME)/.config/mise \
 	          $(HOME)/.claude $(HOME)/.claude/commands $(HOME)/.config/opencode
 
 	@# 단일 파일 심링크
@@ -168,13 +169,21 @@ clean:
 #--------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------
-# NPM globals (nvm/default-packages 매니페스트 + 추가 도구)
+# mise — 글로벌 도구 매니저 (Node/Go 통합)
+#--------------------------------------------------------------------------
+
+mise:
+	@command -v mise >/dev/null 2>&1 || { echo "mise 가 필요합니다. 'make brew' 먼저 실행."; exit 1; }
+	mise install
+
+#--------------------------------------------------------------------------
+# NPM globals (npm/globals.txt 매니페스트 + 추가 도구)
 #--------------------------------------------------------------------------
 
 npm:
-	@command -v npm >/dev/null 2>&1 || { echo "node/npm 가 필요합니다. 'nvm install --lts' 먼저 실행."; exit 1; }
-	@xargs -L1 npm install -g < $(DOTFILES)/nvm/default-packages
-	@npm install -g @nestjs/cli
+	@command -v mise >/dev/null 2>&1 || { echo "mise 가 필요합니다. 'make mise' 먼저 실행."; exit 1; }
+	@mise exec node -- bash -c 'xargs -L1 npm install -g' < $(DOTFILES)/npm/globals.txt
+	@mise exec node -- npm install -g @nestjs/cli
 
 #--------------------------------------------------------------------------
 # macOS defaults
@@ -192,7 +201,7 @@ bootstrap:
 	@bash $(DOTFILES)/bootstrap.sh
 
 # 새 장비용: 모든 자동화 단계 일괄 실행
-fresh: brew sync npm macos
+fresh: brew sync mise npm macos
 	@echo "==> fresh 셋업 완료. 추가 안내는 bootstrap.sh 출력 참고."
 
 # 일상 동기화: brew + sync 만
@@ -215,7 +224,7 @@ backup:
 	-cp -L -i $(HOME)/.gitconfig $(HOME)/backup_dotfiles/gitconfig
 	-cp -L -i $(HOME)/.gitignore_global $(HOME)/backup_dotfiles/gitignore_global
 	-cp -L -i $(HOME)/.config/tmux/tmux.conf.local $(HOME)/backup_dotfiles/tmux.conf.local
-	-cp -i $(HOME)/.nvm/default-packages $(HOME)/backup_dotfiles/nvm-default-packages
+	-cp -L -i $(HOME)/.config/mise/config.toml $(HOME)/backup_dotfiles/mise-config.toml
 	# 디렉토리 (실파일 또는 심링크 모두 처리)
 	-cp -RL $(HOME)/.config/karabiner $(HOME)/backup_dotfiles/karabiner 2>/dev/null
 	-cp -RL $(HOME)/.config/kitty $(HOME)/backup_dotfiles/kitty 2>/dev/null

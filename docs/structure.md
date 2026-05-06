@@ -36,10 +36,12 @@
 | `claude/AGENTS.md` | `~/.claude/AGENTS.md` |
 | `claude/.mcp.json` | `~/.mcp.json` *(주의: `~/.claude/` 가 아닌 홈 루트)* |
 | `claude/commands/*.md` | `~/.claude/commands/<name>.md` *(와일드카드 자동 발견)* |
+| `claude/skills/*/` | `~/.claude/skills/<name>/` *(와일드카드 자동 발견, 디렉토리 단위)* |
 | `mise/config.toml` | `~/.config/mise/config.toml` |
 | `opencode/oh-my-opencode.json` | `~/.config/opencode/oh-my-opencode.json` |
 
-> `claude/commands/*.md` 는 Makefile 의 `COMMANDS` 와일드카드가 자동 발견하므로, 새 명령을 추가해도 Makefile 수정 불필요.
+> `claude/commands/*.md` 와 `claude/skills/*/` 는 Makefile 의 `COMMANDS` / `SKILLS` 와일드카드가 자동 발견하므로, 새 명령/skill 을 추가해도 Makefile 수정 불필요.
+> 단, skills 는 `[ -L ]` 체크로 심링크만 만들고 머신별 실디렉토리 (예: dotfiles 에 없는 로컬 skill) 는 보존합니다.
 
 ## 심볼릭 링크 매핑 — 디렉토리
 

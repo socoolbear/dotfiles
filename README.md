@@ -2,7 +2,7 @@
 
 macOS 개발 환경을 위한 개인 dotfiles. Makefile 기반 심볼릭 링크로 관리합니다.
 
-## 한 줄 셋업 (새 장비)
+## Quick Start (new machine)
 
 ```shell
 curl -fsSL https://raw.githubusercontent.com/socoolbear/dotfiles/master/bootstrap.sh | bash
@@ -10,7 +10,7 @@ curl -fsSL https://raw.githubusercontent.com/socoolbear/dotfiles/master/bootstra
 
 위 스크립트는 Xcode CLT → Homebrew → dotfiles clone → `make fresh` (brew + sync + mise + npm + macos) 순으로 실행합니다.
 
-## 수동 설치
+## Manual Install
 
 ```shell
 git clone https://github.com/socoolbear/dotfiles.git ~/.dotfiles
@@ -20,7 +20,7 @@ make fresh
 
 새 장비의 사전 준비 (Homebrew, SSH, 작업 디렉토리 등) 와 후속 셋업 작업은 [docs/setup.md](docs/setup.md) 참조.
 
-## Make 명령어
+## Make Commands
 
 | 명령 | 설명 |
 |------|------|
@@ -37,7 +37,7 @@ make fresh
 | `make backup` | 기존 dotfiles 를 `~/backup_dotfiles/` 에 백업 |
 | `make help` | 본 명령어 목록을 터미널에 출력 |
 
-## 더 보기
+## See Also
 
 - [새 장비 셋업 가이드](docs/setup.md) — Homebrew, SSH, Zsh, Git, Claude 등 사전 / 후속 작업
 - [기존 장비에서 옮길 파일](docs/migration.md) — 마이그레이션 판단표 + zsh history 옵션

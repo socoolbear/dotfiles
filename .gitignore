@@ -1,5 +1,10 @@
 .idea
 .prompts
 .claude/plans
+.claude/settings.local.json
 .omc
 
+# Brewfile 변종 (회사/호스트 전용 + 임시 시드)
+Brewfile.work
+Brewfile.local
+Brewfile.seed

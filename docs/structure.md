@@ -13,7 +13,8 @@
 | `lvim/` | LunarVim | `~/.config/lvim/` | ✅ |
 | `karabiner/` | 키보드 리맵핑 | `~/.config/karabiner/` | ✅ |
 | `claude/` | Claude Code 글로벌 설정 | `~/.claude/`, `~/.mcp.json` | ✅ (부분) |
-| `nvm/` | NVM 기본 패키지 | `~/.nvm/default-packages` | ✅ |
+| `mise/` | mise 글로벌 도구 매니페스트 (node, go 등) | `~/.config/mise/config.toml` | ✅ |
+| `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
 | `opencode/` | OpenCode 설정 | `~/.config/opencode/` | ✅ |
 | `git/` | Git 설정 (alias / delta / include) | `~/.gitconfig`, `~/.gitignore_global` | ✅ |
 | `copilot/` | GitHub Copilot 인스트럭션 템플릿 | 프로젝트별 `.github/` | ❌ (수동 복사) |
@@ -35,7 +36,7 @@
 | `claude/AGENTS.md` | `~/.claude/AGENTS.md` |
 | `claude/.mcp.json` | `~/.mcp.json` *(주의: `~/.claude/` 가 아닌 홈 루트)* |
 | `claude/commands/*.md` | `~/.claude/commands/<name>.md` *(와일드카드 자동 발견)* |
-| `nvm/default-packages` | `~/.nvm/default-packages` |
+| `mise/config.toml` | `~/.config/mise/config.toml` |
 | `opencode/oh-my-opencode.json` | `~/.config/opencode/oh-my-opencode.json` |
 
 > `claude/commands/*.md` 는 Makefile 의 `COMMANDS` 와일드카드가 자동 발견하므로, 새 명령을 추가해도 Makefile 수정 불필요.

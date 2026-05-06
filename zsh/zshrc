@@ -12,7 +12,6 @@ ZSH_TMUX_AUTOSTART=false
 HYPHEN_INSENSITIVE="true"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="yyyy-mm-dd"
-export NVM_DIR="$HOME/.nvm"
 export HOMEBREW_AUTO_UPDATE_SECS="86400"
 export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
 
@@ -38,7 +37,6 @@ fi
 # Idea 예외처리
 if is_intellij_terminal; then
     path=(
-        $NVM_BIN  # nvm.sh가 로드되면 NVM_BIN이 설정됩니다
         $HOME/.yarn/bin
         $HOME/.config/yarn/global/node_modules/.bin
         "$HOME/Library/Application Support/Herd/bin/"
@@ -52,15 +50,8 @@ source $ZSH/oh-my-zsh.sh
 # Configuration
 #--------------------------------------------------------------------------
 typeset -U PATH path cdpath fpath
-export GOPATH=$HOME/go
-if [ "$(/usr/bin/uname)" = "Darwin" ]; then
-  export GOROOT="$(/opt/homebrew/bin/brew --prefix golang)/libexec"
-else
-  export GOROOT="/usr/local/go"
-fi
 
 export ANDROID_HOME=$HOME/Library/Android/sdk
-export RBENV_PATH=$HOME/.rbenv/shims
 
 path=(
     /usr/local/bin
@@ -70,13 +61,10 @@ path=(
     /sbin
     $HOME/.local/bin
     $HOME/.config/composer/vendor/bin
-    $GOPATH/bin
-    $GOROOT/bin
     $HOME/.cargo/bin
     ./vendor/bin
     ${ANDROID_HOME}/emulator
     ${ANDROID_HOME}/platform-tools
-    $RBENV_PATH
     /opt/homebrew/opt/mysql/bin
     /opt/homebrew/opt/mysql-client/bin
     /opt/homebrew/opt/libpq/bin
@@ -93,9 +81,6 @@ export GIT_EDITOR=vim
 export FZF_DEFAULT_COMMAND='ag -u -g ""'
 
 unsetopt sharehistory
-
-[ -s "$(brew --prefix nvm)/nvm.sh" ] && \. "$(brew --prefix nvm)/nvm.sh"
-[ -s "$(brew --prefix nvm)/etc/bash_completion.d/nvm" ] && \. "$(brew --prefix nvm)/etc/bash_completion.d/nvm"
 
 #--------------------------------------------------------------------------
 # Aliases
@@ -132,8 +117,8 @@ case ":$PATH:" in
 esac
 # pnpm end
 
-# rbenv
-eval "$(rbenv init - --no-rehash zsh)"
+# mise — Node, Go 등 통합 버전 관리 (nvm/rbenv 대체). PATH prepend 하므로 기존 PATH 설정 이후에 호출.
+eval "$(mise activate zsh)"
 
 alias claude-mem='bun "~/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs"'
 

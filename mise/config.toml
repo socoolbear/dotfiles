@@ -1,0 +1,17 @@
+# mise 글로벌 도구 매니페스트
+# 심링크: ~/.config/mise/config.toml → 본 파일
+#
+# 사용법:
+#   make mise   # 본 파일의 도구 일괄 설치
+#
+# 프로젝트별로 다른 버전을 쓰고 싶으면 프로젝트 루트에
+# .tool-versions 또는 .mise.toml 을 두면 자동 전환됩니다.
+
+[tools]
+# Node — v24 라인 (현재 환경 보존). lts 로 다운그레이드하려면 "lts" 로 변경.
+node = "24"
+# Go — 최신 안정판 (mise 가 신규 설치)
+go = "latest"
+
+[settings]
+experimental = true

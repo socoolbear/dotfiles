@@ -73,12 +73,13 @@ make fresh
 
 | 명령 | 설명 |
 |------|------|
-| `make fresh` | 새 장비용: `brew + sync + npm + macos` 일괄 실행 |
+| `make fresh` | 새 장비용: `brew + sync + mise + npm + macos` 일괄 실행 |
 | `make update` | 일상 동기화: `brew + sync` 만 |
 | `make brew` | `Brewfile` 적용 (코어 CLI 도구) |
 | `make brew-apps` | `Brewfile.apps` 적용 (GUI 앱 + Mac App Store) |
 | `make sync` | 심볼릭 링크 생성 (oh-my-zsh, oh-my-tmux 자동 설치 포함) |
-| `make npm` | NPM globals 설치 (`nvm/default-packages` 매니페스트 + `@nestjs/cli`) |
+| `make mise` | `mise/config.toml` 의 글로벌 도구 설치 (node, go) |
+| `make npm` | NPM globals 설치 (`npm/globals.txt` 매니페스트 + `@nestjs/cli`) |
 | `make macos` | macOS 시스템 기본값 적용 (`macos/defaults.sh`) |
 | `make bootstrap` | 새 장비 1-shot 부트스트랩 (Xcode CLT + Homebrew 설치 포함) |
 | `make clean` | 모든 심볼릭 링크 제거 |

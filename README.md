@@ -10,58 +10,7 @@ curl -fsSL https://raw.githubusercontent.com/socoolbear/dotfiles/master/bootstra
 
 위 스크립트는 Xcode CLT → Homebrew → dotfiles clone → `make fresh` (brew + sync + mise + npm + macos) 순으로 실행합니다.
 
-## 사전 준비
-
-### Homebrew
-
-```shell
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-### 패키지 / 앱 (Brewfile)
-
-코어 CLI 도구는 `Brewfile`, GUI 앱은 `Brewfile.apps` 로 분리되어 선언되어 있습니다.
-
-```shell
-make brew         # 코어 도구 (formula + tap)
-make brew-apps    # GUI 앱 (cask + mas) — 새 장비에서만 선택적으로 실행
-```
-
-`Brewfile.apps` 의 GUI 앱 후보들은 주석 처리되어 있으니 새 장비에서 필요한 항목만 주석을 해제한 뒤 실행하세요. Mac App Store 항목 (`mas`) 사용 시 사전에 App Store 로그인이 필요합니다.
-
-다른 Nerd Font 가 필요하면 [getnf](https://github.com/ronniedroid/getnf) 사용.
-
-### SSH
-
-- **권장**: 1Password SSH agent 활성화
-- **대안**: `ssh-keygen -t ed25519 -C "socoolbear"` → 공개키를 GitHub SSH key 에 등록
-
-### 작업 디렉토리
-
-```shell
-mkdir -p ~/code ~/.local/bin
-```
-
-### Zsh + oh-my-zsh
-
-`make sync` 시 자동 설치되며, 다음 플러그인을 함께 설치합니다.
-- `zsh-autosuggestions`
-- `zsh-syntax-highlighting`
-
-### 터미널 세팅
-
-- Ghostty + Nerd Font (JetBrainsMono 권장)
-- SSH 원격 tmux 256색 이슈: `~/.ssh/config` 에 `SetEnv TERM=xterm` 추가
-
-### 선택 사항
-
-- **macOS 시스템 기본값**: `make macos` 가 처리 (`macos/defaults.sh`)
-- **oh-my-zsh agnoster 테마**: [멀티라인 설정 gist](https://gist.github.com/socoolbear/d59447cfaffc24ee914e27fe3019cd81)
-- **Karabiner-Elements**: `Brewfile.apps` 의 cask 주석 해제. 설정은 `karabiner/` 가 자동 심링크
-- **Git include 분리** (work / personal): `~/.gitconfig_local` 에 작성 — [install-note 참조](docs/install-note.md#git)
-- **Claude Code skill**: `make sync` 가 `claude/skills/*/` 를 `~/.claude/skills/` 로 자동 심링크. 기본 제공되는 `setup-env` skill 은 새 대화에서 "환경 세팅해줘", "dotfiles 동기화" 같은 표현으로 트리거되어 적절한 `make` 타겟을 안내·실행합니다.
-
-## 설치 (수동)
+## 수동 설치
 
 ```shell
 git clone https://github.com/socoolbear/dotfiles.git ~/.dotfiles
@@ -69,7 +18,9 @@ cd ~/.dotfiles
 make fresh
 ```
 
-### Make 명령어
+새 장비의 사전 준비 (Homebrew, SSH, 작업 디렉토리 등) 와 후속 셋업 작업은 [docs/setup.md](docs/setup.md) 참조.
+
+## Make 명령어
 
 | 명령 | 설명 |
 |------|------|
@@ -88,5 +39,9 @@ make fresh
 
 ## 더 보기
 
-- [설치 후 작업 노트](docs/install-note.md)
+- [새 장비 셋업 가이드](docs/setup.md) — Homebrew, SSH, Zsh, Git, Claude 등 사전 / 후속 작업
+- [기존 장비에서 옮길 파일](docs/migration.md) — 마이그레이션 판단표 + zsh history 옵션
+- [프로젝트별 .env 관리](docs/secrets.md) — 1Password CLI 패턴
+- [디렉토리 구조 + 심볼릭 링크 매핑](docs/structure.md)
+- [아키텍처 (Makefile 동작 원리)](docs/architecture.md)
 - [AI 에이전트 가이드](AGENTS.md)

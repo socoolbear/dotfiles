@@ -72,7 +72,7 @@ cat <<'EOF'
   - ~/.gitconfig_local 에 호스트별 user.email / includeIf 작성
   - ~/.private-exports 에 토큰 입력 (zsh/private.export.example 참고)
   - 1Password / JetBrains / Alfred 등 라이센스 / 계정 입력
-  - 자세한 후속 작업: docs/install-note.md 참조
+  - 자세한 후속 작업: docs/setup.md 참조
 
 새 셸 시작: exec zsh
 EOF

@@ -30,7 +30,9 @@ make help        # 명령어 목록 출력
 |------|------|
 | 디렉토리 구조 + 심볼릭 링크 매핑 + `.claude/` 구조 | `@docs/structure.md` |
 | Makefile 동작 원리 + claude/ 하위 구성 + backup 한계 | `@docs/architecture.md` |
-| Bootstrap / 새 장비 설치 노트 + 홈 디렉토리에서 옮길 파일 | `@docs/install-note.md` |
+| 새 장비 셋업 (사전 준비 + 후속 작업: Homebrew, SSH, Git, Claude, 앱별 설정) | `@docs/setup.md` |
+| 기존 장비에서 옮길 파일 + zsh history 동기화 옵션 | `@docs/migration.md` |
+| 프로젝트별 `.env` 관리 (1Password CLI) | `@docs/secrets.md` |
 
 > 위 표의 `@docs/...` 항목은 해당 작업에 진입할 때 **반드시 먼저 읽어야 함** 을 의미합니다.
 

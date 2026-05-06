@@ -59,6 +59,7 @@ mkdir -p ~/code ~/.local/bin
 - **oh-my-zsh agnoster 테마**: [멀티라인 설정 gist](https://gist.github.com/socoolbear/d59447cfaffc24ee914e27fe3019cd81)
 - **Karabiner-Elements**: `Brewfile.apps` 의 cask 주석 해제. 설정은 `karabiner/` 가 자동 심링크
 - **Git include 분리** (work / personal): `~/.gitconfig_local` 에 작성 — [install-note 참조](docs/install-note.md#git)
+- **Claude Code skill**: `make sync` 가 `claude/skills/*/` 를 `~/.claude/skills/` 로 자동 심링크. 기본 제공되는 `setup-env` skill 은 새 대화에서 "환경 세팅해줘", "dotfiles 동기화" 같은 표현으로 트리거되어 적절한 `make` 타겟을 안내·실행합니다.
 
 ## 설치 (수동)
 

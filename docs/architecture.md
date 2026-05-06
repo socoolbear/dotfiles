@@ -20,7 +20,8 @@
 - `claude/rules/` — 자동 로드되는 규칙 모음 (예: `coding-style.md`)
 - `claude/scripts/` — Hook 등에서 호출하는 유틸 스크립트 (예: `notify.sh`, `statusline-command.sh`)
 - `claude/docs/` — `claude/AGENTS.md` 가 `@docs/...` 로 참조하는 상세 가이드 (워크플로우, 피드백 라우팅 등)
-- `claude/commands/` — 슬래시 명령어 정의
+- `claude/commands/` — 슬래시 명령어 정의 (`*.md` 와일드카드 자동 발견)
+- `claude/skills/` — Claude Code skill 정의 (`*/` 디렉토리 단위 자동 발견, 머신별 실디렉토리는 보존)
 
 ## `make backup` 의 한계
 

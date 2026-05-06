@@ -56,7 +56,13 @@ make brew-apps    # mas 항목 사용 시 사전에 App Store 로그인 필요
 
 ### Claude
 
-`make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, AGENTS.md, rules, scripts, docs, commands) 와 `~/.mcp.json` 을 심링크합니다. 추가 자료:
+`make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, AGENTS.md, rules, scripts, docs, commands, skills) 와 `~/.mcp.json` 을 심링크합니다. `claude/skills/*/` 는 와일드카드로 자동 발견되어 디렉토리 단위로 심링크됩니다 — `[ -L ]` 체크가 있어 dotfiles 에 없는 머신별 skill (예: 로컬에서만 만든 것) 은 보존됩니다.
+
+기본 제공 skill:
+
+- `setup-env` — dotfiles 의 환경 세팅 워크플로우 진입점. "환경 세팅해줘", "dotfiles 동기화", "make update" 같은 표현으로 트리거됩니다.
+
+추가 자료:
 
 - [SuperClaude](https://github.com/SuperClaude-Org/SuperClaude_Framework)
 - [claude-code-requirements-builder](https://github.com/rizethereum/claude-code-requirements-builder)

@@ -22,7 +22,6 @@ plugins=(
     zsh-syntax-highlighting
     docker
     docker-compose
-    z
     npm
     fzf
     composer
@@ -137,3 +136,6 @@ esac
 eval "$(rbenv init - --no-rehash zsh)"
 
 alias claude-mem='bun "~/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs"'
+
+# zoxide
+eval "$(zoxide init zsh)"

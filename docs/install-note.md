@@ -1,3 +1,6 @@
+# References
+- [홈 디렉토리에서 옮길 파일 가이드](./migration-files.md)
+
 # Apps
 - slack, k9s, forti-client, jetbrains, notion, obsidian, postman, zoom,
 - rectangle, alfred, 1password, discord, google-chrome, figma,

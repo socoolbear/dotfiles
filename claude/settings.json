@@ -97,7 +97,6 @@
     "skill-creator@claude-plugins-official": true,
     "php-lsp@claude-plugins-official": true,
     "codex@openai-codex": true,
-    "harness-engineering@socoolbear-cc-marketplace": true,
     "documents@socoolbear-cc-marketplace": true,
     "harness@socoolbear-cc-marketplace": true
   },

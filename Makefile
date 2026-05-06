@@ -87,6 +87,7 @@ clean:
 	rm -rf $(HOME)/.claude/scripts
 	rm -f $(HOME)/.nvm/default-packages
 	rm -rf $(HOME)/.config/kitty
+	rm -rf $(HOME)/.config/ghostty
 	rm -rf $(HOME)/.config/lvim
 	rm -rf $(HOME)/.config/karabiner
 	rm -f $(HOME)/.config/opencode/oh-my-opencode.json

@@ -86,6 +86,7 @@ make sync
 | `karabiner/` | `~/.config/karabiner/` |
 | `claude/rules/` | `~/.claude/rules/` |
 | `claude/scripts/` | `~/.claude/scripts/` |
+| `claude/docs/` | `~/.claude/docs/` |
 
 ## 아키텍처
 
@@ -108,6 +109,7 @@ make sync
 - `claude/CLAUDE.md` / `claude/AGENTS.md` — 글로벌 인스트럭션
 - `claude/rules/` — 자동 로드되는 규칙 모음 (예: `coding-style.md`)
 - `claude/scripts/` — Hook 등에서 호출하는 유틸 스크립트 (예: `notify.sh`, `statusline-command.sh`)
+- `claude/docs/` — `claude/AGENTS.md` 가 `@docs/...` 로 참조하는 상세 가이드 (워크플로우, 피드백 라우팅 등)
 - `claude/commands/` — 슬래시 명령어 정의
 
 ### `make backup` 의 한계

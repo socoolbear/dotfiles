@@ -63,14 +63,12 @@ LINKS_SINGLE := \
     claude/CLAUDE.md:.claude/CLAUDE.md \
     claude/AGENTS.md:.claude/AGENTS.md \
     claude/.mcp.json:.mcp.json \
-    mise/config.toml:.config/mise/config.toml \
-    opencode/oh-my-opencode.json:.config/opencode/oh-my-opencode.json
+    mise/config.toml:.config/mise/config.toml
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
 LINKS_DIR := \
     kitty:.config/kitty \
     ghostty:.config/ghostty \
-    lvim:.config/lvim \
     karabiner:.config/karabiner \
     claude/rules:.claude/rules \
     claude/scripts:.claude/scripts \
@@ -121,7 +119,7 @@ sync: ohmyzsh ohmytmux
 
 	@# 디렉토리 생성
 	@mkdir -p $(HOME)/.local/bin $(HOME)/.config $(HOME)/.config/mise \
-	          $(HOME)/.claude $(HOME)/.claude/commands $(HOME)/.claude/skills $(HOME)/.config/opencode
+	          $(HOME)/.claude $(HOME)/.claude/commands $(HOME)/.claude/skills
 
 	@# 단일 파일 심링크
 	@for entry in $(LINKS_SINGLE); do \
@@ -241,6 +239,5 @@ backup:
 	# 디렉토리 (실파일 또는 심링크 모두 처리)
 	-cp -RL $(HOME)/.config/karabiner $(HOME)/backup_dotfiles/karabiner 2>/dev/null
 	-cp -RL $(HOME)/.config/kitty $(HOME)/backup_dotfiles/kitty 2>/dev/null
-	-cp -RL $(HOME)/.config/lvim $(HOME)/backup_dotfiles/lvim 2>/dev/null
 	@echo "==> 백업 완료: $(HOME)/backup_dotfiles/"
 	@echo "==> 가장 중요한 파일: gitconfig_local, private-exports (repo 외부 데이터)"

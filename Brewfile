@@ -207,5 +207,3 @@ brew "wireshark"
 
 # OpenAI's coding agent that runs in your terminal
 brew "codex"
-# The AI coding agent built for the terminal.
-brew "anomalyco/tap/opencode"

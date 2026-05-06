@@ -10,14 +10,11 @@
 | `tmux/` | Tmux 설정 (oh-my-tmux) | `~/.config/tmux/` | ✅ |
 | `kitty/` | Kitty 터미널 | `~/.config/kitty/` | ✅ |
 | `ghostty/` | Ghostty 터미널 | `~/.config/ghostty/` | ✅ |
-| `lvim/` | LunarVim | `~/.config/lvim/` | ✅ |
 | `karabiner/` | 키보드 리맵핑 | `~/.config/karabiner/` | ✅ |
 | `claude/` | Claude Code 글로벌 설정 | `~/.claude/`, `~/.mcp.json` | ✅ (부분) |
 | `mise/` | mise 글로벌 도구 매니페스트 (node, go 등) | `~/.config/mise/config.toml` | ✅ |
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
-| `opencode/` | OpenCode 설정 | `~/.config/opencode/` | ✅ |
 | `git/` | Git 설정 (alias / delta / include) | `~/.gitconfig`, `~/.gitignore_global` | ✅ |
-| `copilot/` | GitHub Copilot 인스트럭션 템플릿 | 프로젝트별 `.github/` | ❌ (수동 복사) |
 | `.claude/` | 프로젝트 로컬 Claude 설정 | 로컬 전용 | — |
 
 ## 심볼릭 링크 매핑 — 단일 파일
@@ -38,7 +35,6 @@
 | `claude/commands/*.md` | `~/.claude/commands/<name>.md` *(와일드카드 자동 발견)* |
 | `claude/skills/*/` | `~/.claude/skills/<name>/` *(와일드카드 자동 발견, 디렉토리 단위)* |
 | `mise/config.toml` | `~/.config/mise/config.toml` |
-| `opencode/oh-my-opencode.json` | `~/.config/opencode/oh-my-opencode.json` |
 
 > `claude/commands/*.md` 와 `claude/skills/*/` 는 Makefile 의 `COMMANDS` / `SKILLS` 와일드카드가 자동 발견하므로, 새 명령/skill 을 추가해도 Makefile 수정 불필요.
 > 단, skills 는 `[ -L ]` 체크로 심링크만 만들고 머신별 실디렉토리 (예: dotfiles 에 없는 로컬 skill) 는 보존합니다.
@@ -49,7 +45,6 @@
 |--------|--------|
 | `kitty/` | `~/.config/kitty/` |
 | `ghostty/` | `~/.config/ghostty/` |
-| `lvim/` | `~/.config/lvim/` |
 | `karabiner/` | `~/.config/karabiner/` |
 | `claude/rules/` | `~/.claude/rules/` |
 | `claude/scripts/` | `~/.claude/scripts/` |

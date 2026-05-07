@@ -53,7 +53,6 @@ cask "codex-app"
 cask "1password"
 cask "rectangle"
 cask "alfred"
-cask "runcat"
 
 #--------------------------------------------------------------------------
 # 브라우저 / 문서 (선택)
@@ -75,3 +74,4 @@ cask "karabiner-elements"
 #--------------------------------------------------------------------------
 
 mas "KakaoTalk", id: 869223134
+mas "RunCat", id: 1429033973

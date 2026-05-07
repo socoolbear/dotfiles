@@ -1,4 +1,5 @@
 .PHONY: all clean sync ohmyzsh ohmytmux backup brew brew-core brew-apps \
+        brew-cleanup brew-cleanup-force \
         mise npm macos bootstrap fresh update help
 
 # Makefile 위치 기반 (cwd 와 독립) — make -C / -f 에서도 안전
@@ -22,6 +23,8 @@ help:
 	@echo "    sync          심볼릭 링크 생성 (oh-my-zsh, oh-my-tmux 자동 설치)"
 	@echo "    brew          Brewfile 적용 (코어 CLI 도구)"
 	@echo "    brew-apps     Brewfile.apps 적용 (GUI 앱 + Mac App Store)"
+	@echo "    brew-cleanup        Brewfile 에 없는 패키지 출력 (dry-run)"
+	@echo "    brew-cleanup-force  Brewfile 에 없는 패키지 실제 제거"
 	@echo "    mise          mise/config.toml 의 글로벌 도구 설치 (node, go)"
 	@echo "    npm           NPM globals (npm/globals.txt + @nestjs/cli)"
 	@echo "    macos         macOS 시스템 기본값 (macos/defaults.sh)"
@@ -44,6 +47,13 @@ brew-core:
 brew-apps:
 	@command -v brew >/dev/null 2>&1 || { echo "Homebrew 가 필요합니다. https://brew.sh"; exit 1; }
 	brew bundle install --file=$(DOTFILES)/Brewfile.apps
+
+# Brewfile* 에 없는 패키지 정리 (모든 Brewfile 을 합쳐서 비교)
+brew-cleanup:
+	@bash $(DOTFILES)/scripts/brew-cleanup.sh
+
+brew-cleanup-force:
+	@bash $(DOTFILES)/scripts/brew-cleanup.sh --force
 
 #--------------------------------------------------------------------------
 # 심볼릭 링크 매니페스트 (sync / clean 공유)

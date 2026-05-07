@@ -20,55 +20,53 @@ cask "1password-cli"
 cask "font-jetbrains-mono-nerd-font"
 # Terminal emulator that uses platform-native UI and GPU acceleration
 cask "ghostty"
-# Network protocol analyzer (GUI)
-cask "wireshark"
 
 #--------------------------------------------------------------------------
 # 협업 / 메신저 (선택)
 #--------------------------------------------------------------------------
 
-# cask "slack"
-# cask "notion"
-# cask "zoom"
+cask "slack"
+cask "notion"
+cask "zoom"
 
 #--------------------------------------------------------------------------
 # 개발 도구 (선택)
 #--------------------------------------------------------------------------
 
-# cask "jetbrains-toolbox"
-# cask "docker"
-# cask "postman"
-# cask "figma"
+cask "jetbrains-toolbox"
+cask "docker"
+cask "postman"
+cask "figma"
 
 #--------------------------------------------------------------------------
 # AI / 보조 도구 (선택)
 #--------------------------------------------------------------------------
 
-# cask "claude"
-# cask "chatgpt"
+cask "claude"
+cask "chatgpt"
+cask "codex-app"
 
 #--------------------------------------------------------------------------
 # 유틸리티 (선택)
 #--------------------------------------------------------------------------
 
-# cask "1password"
-# cask "rectangle"
-# cask "alfred"
-# cask "runcat"
+cask "1password"
+cask "rectangle"
+cask "alfred"
+cask "runcat"
 
 #--------------------------------------------------------------------------
 # 브라우저 / 문서 (선택)
 #--------------------------------------------------------------------------
 
-# cask "google-chrome"
-# cask "obsidian"
+cask "google-chrome"
+cask "obsidian"
 
 #--------------------------------------------------------------------------
 # 터미널 / 키보드 (선택 — 이미 설정 디렉토리 보유)
 #--------------------------------------------------------------------------
 
-# cask "warp"
-# cask "karabiner-elements"
+cask "karabiner-elements"
 
 #--------------------------------------------------------------------------
 # Mac App Store (선택)
@@ -76,4 +74,4 @@ cask "wireshark"
 # 예: mas search KakaoTalk
 #--------------------------------------------------------------------------
 
-# mas "KakaoTalk", id: 869223134
+mas "KakaoTalk", id: 869223134

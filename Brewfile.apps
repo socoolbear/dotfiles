@@ -68,10 +68,14 @@ cask "obsidian"
 cask "karabiner-elements"
 
 #--------------------------------------------------------------------------
-# Mac App Store (선택)
+# Mac App Store (수동 설치 권장)
+#
+# mas-cli 의 알려진 한계: macOS Big Sur+ 에서 "이미 다운받은 적 있는 앱" 은
+# install 시 "구매할 수 없다" 에러가 나옴 (Apple private API 제한).
+# 새 장비 셋업 시에는 App Store 에서 아래 앱들을 직접 다운로드하세요.
+#
 # 앱 ID 확인: mas search "<앱 이름>"
-# 예: mas search KakaoTalk
 #--------------------------------------------------------------------------
 
-mas "KakaoTalk", id: 869223134
-mas "RunCat", id: 1429033973
+# mas "KakaoTalk", id: 869223134
+# mas "RunCat", id: 1429033973

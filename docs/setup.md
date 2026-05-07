@@ -19,7 +19,9 @@ make brew         # 코어 도구 (formula + tap)
 make brew-apps    # GUI 앱 (cask + mas) — 새 장비에서만 선택적으로 실행
 ```
 
-`Brewfile.apps` 의 GUI 앱 후보들은 카테고리별 (협업/개발/AI/유틸/브라우저/네트워크 등) 로 주석 처리되어 있습니다. 새 장비에서 필요한 항목만 주석을 해제한 뒤 실행하세요. Mac App Store 항목 (`mas`) 사용 시 사전에 App Store 로그인이 필요합니다.
+`Brewfile.apps` 의 GUI 앱은 활성/주석 두 가지로 관리됩니다 — 평소 쓰는 앱은 주석 해제 상태로 자동 설치, 머신별 선택 앱은 주석 처리해두고 필요할 때만 풉니다.
+
+> **Mac App Store 앱 (KakaoTalk, RunCat 등) 은 수동 설치를 권장합니다.** mas-cli 는 Big Sur+ 에서 "이미 다운받은 적 있는 앱" 의 install 에 실패합니다 (Apple private API 제한). App Store 에서 직접 다운로드하세요.
 
 다른 Nerd Font 가 필요하면 [getnf](https://github.com/ronniedroid/getnf) 사용.
 

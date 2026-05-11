@@ -49,5 +49,7 @@
   "theme": "dark",
   "editorMode": "vim",
   "autoCompactEnabled": false,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "skipDangerousModePermissionPrompt": true,
+  "plansDirectory": ".claude/plan"
 }

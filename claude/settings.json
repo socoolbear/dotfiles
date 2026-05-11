@@ -1,86 +1,10 @@
 {
+  "skillListingBudgetFraction": 0.02,
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
     "defaultMode": "auto"
-  },
-  "hooks": {
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.local/bin/claude-notify",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.local/bin/claude-notify",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/socoolbear/.superset/hooks/notify.sh"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/socoolbear/.superset/hooks/notify.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/socoolbear/.superset/hooks/notify.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/socoolbear/.superset/hooks/notify.sh"
-          }
-        ]
-      }
-    ],
-    "PermissionRequest": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/socoolbear/.superset/hooks/notify.sh"
-          }
-        ]
-      }
-    ]
   },
   "statusLine": {
     "type": "command",
@@ -98,7 +22,8 @@
     "php-lsp@claude-plugins-official": true,
     "codex@openai-codex": true,
     "documents@socoolbear-cc-marketplace": true,
-    "harness@socoolbear-cc-marketplace": true
+    "harness@socoolbear-cc-marketplace": true,
+    "phpstorm-plugin@phpstorm-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -112,13 +37,17 @@
         "source": "git",
         "url": "https://github.com/socoolbear/cc-marketplace.git"
       }
+    },
+    "phpstorm-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "jetbrains/phpstorm-claude-marketplace"
+      }
     }
   },
-  "alwaysThinkingEnabled": true,
   "effortLevel": "high",
-  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark",
   "editorMode": "vim",
   "autoCompactEnabled": false,
-  "skipAutoPermissionPrompt": true,
-  "skillListingBudgetFraction": 0.02
+  "skipAutoPermissionPrompt": true
 }

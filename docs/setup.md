@@ -81,10 +81,18 @@ mkdir -p ~/code ~/.local/bin
 ### 앱별 설정
 
 - **Alfred**: 플러그인 / Workflow 설정
+  - 시스템 설정 → 키보드 단축키 → 서비스 → 텍스트 → Spotlight 검색 보기 → option+cmd+space 로 변경
+  - Alfred 단축키 cmd+space 로 변경
+  - features > clipboard history > shift+cmd+v 로 변경 및 기타 체크박스 활성
 - **Obsidian**: vault 설정
 - **JetBrains**:
   - 터미널 폰트 (JetBrains Mono 13pt)
+  - Claude Code plugin: `claude --dangerously-skip-permissions`
+  - IdeaVim plugin
   - `cmd + shift + A` 충돌 해결: 설정 → 키보드 단축키 → 서비스 → 텍스트 → "터미널에서 man 페이지 인덱스 검색" off
+  - `cmd + esc` 안 눌리는 문제 해결: 설정 → 키보드 단축키 → 미션 컨트롤 → "게임 오버레이" off
+- **Claude Code**:
+  - Playwright MCP
 - **VS Code / Cursor**: dotfiles 외부 항목
   - `~/Library/Application Support/Code/User/settings.json`
   - `~/Library/Application Support/Code/User/keybindings.json`

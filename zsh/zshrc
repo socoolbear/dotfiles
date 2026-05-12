@@ -25,8 +25,8 @@ plugins=(
     httpie
 )
 
-# ghostty 터미널에서 tmux 자동 시작
-if [[ -n "$GHOSTTY_TERMINAL" ]]; then
+# ghostty 터미널에서 tmux 자동 시작 (IntelliJ 내장 터미널은 제외 — env 가 상속되어 오탐됨)
+if [[ -n "$GHOSTTY_TERMINAL" ]] && ! is_intellij_terminal; then
     export ZSH_TMUX_AUTOSTART=true
     plugins+=(tmux)
     [[ -o login ]] && cd $HOME/code

@@ -24,7 +24,8 @@
     "documents@socoolbear-cc-marketplace": true,
     "harness@socoolbear-cc-marketplace": true,
     "phpstorm-plugin@phpstorm-marketplace": true,
-    "claude-md-management@claude-plugins-official": true
+    "claude-md-management@claude-plugins-official": true,
+    "snippets@socoolbear-cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -52,5 +53,6 @@
   "theme": "dark",
   "editorMode": "vim",
   "autoCompactEnabled": false,
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }

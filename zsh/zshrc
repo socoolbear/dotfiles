@@ -91,6 +91,7 @@ alias k='kubectl'
 alias he='helm'
 alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 alias pn='pnpm'
+alias cc='claude --dangerously-skip-permissions'
 
 [ -x "$(command -v bat)" ] && alias cat="bat --paging=never" || alias cat="batcat --paging=never"
 

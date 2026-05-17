@@ -102,7 +102,7 @@ mkdir -p ~/code ~/.local/bin
 
 `make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, AGENTS.md, rules, scripts, docs, commands, skills) 와 `~/.mcp.json` 을 심링크합니다. `claude/skills/*/` 는 와일드카드로 자동 발견되어 디렉토리 단위로 심링크됩니다 — `[ -L ]` 체크가 있어 dotfiles 에 없는 머신별 skill (예: 로컬에서만 만든 것) 은 보존됩니다.
 
-머신별 / 실험적 plugin (codex, ralph-loop, phpstorm-plugin 등) 은 `~/.claude/settings.local.json` 에 수동으로 작성합니다 — committed `settings.json` 은 모든 장비에서 항상 켜는 안정적 plugin 만 둡니다.
+plugin 관리는 `/plugin` 명령어로 일원화 — 변경사항은 committed `settings.json` 에 자동 기록되어 모든 장비에 동기화됩니다 (host 가 없는 plugin 은 inert 상태로 무해). `~/.claude/settings.local.json` 은 시크릿/머신별 permission 같은 진짜 머신별 항목에만 사용합니다.
 
 프로젝트 로컬 skill (`.claude/skills/`, dotfiles repo 안에서만 트리거):
 

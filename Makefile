@@ -162,6 +162,9 @@ sync: ohmyzsh ohmytmux
 	    ln -sf "$(DOTFILES)/$$src" "$$target"; \
 	done
 
+	@# mise config 신뢰 (심링크 직후 mise 가 untrusted 로 보지 않도록)
+	@command -v mise >/dev/null 2>&1 && mise trust $(DOTFILES)/mise/config.toml >/dev/null 2>&1 || true
+
 #--------------------------------------------------------------------------
 # clean — 심볼릭 링크 제거
 #--------------------------------------------------------------------------
@@ -194,6 +197,7 @@ clean:
 
 mise:
 	@command -v mise >/dev/null 2>&1 || { echo "mise 가 필요합니다. 'make brew' 먼저 실행."; exit 1; }
+	@mise trust $(DOTFILES)/mise/config.toml >/dev/null 2>&1
 	mise install
 
 #--------------------------------------------------------------------------

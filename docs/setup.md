@@ -78,6 +78,14 @@ mkdir -p ~/code ~/.local/bin
       gpgsign = false
   ```
 
+### mise
+
+`make sync` / `make mise` 가 `mise trust ~/.dotfiles/mise/config.toml` 을 자동 실행합니다 (mise 는 새 config 를 untrusted 로 간주해서 셸 시작 시마다 에러를 띄움). 수동으로 해결해야 할 경우:
+
+```shell
+mise trust ~/.dotfiles/mise/config.toml
+```
+
 ### 앱별 설정
 
 - **Alfred**: 플러그인 / Workflow 설정

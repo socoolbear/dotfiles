@@ -54,6 +54,7 @@ mkdir -p ~/code ~/.local/bin
 
 - 시크릿 환경 변수: `cp zsh/private.export.example ~/.private-exports` 후 토큰 입력 (NTFY/EXA/GitHub 등). zshrc 가 자동 로드합니다.
 - `~/.zsh_history` 마이그레이션은 [migration.md 의 zsh history 섹션](migration.md#zsh-history-동기화-옵션-비교) 참조 (atuin 권장).
+- **atuin login** (sync 사용 시): `atuin login -u <username>` → 비밀번호 + sync key 입력. 이어서 `atuin sync` 로 기존 히스토리 가져오기. sync key 는 기존 머신에서 `atuin key` 로 확인.
 
 ### Git
 
@@ -88,10 +89,12 @@ mise trust ~/.dotfiles/mise/config.toml
 
 ### 앱별 설정
 
-- **Alfred**: 플러그인 / Workflow 설정
+- **Alfred 5**: 플러그인 / Workflow 설정
   - 시스템 설정 → 키보드 단축키 → 서비스 → 텍스트 → Spotlight 검색 보기 → option+cmd+space 로 변경
   - Alfred 단축키 cmd+space 로 변경
   - features > clipboard history > shift+cmd+v 로 변경 및 기타 체크박스 활성
+  - **Workflow 설치**: `.alfredworkflow` 파일을 더블클릭하면 Alfred 가 import 다이얼로그 표시
+    - **DeepL Translate**: [alexanderwillner/deepl-translate](https://alfred.app/workflows/alexanderwillner/deepl-translate/) 다운로드 → DeepL API key 등록
 - **Obsidian**: vault 설정
 - **JetBrains**:
   - 터미널 폰트 (JetBrains Mono 13pt)
@@ -101,6 +104,8 @@ mise trust ~/.dotfiles/mise/config.toml
   - `cmd + esc` 안 눌리는 문제 해결: 설정 → 키보드 단축키 → 미션 컨트롤 → "게임 오버레이" off
 - **Claude Code**:
   - Playwright MCP
+- **ngrok**: `ngrok config add-authtoken <token>` 으로 인증 (`~/.config/ngrok/ngrok.yml` 생성). 토큰은 [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken) 에서 확인
+- **BetterDisplay**: 첫 실행 시 화면 녹화 권한 요청 승인 (시스템 설정 → 개인정보 보호 및 보안 → 화면 녹화). Pro 라이선스 키 있으면 메뉴바 아이콘 → Settings → License 에서 입력
 - **VS Code / Cursor**: dotfiles 외부 항목
   - `~/Library/Application Support/Code/User/settings.json`
   - `~/Library/Application Support/Code/User/keybindings.json`

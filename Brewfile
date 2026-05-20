@@ -126,6 +126,8 @@ brew "minikube"
 brew "flyway"
 # Kubernetes CLI To Manage Your Clusters In Style!
 brew "derailed/k9s/k9s"
+# Secure introspectable tunnels to localhost (cask 로 배포)
+cask "ngrok"
 
 #--------------------------------------------------------------------------
 # 데이터베이스

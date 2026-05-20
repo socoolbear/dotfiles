@@ -53,6 +53,8 @@ cask "codex-app"
 cask "1password"
 cask "rectangle"
 cask "alfred"
+# 외부 디스플레이 색상/해상도/스케일링 제어
+cask "betterdisplay"
 
 #--------------------------------------------------------------------------
 # 브라우저 / 문서 (선택)

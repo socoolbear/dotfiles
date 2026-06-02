@@ -105,6 +105,13 @@ alias cc='claude --dangerously-skip-permissions'
 [ -x "$(command -v lazygit)" ] && alias lg='lazygit'
 [ -x "$(command -v yazi)" ] && alias yz='yazi'
 
+
+#--------------------------------------------------------------------------
+# Claude & Claude Code
+#--------------------------------------------------------------------------
+export CLAUDE_CODE_EFFORT_LEVEL=max
+export ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-4-8[1m]"
+
 #--------------------------------------------------------------------------
 # Miscellaneous
 #--------------------------------------------------------------------------

@@ -110,7 +110,6 @@ alias cc='claude --dangerously-skip-permissions'
 # Claude & Claude Code
 #--------------------------------------------------------------------------
 export CLAUDE_CODE_EFFORT_LEVEL=max
-export ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-4-8[1m]"
 
 #--------------------------------------------------------------------------
 # Miscellaneous

@@ -1,13 +1,17 @@
 # CLI Tool Preferences
 
 > 모든 셸 작업에서 아래 도구를 우선 사용. 이 dotfiles 의 `Brewfile` 에 모두 등재되어 있으므로 `make brew` 로 일괄 설치 가능.
+>
+> **우선순위**: Claude Code 내장 도구 (Read / Grep / Glob) 가 커버하는 작업은 내장 도구가 우선 (내장 Grep 은 ripgrep 기반이라 rg 의 속도·기능을 이미 활용 중). 아래 규칙은 **Bash 를 직접 쓸 때** 적용됩니다.
 
 ## 표준 도구 대체 (항시)
 
 - 파일 탐색: `find` 대신 `fd`
 - 텍스트 검색: `grep` 대신 `rg` (ripgrep)
-- 파일 내용 출력: `cat` 대신 `bat`
+- 파일 내용 출력: `cat` 대신 `bat` (에이전트는 Read 도구)
 - 디렉토리 목록: `ls` 대신 `eza`
+
+> 위 4 개 대체는 PreToolUse hook (`claude/scripts/enforce-cli-tools.sh`, `settings.json` 에 등록) 이 자동 차단으로 강제합니다. 대체 도구가 미설치된 머신에선 차단하지 않습니다 (표준 도구 폴백 허용).
 
 ## 코드 / 데이터 처리
 

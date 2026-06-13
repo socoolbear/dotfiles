@@ -13,13 +13,6 @@
 # - 호스트 로컬: Brewfile.local (.gitignore 됨)
 
 #--------------------------------------------------------------------------
-# Taps
-#--------------------------------------------------------------------------
-
-tap "derailed/k9s"
-tap "oven-sh/bun"
-
-#--------------------------------------------------------------------------
 # 시스템 / 코어
 #--------------------------------------------------------------------------
 
@@ -125,7 +118,7 @@ brew "minikube"
 # Database version control to control migrations
 brew "flyway"
 # Kubernetes CLI To Manage Your Clusters In Style!
-brew "derailed/k9s/k9s"
+brew "k9s"
 # Secure introspectable tunnels to localhost (cask 로 배포)
 cask "ngrok"
 
@@ -156,7 +149,7 @@ brew "pnpm"
 # JavaScript package manager
 brew "yarn"
 # Incredibly fast JavaScript runtime, bundler, transpiler and package manager
-brew "oven-sh/bun/bun"
+brew "bun"
 
 #--------------------------------------------------------------------------
 # 언어 / 런타임 — Python

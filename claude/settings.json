@@ -66,6 +66,5 @@
   "editorMode": "vim",
   "autoCompactEnabled": false,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "model": "claude-fable-5[1m]"
+  "skipAutoPermissionPrompt": true
 }

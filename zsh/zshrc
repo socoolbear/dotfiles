@@ -109,7 +109,8 @@ alias cc='claude --dangerously-skip-permissions'
 #--------------------------------------------------------------------------
 # Claude & Claude Code
 #--------------------------------------------------------------------------
-export CLAUDE_CODE_EFFORT_LEVEL=max
+# export CLAUDE_CODE_EFFORT_LEVEL=max
+CLAUDE_CODE_NO_FLICKER=1
 
 #--------------------------------------------------------------------------
 # Miscellaneous

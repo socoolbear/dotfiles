@@ -59,7 +59,7 @@
       "autoUpdate": true
     }
   },
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "plansDirectory": ".claude/plan",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",

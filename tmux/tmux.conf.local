@@ -5,6 +5,9 @@
 set -g history-limit 10000                # gpakosz 기본값 5000 → 10000
 set -s escape-time 0                      # gpakosz 기본값 10 → 0 (vim 모드 전환 지연 제거)
 
+set -g utf8 on
+set-window-option -g utf8 on
+
 # -- gpakosz 에 없는 추가 설정 --
 set -g mouse on
 setw -g mode-keys vi

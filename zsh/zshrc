@@ -120,7 +120,11 @@ CLAUDE_CODE_NO_FLICKER=1
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
 
-export LANG=en_US.UTF-8 # k9s 깨짐 문제 해결
+# 기본 문자 처리와 로캘은 한국어/한글 기준으로 안정화
+export LANG=ko_KR.UTF-8
+export LC_ALL=ko_KR.UTF-8
+# 단, 시스템이 뿜어내는 에러 메시지나 텍스트만 영어로 강제 전환
+export LC_MESSAGES=en_US.UTF-8
 
 # bun
 export BUN_RUNTIME_TRANSPILER_CACHE_PATH=/tmp/bun-cache

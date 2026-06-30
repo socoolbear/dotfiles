@@ -16,3 +16,5 @@ vendor-tags
 _ide_helper.php
 .lvimrc
 .projections.json
+
+**/.claude/settings.local.json

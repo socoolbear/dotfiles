@@ -50,6 +50,7 @@ source $ZSH/oh-my-zsh.sh
 typeset -U PATH path cdpath fpath
 
 export HOMEBREW_AUTO_UPDATE_SECS="86400"
+export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
 export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
 export ANDROID_HOME=$HOME/Library/Android/sdk
 

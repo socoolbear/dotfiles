@@ -7,6 +7,9 @@
 - 영어와 한국어 혼용 시 **띄어쓰기 추가** (예: "Makefile 에서")
 - 사용자에게 질문할 때 어려운 전문용어 지양, **쉬운 말로 풀어서 질문** (불가피하면 용어 옆 괄호로 짧은 설명. 예: "billingCode(등록 카드 식별값)")
 
+## 도구 기본값
+- 파일 목록·읽기·검색은 내장 Read / Grep / Glob 우선 (Grep 은 ripgrep 기반이라 빠르고 gitignore 인식).
+
 ## 환경
 - macOS 사용자 대상
 - Homebrew, XDG Base Directory 사용 가정
@@ -36,4 +39,3 @@
 - 워크플로우 6단계 + 작업 관리: `@docs/workflow.md`
 - 자기개선 루프 + 피드백 라우팅: `@docs/feedback-loop.md`
 - 코딩 스타일: `@rules/coding-style.md`
-- CLI 도구 사용 규칙: `@rules/cli-tools.md`

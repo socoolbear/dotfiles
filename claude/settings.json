@@ -7,20 +7,6 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/enforce-cli-tools.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  },
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/scripts/statusline-command.sh"
@@ -34,7 +20,8 @@
     "documents@socoolbear-cc-marketplace": true,
     "harness@socoolbear-cc-marketplace": true,
     "phpstorm-plugin@phpstorm-marketplace": true,
-    "snippets@socoolbear-cc-marketplace": true
+    "snippets@socoolbear-cc-marketplace": true,
+    "frontend-design@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -66,5 +53,6 @@
   "editorMode": "vim",
   "autoCompactEnabled": false,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "model": "claude-fable-5[1m]"
 }

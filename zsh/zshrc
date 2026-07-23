@@ -112,7 +112,7 @@ alias cc='claude --dangerously-skip-permissions'
 #--------------------------------------------------------------------------
 # export CLAUDE_CODE_EFFORT_LEVEL=max
 CLAUDE_CODE_NO_FLICKER=1
-export ANTHROPIC_MODEL="fable"
+# export ANTHROPIC_MODEL="fable"
 
 #--------------------------------------------------------------------------
 # Miscellaneous

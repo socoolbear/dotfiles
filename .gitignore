@@ -1,5 +1,6 @@
 .idea
 .prompts
+.claude/plan
 .claude/plans
 .claude/settings.local.json
 .omc

@@ -8,10 +8,6 @@
       "command": "npx",
       "args": ["-y", "exa-mcp-server"]
     },
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "~/code"]
-    },
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"]

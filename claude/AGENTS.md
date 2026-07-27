@@ -21,11 +21,12 @@
 |---|---|---|
 | 1 | 사소하지 않은 작업은 계획 모드로 시작 | `@docs/workflow.md` |
 | 2 | 계획서는 **적대적 검증 1회 이상** 을 거친 뒤 사용자에게 제출 (요청 없어도 매번) | `@docs/workflow.md` |
-| 3 | 조사·탐색·병렬 분석은 서브에이전트로 분리 | `@docs/workflow.md` |
+| 3 | 조사·탐색·병렬 분석은 서브에이전트로 분리 (병렬 축이 2개 이상이면 팀 — 규칙 8) | `@docs/workflow.md` |
 | 4 | 사용자 피드백은 auto-memory 가 아닌 **repo 파일** 에 기록 | `@docs/feedback-loop.md` |
 | 5 | 작동을 증명하기 전 완료 표시 금지 | `@docs/workflow.md` |
 | 6 | 사소하지 않은 변경은 "더 우아한 방법?" 자문 후 진행 | `@docs/workflow.md` |
 | 7 | 버그 리포트는 자율적으로 끝까지 수정 | `@docs/workflow.md` |
+| 8 | **팀메이트를 띄우기 전** 편성 기준을 확인하고, 작업이 끝나면 즉시 해산 | `@docs/team-mode.md` |
 
 > 위 표의 "트리거 시 참조" 컬럼은 해당 상황에 진입했을 때 **반드시 해당 docs 를 먼저 읽어야 함** 을 의미합니다. 한 줄 룰만으로 판단하지 말 것.
 
@@ -38,5 +39,6 @@
 ## 상세 가이드
 
 - 워크플로우 6단계 + 작업 관리: `@docs/workflow.md`
+- 팀 모드 편성/해산: `@docs/team-mode.md`
 - 자기개선 루프 + 피드백 라우팅: `@docs/feedback-loop.md`
 - 코딩 스타일: `@rules/coding-style.md`

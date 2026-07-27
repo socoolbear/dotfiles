@@ -19,6 +19,17 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/team-cleanup-check.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

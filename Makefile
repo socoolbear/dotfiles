@@ -90,6 +90,10 @@ COMMANDS := $(notdir $(wildcard $(DOTFILES)/claude/commands/*.md))
 # 디렉토리 단위 심링크 + [ -L ] 체크로 머신별 실디렉토리 (예: commit-and-push) 보존
 SKILLS := $(notdir $(wildcard $(DOTFILES)/claude/skills/*))
 
+# claude/agents/*.md — 와일드카드 자동 발견 (agent 추가 시 Makefile 수정 불필요)
+# 파일 단위 심링크로 머신별 실파일 (예: nestjs-impl-executor.md) 보존
+AGENT_DEFS := $(notdir $(wildcard $(DOTFILES)/claude/agents/*.md))
+
 #--------------------------------------------------------------------------
 # 프레임워크 (oh-my-zsh / oh-my-tmux)
 #--------------------------------------------------------------------------
@@ -128,7 +132,8 @@ sync: ohmyzsh ohmytmux
 
 	@# 디렉토리 생성
 	@mkdir -p $(HOME)/.local/bin $(HOME)/.config $(HOME)/.config/mise \
-	          $(HOME)/.claude $(HOME)/.claude/commands $(HOME)/.claude/skills
+	          $(HOME)/.claude $(HOME)/.claude/commands $(HOME)/.claude/skills \
+	          $(HOME)/.claude/agents
 
 	@# 단일 파일 심링크
 	@for entry in $(LINKS_SINGLE); do \
@@ -151,6 +156,12 @@ sync: ohmyzsh ohmytmux
 	@for skill in $(SKILLS); do \
 	    target="$(HOME)/.claude/skills/$$skill"; \
 	    [ -L "$$target" ] || ln -sf "$(DOTFILES)/claude/skills/$$skill" "$$target"; \
+	done
+
+	@# claude/agents/*.md 자동 발견 후 심링크 ([ -L ] 체크로 머신별 실파일 보존)
+	@for agent in $(AGENT_DEFS); do \
+	    target="$(HOME)/.claude/agents/$$agent"; \
+	    [ -L "$$target" ] || ln -sf "$(DOTFILES)/claude/agents/$$agent" "$$target"; \
 	done
 
 	@# 디렉토리 심링크 (rm -rf 후 재링크)
@@ -181,6 +192,9 @@ clean:
 	done
 	@for skill in $(SKILLS); do \
 	    rm -f "$(HOME)/.claude/skills/$$skill"; \
+	done
+	@for agent in $(AGENT_DEFS); do \
+	    rm -f "$(HOME)/.claude/agents/$$agent"; \
 	done
 	@# tmux 부속 정리
 	@rm -rf $(HOME)/.config/tmux/.tmux

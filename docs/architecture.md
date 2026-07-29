@@ -22,6 +22,7 @@
 - `claude/docs/` — `claude/AGENTS.md` 가 `@docs/...` 로 참조하는 상세 가이드 (워크플로우, 피드백 라우팅 등)
 - `claude/commands/` — 슬래시 명령어 정의 (`*.md` 와일드카드 자동 발견)
 - `claude/skills/` — Claude Code skill 정의 (`*/` 디렉토리 단위 자동 발견, 머신별 실디렉토리는 보존)
+- `claude/agents/` — 팀메이트/서브에이전트 정의 (`*.md` 와일드카드 자동 발견, 머신별 실파일은 보존)
 
 ## `make backup` 의 한계
 

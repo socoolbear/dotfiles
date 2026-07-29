@@ -29,7 +29,7 @@
 | 작업 중 얻은 교훈 · 실수 재발 방지 | 프로젝트 `docs/lessons.md` (도구·워크플로우 전반이면 `~/.claude/docs/lessons.md`) |
 | 도메인 사실관계 (수치, 경력, 고유명사) | `docs/{domain}.md` |
 | 특정 작업 자동화 규칙 | `.claude/skills/{skill}/SKILL.md` |
-| 자동 실행 Hook / 권한 | `.claude/settings.json` (update-config 스킬 활용) |
+| 자동 실행 Hook / 권한 | `.claude/settings.json` (전역이면 `~/.claude/settings.json`) |
 | 코딩 스타일 규칙 | 프로젝트 `.claude/rules/` (전역이면 `~/.claude/rules/coding-style.md`) |
 
 ### 반영 워크플로우

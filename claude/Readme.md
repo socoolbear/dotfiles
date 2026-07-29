@@ -20,6 +20,6 @@
   내장 Read/Write/Glob/Grep 과 범위가 겹친다. 특정 디렉토리를 열려면 `--add-dir` / `additionalDirectories`.
 - IDEA claude code plugin 
   - 프로젝트 별 task id  다르게 가져가는 방법 :
-    ```aiignore
+    ```bash
     CLAUDE_CODE_TASK_LIST_ID=$(basename "$PWD") claude --dangerously-skip-permissions
     ```

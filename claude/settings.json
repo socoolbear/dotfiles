@@ -6,6 +6,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -46,8 +47,7 @@
     "phpstorm-plugin@phpstorm-marketplace": true,
     "snippets@socoolbear-cc-marketplace": false,
     "frontend-design@claude-plugins-official": true,
-    "datadog@claude-plugins-official": true,
-    "sessions@socoolbear-cc-marketplace": true
+    "datadog@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {

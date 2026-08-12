@@ -93,8 +93,8 @@ alias he='helm'
 alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 alias pn='pnpm'
 alias vf='vim $(fzf)'
-alias cc='claude --dangerously-skip-permissions'
-alias cct='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude --dangerously-skip-permissions'
+alias cc='claude'
+alias cct='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude'
 
 [ -x "$(command -v bat)" ] && alias cat="bat --paging=never" || alias cat="batcat --paging=never"
 
@@ -113,7 +113,6 @@ alias cct='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude --dangerously-skip-perm
 # Claude & Claude Code
 #--------------------------------------------------------------------------
 # export CLAUDE_CODE_EFFORT_LEVEL=max
-CLAUDE_CODE_NO_FLICKER=1
 # export ANTHROPIC_MODEL="fable"
 
 #--------------------------------------------------------------------------

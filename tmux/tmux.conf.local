@@ -12,7 +12,6 @@ set-window-option -g utf8 on
 set -g mouse on
 setw -g mode-keys vi
 setw -g aggressive-resize on
-set -g detach-on-destroy off
 
 # -- Vi 모드 키 바인딩 --
 bind -T copy-mode-vi v send -X begin-selection

@@ -1,9 +1,12 @@
 .PHONY: all clean sync ohmyzsh ohmytmux backup brew brew-core brew-apps \
-        brew-cleanup brew-cleanup-force \
+        brew-cleanup brew-cleanup-force brew-scheduled-update brew-scheduled-update-log \
         mise npm macos bootstrap fresh update help
 
 # Makefile 위치 기반 (cwd 와 독립) — make -C / -f 에서도 안전
 DOTFILES := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+
+# Homebrew 예약 갱신 작업의 launchd 라벨 (sync / clean / brew-scheduled-update 가 공유)
+BREW_SCHEDULED_UPDATE_LABEL := com.socoolbear.brew-scheduled-update
 
 all: sync
 
@@ -25,6 +28,8 @@ help:
 	@echo "    brew-apps     Brewfile.apps 적용 (GUI 앱 + Mac App Store)"
 	@echo "    brew-cleanup        Brewfile 에 없는 패키지 출력 (dry-run)"
 	@echo "    brew-cleanup-force  Brewfile 에 없는 패키지 실제 제거"
+	@echo "    brew-scheduled-update        예약 갱신 작업을 지금 즉시 실행 (예약 대기 없이)"
+	@echo "    brew-scheduled-update-log    예약 갱신 작업 최근 로그 출력"
 	@echo "    mise          mise/config.toml 의 글로벌 도구 설치 (node, go)"
 	@echo "    npm           NPM globals (npm/globals.txt + @nestjs/cli)"
 	@echo "    macos         macOS 시스템 기본값 (macos/defaults.sh)"
@@ -55,6 +60,14 @@ brew-cleanup:
 brew-cleanup-force:
 	@bash $(DOTFILES)/scripts/brew-cleanup.sh --force
 
+# 예약 갱신 작업을 실행 허용 구간과 무관하게 지금 즉시 실행 (동작 확인용)
+brew-scheduled-update:
+	@BREW_SCHEDULED_UPDATE_FORCE=1 bash $(DOTFILES)/scripts/brew-scheduled-update.sh
+	@echo "==> 완료. 로그: ~/Library/Logs/brew-scheduled-update.log"
+
+brew-scheduled-update-log:
+	@tail -n 40 $(HOME)/Library/Logs/brew-scheduled-update.log 2>/dev/null || echo "아직 로그가 없습니다."
+
 #--------------------------------------------------------------------------
 # 심볼릭 링크 매니페스트 (sync / clean 공유)
 # 형식: <source-relative-to-DOTFILES>:<target-relative-to-HOME>
@@ -73,7 +86,9 @@ LINKS_SINGLE := \
     claude/CLAUDE.md:.claude/CLAUDE.md \
     claude/AGENTS.md:.claude/AGENTS.md \
     claude/.mcp.json:.mcp.json \
-    mise/config.toml:.config/mise/config.toml
+    mise/config.toml:.config/mise/config.toml \
+    scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
+    launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
 LINKS_DIR := \
@@ -173,6 +188,10 @@ sync: ohmyzsh ohmytmux
 	    ln -sf "$(DOTFILES)/$$src" "$$target"; \
 	done
 
+	@# launchd 예약 작업 재등록 (심링크 생성만으로는 등록되지 않음 — bootout 후 bootstrap 으로 멱등)
+	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
+	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(BREW_SCHEDULED_UPDATE_LABEL).plist 2>/dev/null || true
+
 	@# mise config 신뢰 (심링크 직후 mise 가 untrusted 로 보지 않도록)
 	@command -v mise >/dev/null 2>&1 && mise trust $(DOTFILES)/mise/config.toml >/dev/null 2>&1 || true
 
@@ -181,6 +200,7 @@ sync: ohmyzsh ohmytmux
 #--------------------------------------------------------------------------
 
 clean:
+	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
 	@for entry in $(LINKS_SINGLE); do \
 	    rm -f "$(HOME)/$${entry##*:}"; \
 	done

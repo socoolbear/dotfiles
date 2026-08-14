@@ -14,6 +14,8 @@
 | `mise/` | mise 글로벌 도구 매니페스트 (node, go 등) | `~/.config/mise/config.toml` | ✅ |
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
 | `git/` | Git 설정 (alias / delta / include) | `~/.gitconfig`, `~/.gitignore_global` | ✅ |
+| `launchd/` | launchd 예약 작업 정의 (Homebrew 예약 갱신) | `~/Library/LaunchAgents/` | ✅ |
+| `scripts/` | Makefile / launchd 가 호출하는 유틸 스크립트 | `~/.local/bin/` (일부) | ✅ (부분) |
 | `.claude/` | 프로젝트 로컬 Claude 설정 | 로컬 전용 | — |
 
 ## 심볼릭 링크 매핑 — 단일 파일
@@ -35,6 +37,8 @@
 | `claude/skills/*/` | `~/.claude/skills/<name>/` *(와일드카드 자동 발견, 디렉토리 단위)* |
 | `claude/agents/*.md` | `~/.claude/agents/<name>.md` *(와일드카드 자동 발견)* |
 | `mise/config.toml` | `~/.config/mise/config.toml` |
+| `scripts/brew-scheduled-update.sh` | `~/.local/bin/brew-scheduled-update` |
+| `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 
 > `claude/commands/*.md`, `claude/skills/*/`, `claude/agents/*.md` 는 Makefile 의 `COMMANDS` / `SKILLS` / `AGENT_DEFS` 와일드카드가 자동 발견하므로, 새 명령/skill/agent 를 추가해도 Makefile 수정 불필요.
 > 단, skills 와 agents 는 `[ -L ]` 체크로 심링크만 만들고 머신별 실파일/실디렉토리 (예: dotfiles 에 없는 로컬 agent) 는 보존합니다.

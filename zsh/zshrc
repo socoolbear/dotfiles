@@ -51,7 +51,9 @@ source $ZSH/oh-my-zsh.sh
 #--------------------------------------------------------------------------
 typeset -U PATH path cdpath fpath
 
-export HOMEBREW_AUTO_UPDATE_SECS="86400"
+# brew 명령 실행 중 자동 갱신이 끼어들지 않도록 차단. 갱신은 예약 작업이 담당
+# (launchd/com.socoolbear.brew-scheduled-update.plist → scripts/brew-scheduled-update.sh, 매일 04:30)
+export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
 export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
 export ANDROID_HOME=$HOME/Library/Android/sdk

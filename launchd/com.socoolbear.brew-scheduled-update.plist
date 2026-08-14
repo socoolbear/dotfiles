@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.socoolbear.brew-scheduled-update</string>
+
+  <!-- dotfiles 위치에 의존하지 않도록 ~/.local/bin 심링크를 경유해 실행 -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>exec "$HOME/.local/bin/brew-scheduled-update"</string>
+  </array>
+
+  <!-- 예약 시각: 매일 04:30 (스크립트의 RUN_WINDOW_START~RUN_WINDOW_END 안에 있어야 함) -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>4</integer>
+    <key>Minute</key>
+    <integer>30</integer>
+  </dict>
+
+  <!-- 예약 시각에만 실행. 로그인/로드 직후 실행은 금지 -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>LowPriorityBackgroundIO</key>
+  <true/>
+  <key>LowPriorityIO</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

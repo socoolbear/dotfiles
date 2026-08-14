@@ -14,6 +14,8 @@ make fresh       # 새 장비용: brew + sync + mise + npm + macos 일괄
 make update      # 일상 동기화: brew + sync
 make brew        # Brewfile 적용 (코어 CLI 도구)
 make brew-apps   # Brewfile.apps 적용 (GUI 앱 + Mac App Store)
+make brew-scheduled-update     # Homebrew 예약 갱신을 지금 즉시 실행 (예약 대기 없이)
+make brew-scheduled-update-log # 예약 갱신 최근 로그 확인
 make sync        # 심볼릭 링크 생성 (oh-my-zsh, oh-my-tmux 자동 설치)
 make mise        # mise/config.toml 의 글로벌 도구 설치 (node, go)
 make npm         # NPM globals (npm/globals.txt + @nestjs/cli)

@@ -55,6 +55,8 @@ cask "rectangle"
 cask "alfred"
 # 외부 디스플레이 색상/해상도/스케일링 제어
 cask "betterdisplay"
+# 메뉴바 플러그인 실행기 (swiftbar/ 의 잠자기 방지 토글이 사용 — make sleepguard)
+cask "swiftbar"
 
 #--------------------------------------------------------------------------
 # 브라우저 / 문서 (선택)

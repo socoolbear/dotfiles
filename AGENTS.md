@@ -20,6 +20,7 @@ make sync        # 심볼릭 링크 생성 (oh-my-zsh, oh-my-tmux 자동 설치)
 make mise        # mise/config.toml 의 글로벌 도구 설치 (node, go)
 make npm         # NPM globals (npm/globals.txt + @nestjs/cli)
 make macos       # macOS 시스템 기본값 (macos/defaults.sh)
+make sleepguard  # 잠자기 방지 셋업 (sudoers 룰 + SwiftBar 폴더 지정, sudo 필요 · 새 장비 1회)
 make bootstrap   # 1-shot 부트스트랩 (Xcode CLT, Homebrew 설치 포함)
 make clean       # 심볼릭 링크 제거
 make backup      # 기존 dotfiles 백업 (~/backup_dotfiles/)

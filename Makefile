@@ -1,6 +1,6 @@
 .PHONY: all clean sync ohmyzsh ohmytmux backup brew brew-core brew-apps \
         brew-cleanup brew-cleanup-force brew-scheduled-update brew-scheduled-update-log \
-        mise npm macos bootstrap fresh update help
+        mise npm macos sleepguard bootstrap fresh update help
 
 # Makefile 위치 기반 (cwd 와 독립) — make -C / -f 에서도 안전
 DOTFILES := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
@@ -33,6 +33,7 @@ help:
 	@echo "    mise          mise/config.toml 의 글로벌 도구 설치 (node, go)"
 	@echo "    npm           NPM globals (npm/globals.txt + @nestjs/cli)"
 	@echo "    macos         macOS 시스템 기본값 (macos/defaults.sh)"
+	@echo "    sleepguard    잠자기 방지 셋업 (sudoers 룰 + SwiftBar 폴더 지정, sudo 필요)"
 	@echo ""
 	@echo "  [관리]"
 	@echo "    backup        호스트 로컬 데이터 백업 (~/backup_dotfiles/)"
@@ -88,12 +89,14 @@ LINKS_SINGLE := \
     claude/.mcp.json:.mcp.json \
     mise/config.toml:.config/mise/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
+    scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
     launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
 LINKS_DIR := \
     ghostty:.config/ghostty \
     karabiner:.config/karabiner \
+    swiftbar:.swiftbar-plugins \
     claude/rules:.claude/rules \
     claude/scripts:.claude/scripts \
     claude/docs:.claude/docs
@@ -249,6 +252,15 @@ npm:
 
 macos:
 	@bash $(DOTFILES)/macos/defaults.sh
+
+#--------------------------------------------------------------------------
+# sleepguard — 잠자기 방지 토글 (SwiftBar 메뉴바)
+#
+# sudo 비밀번호를 묻기 때문에 sync / fresh 에 넣지 않는다. 새 장비에서 1 회만 실행.
+#--------------------------------------------------------------------------
+
+sleepguard:
+	@bash $(DOTFILES)/scripts/sleepguard-setup.sh
 
 #--------------------------------------------------------------------------
 # 종합 타겟

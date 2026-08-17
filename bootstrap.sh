@@ -68,6 +68,7 @@ cat <<'EOF'
 
 ==> 셋업 완료. 추가로 처리할 항목:
   - make brew-apps      # GUI 앱 (Brewfile.apps) 의 주석 해제 후 설치
+  - make sleepguard     # 잠자기 방지 토글 셋업 (SwiftBar 설치 후, 관리자 비밀번호 1회)
   - mas 항목 사용 시 App Store 로그인 후 make brew-apps 재실행
   - ~/.gitconfig_local 에 호스트별 user.email / includeIf 작성
   - ~/.private-exports 에 토큰 입력 (zsh/private.export.example 참고)

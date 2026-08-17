@@ -121,6 +121,31 @@ plugin 관리는 `/plugin` 명령어로 일원화 — 변경사항은 committed 
 
 - `setup-env` — dotfiles 의 환경 세팅 워크플로우 진입점. "환경 세팅해줘", "dotfiles 동기화", "make update" 같은 표현으로 트리거됩니다.
 
+### 잠자기 방지 (sleepguard)
+
+뚜껑을 닫아도 (clamshell) 맥이 잠들지 않게 하는 메뉴바 토글입니다. SwiftBar 플러그인으로 동작합니다.
+
+```shell
+make brew-apps     # SwiftBar 설치 (cask "swiftbar")
+make sync          # 플러그인 + ~/.local/bin/sleepguard 심링크
+make sleepguard    # sudoers 룰 등록 + SwiftBar 플러그인 폴더 지정 (관리자 비밀번호 1회)
+```
+
+`caffeinate` 는 sudo 없이 되지만 clamshell 을 막지 못합니다. 그래서 `pmset -a disablesleep` 이 필요하고, 그래서 root 권한이 필요합니다. `make sleepguard` 가 `/etc/sudoers.d/pmset-sleep` 에 **해당 두 명령만** NOPASSWD 로 허용하는 룰을 만듭니다 (와일드카드 없음, `visudo -cf` 검증 통과 후에만 설치).
+
+> `make sleepguard` 는 비밀번호를 묻기 때문에 `fresh` / `sync` 에 포함되지 않습니다. 새 장비에서 1 회만 실행하세요.
+
+메뉴바 아이콘에서 **1시간 / 4시간 / 무제한** 중 골라 켭니다. `SleepDisabled` 는 재부팅해도 유지되므로, 켠 채 잊고 배터리 상태로 가방에 넣으면 발열·방전 위험이 있습니다. 그래서 시간을 지정해 켜면 플러그인의 5 초 폴링이 만료를 확인해 스스로 해제합니다.
+
+수동 원복과 룰 제거:
+
+```shell
+sudo pmset -a disablesleep 0        # 지금 즉시 해제
+sudo rm /etc/sudoers.d/pmset-sleep  # NOPASSWD 룰 제거 (make clean 은 건드리지 않음)
+```
+
+SwiftBar 첫 실행 시 플러그인 폴더를 물으면 `~/.swiftbar-plugins` 를 지정하세요 (`make sleepguard` 가 `defaults` 로도 지정하지만, 앱이 먼저 뜬 경우 재시작이 필요합니다).
+
 ## 선택 사항
 
 - **macOS 시스템 기본값**: `make macos` 가 처리 (`macos/defaults.sh`)

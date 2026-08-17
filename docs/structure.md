@@ -10,6 +10,7 @@
 | `tmux/` | Tmux 설정 (oh-my-tmux) | `~/.config/tmux/` | ✅ |
 | `ghostty/` | Ghostty 터미널 | `~/.config/ghostty/` | ✅ |
 | `karabiner/` | 키보드 리맵핑 | `~/.config/karabiner/` | ✅ |
+| `swiftbar/` | SwiftBar 메뉴바 플러그인 (잠자기 방지 토글) | `~/.swiftbar-plugins/` | ✅ |
 | `claude/` | Claude Code 글로벌 설정 | `~/.claude/`, `~/.mcp.json` | ✅ (부분) |
 | `mise/` | mise 글로벌 도구 매니페스트 (node, go 등) | `~/.config/mise/config.toml` | ✅ |
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
@@ -38,6 +39,7 @@
 | `claude/agents/*.md` | `~/.claude/agents/<name>.md` *(와일드카드 자동 발견)* |
 | `mise/config.toml` | `~/.config/mise/config.toml` |
 | `scripts/brew-scheduled-update.sh` | `~/.local/bin/brew-scheduled-update` |
+| `scripts/sleepguard-toggle.sh` | `~/.local/bin/sleepguard` |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 
 > `claude/commands/*.md`, `claude/skills/*/`, `claude/agents/*.md` 는 Makefile 의 `COMMANDS` / `SKILLS` / `AGENT_DEFS` 와일드카드가 자동 발견하므로, 새 명령/skill/agent 를 추가해도 Makefile 수정 불필요.
@@ -49,6 +51,7 @@
 |--------|--------|
 | `ghostty/` | `~/.config/ghostty/` |
 | `karabiner/` | `~/.config/karabiner/` |
+| `swiftbar/` | `~/.swiftbar-plugins/` |
 | `claude/rules/` | `~/.claude/rules/` |
 | `claude/scripts/` | `~/.claude/scripts/` |
 | `claude/docs/` | `~/.claude/docs/` |

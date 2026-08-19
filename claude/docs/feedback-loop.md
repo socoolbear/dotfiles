@@ -26,6 +26,7 @@
 | 피드백 유형 | 반영 위치 |
 |---|---|
 | 워크플로우 / 작성 규칙 | 프로젝트 `docs/` (전역 규칙이면 `~/.claude/docs/`) |
+| 용어 선택 · 설명 방식 · 표현이 어렵다는 지적 | `~/.claude/docs/wording.md` (프로젝트 고유 용어면 프로젝트 `docs/glossary.md`) |
 | 작업 중 얻은 교훈 · 실수 재발 방지 | 프로젝트 `docs/lessons.md` (도구·워크플로우 전반이면 `~/.claude/docs/lessons.md`) |
 | 도메인 사실관계 (수치, 경력, 고유명사) | `docs/{domain}.md` |
 | 특정 작업 자동화 규칙 | `.claude/skills/{skill}/SKILL.md` |

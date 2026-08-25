@@ -5,9 +5,6 @@
 set -g history-limit 10000                # gpakosz 기본값 5000 → 10000
 set -s escape-time 0                      # gpakosz 기본값 10 → 0 (vim 모드 전환 지연 제거)
 
-set -g utf8 on
-set-window-option -g utf8 on
-
 # -- gpakosz 에 없는 추가 설정 --
 set -g mouse on
 setw -g mode-keys vi
@@ -32,5 +29,9 @@ tmux_conf_theme_colour_3="#E9E9EA"    # 활성 창 텍스트
 set -g @plugin 'tmux-plugins/tmux-yank'
 
 # -- 키 바인딩 (gpakosz 기본 바인딩 오버라이드) --
+# prefix + m (마우스 on/off 토글) 제거 — Ctrl-a 오타로 눌러 마우스가 꺼지는 사고 방지
+# 토글이 다시 필요하면: bind M run-shell "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse"
+unbind -T prefix m #!important
+
 unbind r
 bind r source-file ~/.config/tmux/tmux.conf \; display-message 'tmux.conf reloaded' #!important

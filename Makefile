@@ -286,6 +286,7 @@ backup:
 	# 호스트 로컬 / 시크릿 (가장 중요 — 잃으면 재생성 어려움)
 	-cp -i $(HOME)/.gitconfig_local $(HOME)/backup_dotfiles/gitconfig_local
 	-cp -i $(HOME)/.private-exports $(HOME)/backup_dotfiles/private-exports
+	-cp -i $(HOME)/.config/claude-notify/config.json $(HOME)/backup_dotfiles/claude-notify-config.json
 	# dotfiles 심링크의 실제 내용 (참고용 — 원본은 repo)
 	-cp -L -i $(HOME)/.zshrc $(HOME)/backup_dotfiles/zshrc
 	-cp -L -i $(HOME)/.vimrc $(HOME)/backup_dotfiles/vimrc

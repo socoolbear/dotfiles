@@ -57,7 +57,7 @@ launchd 는 예약 시각에 맥이 잠들어 있었으면 **깨어난 직후** 
 
 ## `make backup` 의 한계
 
-`make backup` 은 zsh, vim, idea, tmux, git, ghostty, karabiner, mise 만 백업합니다. 다음은 백업 대상이 아니므로 필요시 직접 처리:
+`make backup` 은 zsh, vim, idea, tmux, git, ghostty, karabiner, mise, claude-notify 설정만 백업합니다. 다음은 백업 대상이 아니므로 필요시 직접 처리:
 
 - `~/.claude/` (settings.json 등)
 - `~/.mcp.json`

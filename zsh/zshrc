@@ -112,6 +112,23 @@ alias cct='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude'
 [ -x "$(command -v lazygit)" ] && alias lg='lazygit'
 [ -x "$(command -v yazi)" ] && alias yz='yazi'
 
+#--------------------------------------------------------------------------
+# Functions
+#--------------------------------------------------------------------------
+# 1Password SSH 승인 워밍업 — 작업 시작 전 승인 창을 미리 띄워 일괄 승인
+# (SSH 접속 + 커밋 서명 각 1회. 승인 창에서 "모든 애플리케이션에 승인" 체크 권장)
+1p-warmup() {
+    local scratch
+
+    ssh -T git@github.com 2>&1 | head -1  # 인증 성공이어도 exit 1 (정상)
+
+    scratch=$(mktemp -d)
+    git -C "${scratch}" init -q && git -C "${scratch}" commit -q --allow-empty -m warmup
+    rm -rf "${scratch}"
+
+    echo "1Password 승인 워밍업 완료"
+}
+
 
 #--------------------------------------------------------------------------
 # Claude & Claude Code

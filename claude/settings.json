@@ -6,6 +6,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -25,6 +26,22 @@
           {
             "type": "command",
             "command": "bash ~/.claude/scripts/team-cleanup-check.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "if [ -n \"$TMUX\" ]; then printf '\\033]777;notify;Claude Code;작업 완료\\a' > \"$(command tmux display -p '#{client_tty}')\" 2>/dev/null; else printf '\\033]777;notify;Claude Code;작업 완료\\a' > /dev/tty 2>/dev/null; fi; true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$TMUX\" ]; then printf '\\033]777;notify;Claude Code;확인 필요\\a' > \"$(command tmux display -p '#{client_tty}')\" 2>/dev/null; else printf '\\033]777;notify;Claude Code;확인 필요\\a' > /dev/tty 2>/dev/null; fi; true",
             "timeout": 5
           }
         ]
@@ -47,7 +64,8 @@
     "phpstorm-plugin@phpstorm-marketplace": true,
     "snippets@socoolbear-cc-marketplace": false,
     "frontend-design@claude-plugins-official": true,
-    "datadog@claude-plugins-official": true
+    "datadog@claude-plugins-official": true,
+    "catchup@socoolbear-cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {

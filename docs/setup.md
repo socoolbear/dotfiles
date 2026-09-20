@@ -67,11 +67,12 @@ mkdir -p ~/code ~/.local/bin
       email = socoolbear@gmail.com
 
   [includeIf "gitdir:~/code/work/"]
-      path = ~/code/work/.gitconfig-work
+      path = ~/.config/git/work.gitconfig
   ```
 
 - 기존 `~/.gitconfig` 가 실파일이면 `make sync` 가 마이그레이션 안내 후 중단합니다:
   `mv ~/.gitconfig ~/.gitconfig_local && make sync`
+- 디렉토리별로 다른 GitHub 계정을 쓰려면 [github-accounts.md](github-accounts.md) 참조.
 - dotfiles `git/gitconfig` 는 `[commit] gpgsign = true` 를 설정합니다. 이 머신에 GPG 키가 없으면 `~/.gitconfig_local` 에 다음을 추가해 끄세요:
 
   ```

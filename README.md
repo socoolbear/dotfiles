@@ -42,6 +42,7 @@ make fresh
 - [새 장비 셋업 가이드](docs/setup.md) — Homebrew, SSH, Zsh, Git, Claude 등 사전 / 후속 작업
 - [기존 장비에서 옮길 파일](docs/migration.md) — 마이그레이션 판단표 + zsh history 옵션
 - [프로젝트별 .env 관리](docs/secrets.md) — 1Password CLI 패턴
+- [디렉토리별 GitHub 계정 분리](docs/github-accounts.md) — includeIf + SSH 별칭 + direnv
 - [디렉토리 구조 + 심볼릭 링크 매핑](docs/structure.md)
 - [아키텍처 (Makefile 동작 원리)](docs/architecture.md)
 - [AI 에이전트 가이드](AGENTS.md)

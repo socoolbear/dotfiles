@@ -47,6 +47,8 @@ brew "bat"
 brew "eza"
 # Shell extension to navigate your filesystem faster
 brew "zoxide"
+# Load and unload environment variables depending on the current directory
+brew "direnv"
 
 #--------------------------------------------------------------------------
 # 검색 / 히스토리

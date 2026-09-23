@@ -11,6 +11,7 @@
 | `ghostty/` | Ghostty 터미널 | `~/.config/ghostty/` | ✅ |
 | `karabiner/` | 키보드 리맵핑 | `~/.config/karabiner/` | ✅ |
 | `swiftbar/` | SwiftBar 메뉴바 플러그인 (잠자기 방지 토글) | `~/.swiftbar-plugins/` | ✅ |
+| `alfred/` | Alfred 워크플로우 (Magic Trackpad 페어링 토글) | `~/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/<name>` | ✅ |
 | `claude/` | Claude Code 글로벌 설정 | `~/.claude/`, `~/.mcp.json` | ✅ (부분) |
 | `mise/` | mise 글로벌 도구 매니페스트 (node, go 등) | `~/.config/mise/config.toml` | ✅ |
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
@@ -40,6 +41,7 @@
 | `mise/config.toml` | `~/.config/mise/config.toml` |
 | `scripts/brew-scheduled-update.sh` | `~/.local/bin/brew-scheduled-update` |
 | `scripts/sleepguard-toggle.sh` | `~/.local/bin/sleepguard` |
+| `scripts/magic-trackpad-toggle.sh` | `~/.local/bin/magic-trackpad` |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 
 > `claude/commands/*.md`, `claude/skills/*/`, `claude/agents/*.md` 는 Makefile 의 `COMMANDS` / `SKILLS` / `AGENT_DEFS` 와일드카드가 자동 발견하므로, 새 명령/skill/agent 를 추가해도 Makefile 수정 불필요.
@@ -55,6 +57,9 @@
 | `claude/rules/` | `~/.claude/rules/` |
 | `claude/scripts/` | `~/.claude/scripts/` |
 | `claude/docs/` | `~/.claude/docs/` |
+| `alfred/workflows/*/` | `~/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/<name>` *(와일드카드 자동 발견, 디렉토리 단위)* |
+
+> `alfred/workflows/*/` 는 Makefile 의 `ALFRED_WORKFLOWS` 와일드카드가 자동 발견합니다. Alfred 환경설정 폴더가 없으면 (미설치) 건너뛰고, 새로 만든 링크는 Alfred 가 켜져 있을 때 `reload workflow` 로 즉시 등록합니다.
 
 ## Git 설정과 호스트 로컬 설정
 

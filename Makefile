@@ -90,6 +90,7 @@ LINKS_SINGLE := \
     mise/config.toml:.config/mise/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
+    scripts/magic-trackpad-toggle.sh:.local/bin/magic-trackpad \
     launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
@@ -111,6 +112,11 @@ SKILLS := $(notdir $(wildcard $(DOTFILES)/claude/skills/*))
 # claude/agents/*.md — 와일드카드 자동 발견 (agent 추가 시 Makefile 수정 불필요)
 # 파일 단위 심링크로 머신별 실파일 (예: nestjs-impl-executor.md) 보존
 AGENT_DEFS := $(notdir $(wildcard $(DOTFILES)/claude/agents/*.md))
+
+# alfred/workflows/*/ — 와일드카드 자동 발견 (워크플로우 추가 시 Makefile 수정 불필요)
+# 대상 경로에 공백이 있어 LINKS_DIR 루프와 분리. 디렉토리 단위 심링크 (Alfred 는 심링크 폴더도 워크플로우로 인식)
+ALFRED_WORKFLOWS_DIR := $(HOME)/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows
+ALFRED_WORKFLOWS := $(notdir $(wildcard $(DOTFILES)/alfred/workflows/*))
 
 #--------------------------------------------------------------------------
 # 프레임워크 (oh-my-zsh / oh-my-tmux)
@@ -191,6 +197,23 @@ sync: ohmyzsh ohmytmux
 	    ln -sf "$(DOTFILES)/$$src" "$$target"; \
 	done
 
+	@# Alfred 워크플로우 심링크 (Alfred 환경설정 폴더가 없으면 건너뜀 — 설치 후 make sync 재실행)
+	@# 새로 만든 링크만 Alfred 에 reload 로 알림 (폴더명 = 워크플로우 UID, 링크 직후엔 Alfred 가 못 보므로 1초 대기). 이미 있는 링크는 Alfred 가 이미 안다.
+	@if [ -d "$(ALFRED_WORKFLOWS_DIR)" ]; then \
+	    for wf in $(ALFRED_WORKFLOWS); do \
+	        target="$(ALFRED_WORKFLOWS_DIR)/$$wf"; \
+	        [ -L "$$target" ] && continue; \
+	        ln -sf "$(DOTFILES)/alfred/workflows/$$wf" "$$target"; \
+	        pgrep -xq Alfred || continue; \
+	        sleep 1; \
+	        osascript -e "tell application \"Alfred 5\" to reload workflow \"$$wf\"" >/dev/null 2>&1 \
+	            && echo "==> Alfred 워크플로우 등록: $$wf" \
+	            || echo "==> Alfred 워크플로우 등록 실패: $$wf (Alfred 재시작 후 인식됨)"; \
+	    done; \
+	else \
+	    echo "==> Alfred 환경설정 폴더 없음 — 워크플로우 링크 건너뜀 (make brew-apps 후 Alfred 를 한 번 실행하고 make sync)"; \
+	fi
+
 	@# launchd 예약 작업 재등록 (심링크 생성만으로는 등록되지 않음 — bootout 후 bootstrap 으로 멱등)
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(BREW_SCHEDULED_UPDATE_LABEL).plist 2>/dev/null || true
@@ -218,6 +241,9 @@ clean:
 	done
 	@for agent in $(AGENT_DEFS); do \
 	    rm -f "$(HOME)/.claude/agents/$$agent"; \
+	done
+	@for wf in $(ALFRED_WORKFLOWS); do \
+	    rm -f "$(ALFRED_WORKFLOWS_DIR)/$$wf"; \
 	done
 	@# tmux 부속 정리
 	@rm -rf $(HOME)/.config/tmux/.tmux

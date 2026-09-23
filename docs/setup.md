@@ -96,6 +96,10 @@ mise trust ~/.dotfiles/mise/config.toml
   - features > clipboard history > shift+cmd+v 로 변경 및 기타 체크박스 활성
   - **Workflow 설치**: `.alfredworkflow` 파일을 더블클릭하면 Alfred 가 import 다이얼로그 표시
     - **DeepL Translate**: [alexanderwillner/deepl-translate](https://alfred.app/workflows/alexanderwillner/deepl-translate/) 다운로드 → DeepL API key 등록
+  - **dotfiles 워크플로우** (`alfred/workflows/*`): Alfred 를 한 번 실행한 뒤 `make sync` 하면 자동 등록. Magic Trackpad 토글 (`trackpad` 키워드) 은 `blueutil` 이 필요 (`make brew` 로 설치)
+    - **수동 (자동화 불가)**: 시스템 설정 → 개인정보 보호 및 보안 → Bluetooth → `+` 로 Alfred 추가. 권한 팝업이 뜨지 않아 직접 추가해야 하며, 없으면 `blueutil` 이 장치를 못 찾아 조용히 실패
+    - Alfred GUI 로 이 워크플로우를 편집하면 심링크를 따라 dotfiles 의 `info.plist` 가 바로 바뀝니다 → `git diff` 확인 후 커밋
+    - Alfred 자체 환경설정 동기화 폴더 (iCloud/Dropbox) 를 쓰는 장비에서는 자동 등록이 안 됩니다 (Makefile 은 기본 경로만 봄). 트랙패드를 교체하면 `scripts/magic-trackpad-toggle.sh` 의 `DEVICE_ID` 갱신
 - **Obsidian**: vault 설정
 - **JetBrains**:
   - 터미널 폰트 (JetBrains Mono 13pt)

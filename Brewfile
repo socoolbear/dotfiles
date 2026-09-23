@@ -209,5 +209,5 @@ brew "playwright-cli"
 
 # OpenAI's coding agent that runs in your terminal
 cask "codex"
-# Anthropic's official CLI for Claude
-cask "claude-code"
+# Anthropic's official CLI for Claude (@latest: 자동 업데이트 채널. 무접미사 cask 와 같은 claude 바이너리를 설치하므로 둘 중 하나만)
+cask "claude-code@latest"

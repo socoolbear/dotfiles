@@ -65,7 +65,8 @@
     "frontend-design@claude-plugins-official": true,
     "datadog@claude-plugins-official": true,
     "catchup@socoolbear-cc-marketplace": true,
-    "worktrees@socoolbear-cc-marketplace": true
+    "worktrees@socoolbear-cc-marketplace": true,
+    "taskspace@socoolbear-cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {

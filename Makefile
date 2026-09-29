@@ -91,6 +91,8 @@ LINKS_SINGLE := \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
     scripts/magic-trackpad-toggle.sh:.local/bin/magic-trackpad \
+    scripts/mcp-mysql-reader.sh:.local/bin/mcp-mysql-reader \
+    scripts/mcp-pg-reader.sh:.local/bin/mcp-pg-reader \
     launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)

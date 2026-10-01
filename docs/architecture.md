@@ -49,7 +49,7 @@ launchd 는 예약 시각에 맥이 잠들어 있었으면 **깨어난 직후** 
 - `claude/.mcp.json` — MCP 서버 정의 (홈 루트 `~/.mcp.json` 으로 링크)
 - `claude/CLAUDE.md` / `claude/AGENTS.md` — 글로벌 인스트럭션
 - `claude/rules/` — 자동 로드되는 규칙 모음 (예: `coding-style.md`)
-- `claude/scripts/` — Hook 등에서 호출하는 유틸 스크립트 (`statusline-command.sh`, `enforce-plan-review.sh`, `team-cleanup-check.sh`)
+- `claude/scripts/` — Hook 등에서 호출하는 유틸 스크립트 (`statusline-command.sh`, `enforce-plan-review.sh`, `team-cleanup-check.sh`, `context-guard.sh`, `compact-restore.sh`)
 - `claude/docs/` — `claude/AGENTS.md` 가 `@docs/...` 로 참조하는 상세 가이드 (워크플로우, 피드백 라우팅 등)
 - `claude/commands/` — 슬래시 명령어 정의 (`*.md` 와일드카드 자동 발견)
 - `claude/skills/` — Claude Code skill 정의 (`*/` 디렉토리 단위 자동 발견, 머신별 실디렉토리는 보존)

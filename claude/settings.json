@@ -19,6 +19,29 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/context-guard.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/compact-restore.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -91,6 +114,7 @@
     }
   },
   "effortLevel": "high",
+  "autoCompactWindow": 500000,
   "plansDirectory": ".claude/plan",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,

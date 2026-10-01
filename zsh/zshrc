@@ -98,7 +98,7 @@ alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 alias pn='pnpm'
 alias vf='vim $(fzf)'
 alias cc='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude'
-alias cct='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude -n "task-$(basename "$PWD")"'
+alias cct='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude -n "task-$(basename "$PWD")" --dangerously-skip-permissions'
 
 [ -x "$(command -v bat)" ] && alias cat="bat --paging=never" || alias cat="batcat --paging=never"
 

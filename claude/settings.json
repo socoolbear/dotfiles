@@ -96,7 +96,7 @@
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
   "editorMode": "vim",
-  "autoCompactEnabled": false,
+  "autoCompactEnabled": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }

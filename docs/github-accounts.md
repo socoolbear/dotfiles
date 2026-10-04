@@ -1,6 +1,7 @@
 # 디렉토리별 GitHub 계정 분리
 
-`~/code/side/` 아래에서는 side 계정, 그 밖에서는 기본 계정이 자동으로 쓰이도록 한 설정.
+`~/code/workspace/bongnong/` 아래에서는 side 계정, 그 밖에서는 기본 계정이 자동으로 쓰이도록 한 설정.
+(이전 작업 위치 `~/code/side/` 는 archive 로 남아 있어 git `includeIf` 만 유지한다.)
 git 작성자·커밋 서명·SSH 인증·`gh` CLI 네 가지가 모두 디렉토리 기준으로 갈린다.
 
 ## 현재 구성
@@ -8,7 +9,7 @@ git 작성자·커밋 서명·SSH 인증·`gh` CLI 네 가지가 모두 디렉�
 | | 기본 계정 | side 계정 |
 |---|---|---|
 | GitHub | `socoolbear` | `<side 계정>` |
-| 적용 범위 | `~/code/side/` 밖 전부 | `~/code/side/` 아래 모든 repo·worktree |
+| 적용 범위 | 아래 경로 밖 전부 | `~/code/workspace/bongnong/` 아래 모든 repo·worktree, `~/code/workspace` repo 자체 (+ archive `~/code/side/`) |
 | 작성자 | `~/.gitconfig_local` `[user]` | `~/.config/git/side.gitconfig` `[user]` |
 | SSH·서명 키 | 1Password "개인" vault (기본 키) | 1Password "Side" vault (side 키) |
 | SSH 접속 | `github.com` 그대로 | `github-side` 별칭으로 자동 치환 |
@@ -17,18 +18,18 @@ git 작성자·커밋 서명·SSH 인증·`gh` CLI 네 가지가 모두 디렉�
 ## 동작 원리 (파일 7개)
 
 ```
-~/.gitconfig_local                  기본 [user] + signingkey, includeIf → side.gitconfig, allowedSignersFile
+~/.gitconfig_local                  기본 [user] + signingkey, includeIf (bongnong·workspace repo·side) → side.gitconfig, allowedSignersFile
 ~/.config/git/side.gitconfig        side [user] + signingkey, url.insteadOf → github-side
 ~/.config/git/allowed_signers       두 계정 이메일 ↔ 공개키 (로컬 서명 검증용)
 ~/.ssh/config                       Host github-side → side.pub 만 사용 (IdentitiesOnly)
 ~/.ssh/side.pub                     side 공개키 (비밀키는 1Password 에만 있음)
-~/code/side/.envrc                  export GH_TOKEN=$(gh auth token -u <side 계정>)
+~/code/workspace/bongnong/.envrc    export GH_TOKEN=$(gh auth token -u <side 계정>)
 ~/.config/1Password/ssh/agent.toml  vault 순서: "개인" → "Side" (기본 계정 키가 먼저 제공되도록)
 ```
 
 흐름:
 
-1. `~/code/side/**` 에서 git 실행 → `includeIf "gitdir:~/code/side/"` 가 `side.gitconfig` 를 읽음
+1. `~/code/workspace/bongnong/**` 에서 git 실행 → `includeIf "gitdir:~/code/workspace/bongnong/"` 가 `side.gitconfig` 를 읽음
 2. `side.gitconfig` 의 `url."git@github-side:".insteadOf = git@github.com:` 가 remote 주소를 치환
 3. `~/.ssh/config` 의 `Host github-side` 가 `IdentitiesOnly yes` + `side.pub` 로 side 키만 agent 에 요청
 4. 커밋 서명은 `user.signingkey` 문자열로 1Password `op-ssh-sign` 이 키를 찾음 (파일 불필요)
@@ -156,10 +157,10 @@ cd ~ && gh api user --jq .login                    # socoolbear
 # 1. 1Password 앱 설치 → Settings → Developer → SSH agent 켜기
 # 2. dotfiles
 make sync
-# 3. 로컬 파일 7개 복원 (~/.gitconfig_local, ~/.config/git/*, ~/.ssh/config, ~/.ssh/side.pub, ~/code/side/.envrc, agent.toml)
-mkdir -p ~/code/side
+# 3. 로컬 파일 7개 복원 (~/.gitconfig_local, ~/.config/git/*, ~/.ssh/config, ~/.ssh/side.pub, ~/code/workspace/bongnong/.envrc, agent.toml)
+mkdir -p ~/code/workspace/bongnong
 op read 'op://Side/github-accounts-local-files/BUNDLE' | base64 -d | tar xzf - -C ~
-direnv allow ~/code/side
+direnv allow ~/code/workspace/bongnong
 # 4. gh 두 계정 로그인 ("Upload SSH key?" 는 Skip)
 gh auth login && gh auth login
 gh auth switch -u socoolbear
@@ -171,7 +172,7 @@ gh auth switch -u socoolbear
 ```sh
 cd ~ && op item edit github-accounts-local-files --vault Side "BUNDLE[text]=$(
   tar czf - .gitconfig_local .config/git/side.gitconfig .config/git/allowed_signers \
-    .ssh/config .ssh/side.pub code/side/.envrc .config/1Password/ssh/agent.toml | base64)" >/dev/null
+    .ssh/config .ssh/side.pub code/workspace/bongnong/.envrc .config/1Password/ssh/agent.toml | base64)" >/dev/null
 ```
 
 ## 자주 틀리는 것
@@ -179,7 +180,8 @@ cd ~ && op item edit github-accounts-local-files --vault Side "BUNDLE[text]=$(
 - **`insteadOf` 의 콜론**: `[url "git@github-side:"]` — 끝에 `:` 가 없으면 `git@github-sideorg/repo` 로 붙어서 접속 불가
 - **`IdentitiesOnly yes` 는 별칭 Host 에만**: `Host *` 에 넣으면 기본 계정 접속이 깨진다. 이게 없으면 agent 가 키를 순서대로 다 시도해 첫 번째 유효 키 (기본 계정) 로 붙는다
 - **`.pub` 파일은 필요하다**: 비밀키는 1Password 가 갖고 있지만, ssh 는 "어느 키를 쓸지" 를 공개키 파일로 지목한다. 커밋 서명은 gitconfig 에 공개키 문자열을 직접 적어 파일이 필요 없다
-- **`includeIf` 경로 끝 `/`**: `gitdir:~/code/side/` — 없으면 `~/code/side2` 같은 곳도 매칭된다
-- **`~/code/side/` 안에서 `gh auth switch` 는 먹지 않는다**: `GH_TOKEN` 환경변수가 우선. 의도된 동작
+- **`includeIf` 경로 끝 `/`**: `gitdir:~/code/workspace/bongnong/` — 없으면 `~/code/workspace/bongnong2` 같은 곳도 매칭된다
+- **`gitdir` 은 `.git` 위치 기준**: `~/code/workspace` repo 자체는 `.git` 이 `bongnong/` 밖이라 bongnong 규칙에 걸리지 않는다. 그래서 `gitdir:~/code/workspace/.git` 규칙을 따로 둔다 (`~/code/workspace/` 전체로 잡으면 나중에 생길 다른 팀 폴더까지 side 계정이 된다). bongnong worktree 는 `.git` 이 `bongnong/.bares/` 안이라 bongnong 규칙에 걸린다
+- **`~/code/workspace/bongnong/` 안에서 `gh auth switch` 는 먹지 않는다**: `GH_TOKEN` 환경변수가 우선. 의도된 동작
 - **`git log --show-signature` 가 `N`**: 서명이 없거나 (설정 전 커밋) `allowed_signers` 에 그 이메일이 없는 것. GitHub "Verified" 와는 무관
 - **한 SSH 키를 두 계정에 등록할 수 없다**: GitHub 가 거부한다. 계정마다 키를 따로 만든다

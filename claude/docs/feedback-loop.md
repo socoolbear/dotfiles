@@ -26,8 +26,8 @@
 | 피드백 유형 | 반영 위치 |
 |---|---|
 | 워크플로우 / 작성 규칙 | 프로젝트 `docs/` (전역 규칙이면 `~/.claude/docs/`) |
-| 용어 선택 · 설명 방식 · 표현이 어렵다는 지적 | `~/.claude/docs/wording.md` (프로젝트 고유 용어면 프로젝트 `docs/glossary.md`) |
-| 작업 중 얻은 교훈 · 실수 재발 방지 | 프로젝트 `docs/lessons.md` (도구·워크플로우 전반이면 `~/.claude/docs/lessons.md`) |
+| 용어 선택 · 설명 방식 · 표현이 어렵다는 지적 | `~/.claude/docs/wording.md` (프로젝트 고유 용어면 프로젝트 `docs/glossary.md`, `harness/` 가 있으면 `harness/GLOSSARY.md`) |
+| 작업 중 얻은 교훈 · 실수 재발 방지 | 프로젝트 `docs/lessons.md` (도구·워크플로우 전반이면 `~/.claude/docs/lessons.md`). `harness/` 가 있으면 `harness/LESSONS.md` |
 | 도메인 사실관계 (수치, 경력, 고유명사) | `docs/{domain}.md` |
 | 특정 작업 자동화 규칙 | `.claude/skills/{skill}/SKILL.md` |
 | 자동 실행 Hook / 권한 | `.claude/settings.json` (전역이면 `~/.claude/settings.json`) |
@@ -36,6 +36,16 @@
 ### 반영 워크플로우
 
 1. 피드백 수신 → 유형에 맞는 위치 선택
-2. 해당 파일에 유사 규칙 있는지 Grep 확인
-3. 기존 섹션 확장 or 누적 섹션에 추가
-4. auto-memory 에는 빠른 참조용 짧은 요약만 (선택)
+2. 검사로 강제할 수 있으면 (코드 패턴은 린터·테스트, 도구 호출은 훅, 스크립트 사용법은 그 스크립트의 오류 메시지) 문서보다 그쪽을 먼저 제안한다. 채택되지 않으면 문서에 기록한다
+3. 해당 파일에 유사 규칙 있는지 Grep 확인
+4. 기존 섹션 확장 or 누적 섹션에 추가
+5. auto-memory 에는 빠른 참조용 짧은 요약만 (선택)
+
+### 사용자가 지적하지 않은 내 실수
+
+사용자의 명시적 지적은 위 절차로 바로 파일에 쓴다. 스스로 발견한 실수는 한 번으로는 일반화할 수 없으므로 단계를 둔다.
+
+- **첫 발생**: auto-memory (`feedback`) 에 근거와 함께 `발생: YYYY-MM-DD <근거>` 줄을 남긴다
+- **재발**: 새 memory 를 만들지 말고 기존 memory 에 `발생:` 줄을 추가한다
+- **승격**: 서로 다른 날의 두 번째 `발생:` 줄을 추가하는 그 자리에서 위 표의 repo 파일에 쓴다 (`harness/` 프로젝트는 harness 학습 승격이 맡는다). memory 는 남긴다
+- 재발이 없다고 지우지 않는다 — 잘 지켜지고 있는 규칙일 수 있다

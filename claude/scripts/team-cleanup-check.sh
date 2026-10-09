@@ -74,7 +74,7 @@ printf '%s\t%s\t%s\n' \
   while IFS= read -r name; do printf '  - %s\n' "${name}"; done <<< "${stale}"
   echo
   echo "산출물을 이미 종합했다면 각각 TaskStop(task_id: \"<이름>\") 으로 정리하세요."
-  echo "더 시킬 일이 있으면 새로 띄우지 말고 SendMessage({to: \"<이름>\"}) 로 재지시하세요."
+  echo "더 시킬 일이 있으면 새로 띄우지 말고 SendMessage({to: \"<이름>\", message: \"...\"}) 로 재지시하세요."
   echo "이미 사라진 이름이면 그냥 넘어가세요."
   echo
   echo "아직 결과를 기다리는 중이거나 계획 승인 대기 중이라면, 이 메시지를 무시하고 하던 일을 계속하세요."

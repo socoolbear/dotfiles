@@ -55,7 +55,7 @@ typeset -U PATH path cdpath fpath
 # (launchd/com.socoolbear.brew-scheduled-update.plist → scripts/brew-scheduled-update.sh, 매일 04:30)
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
-export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
+export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"  # 1Password SSH agent (2026-10-09 사용자 결정)
 export ANDROID_HOME=$HOME/Library/Android/sdk
 
 path=(

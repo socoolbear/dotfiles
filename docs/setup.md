@@ -156,4 +156,4 @@ SwiftBar 첫 실행 시 플러그인 폴더를 물으면 `~/.swiftbar-plugins` �
 
 - **macOS 시스템 기본값**: `make macos` 가 처리 (`macos/defaults.sh`)
 - **oh-my-zsh agnoster 테마**: [멀티라인 설정 gist](https://gist.github.com/socoolbear/d59447cfaffc24ee914e27fe3019cd81)
-- **Karabiner-Elements**: `Brewfile.apps` 의 cask 주석 해제. 설정은 `karabiner/` 가 자동 심링크
+- **Karabiner-Elements**: `Brewfile.apps` 에 포함 (`make brew-apps` 가 설치). 설정은 `karabiner/` 가 자동 심링크

@@ -69,6 +69,14 @@ while IFS= read -r f; do
   jq empty "${f}" 2>/dev/null || fail "JSON 문법 오류: ${f}"
 done < <(git ls-files '*.json')
 
+# 셸·git·plist 설정은 읽히는지만 본다 (깨진 설정이 push 되면 다른 장비의 새 터미널이 오류로 열린다)
+zsh -n zsh/zshrc 2>/dev/null || fail "zsh 문법 오류: zsh/zshrc"
+git config -f git/gitconfig --list >/dev/null 2>&1 || fail "git 설정 파싱 오류: git/gitconfig"
+
+while IFS= read -r f; do
+  plutil -lint "${f}" >/dev/null 2>&1 || fail "plist 문법 오류: ${f}"
+done < <(git ls-files '*.plist')
+
 make -n sync >/dev/null 2>&1 || fail "make -n sync 실패"
 
 # --- 4. settings.json 훅·상태줄이 부르는 스크립트가 있는가 ---

@@ -17,7 +17,9 @@
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
 | `git/` | Git 설정 (alias / delta / include) | `~/.gitconfig`, `~/.gitignore_global` | ✅ |
 | `launchd/` | launchd 예약 작업 정의 (Homebrew 예약 갱신) | `~/Library/LaunchAgents/` | ✅ |
-| `scripts/` | Makefile / launchd 가 호출하는 유틸 스크립트 | `~/.local/bin/` (일부) | ✅ (부분) |
+| `scripts/` | Makefile / launchd / MCP 설정이 호출하는 유틸 스크립트 | `~/.local/bin/` (일부) | ✅ (부분) |
+| `macos/` | macOS 시스템 기본값 스크립트 (`defaults.sh`, `make macos` 가 실행) | — | ❌ (스크립트 직접 실행) |
+| `docs/` | 저장소 문서 (목록은 `AGENTS.md` 상세 가이드 표) | — | ❌ (문서 전용) |
 | `.claude/` | 프로젝트 로컬 Claude 설정 | 로컬 전용 | — |
 
 ## 심볼릭 링크 매핑 — 단일 파일
@@ -41,6 +43,8 @@
 | `scripts/brew-scheduled-update.sh` | `~/.local/bin/brew-scheduled-update` |
 | `scripts/sleepguard-toggle.sh` | `~/.local/bin/sleepguard` |
 | `scripts/magic-trackpad-toggle.sh` | `~/.local/bin/magic-trackpad` |
+| `scripts/mcp-mysql-reader.sh` | `~/.local/bin/mcp-mysql-reader` |
+| `scripts/mcp-pg-reader.sh` | `~/.local/bin/mcp-pg-reader` |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 
 > `claude/commands/*.md`, `claude/skills/*/`, `claude/agents/*.md` 는 Makefile 의 `COMMANDS` / `SKILLS` / `AGENT_DEFS` 와일드카드가 자동 발견하므로, 새 명령/skill/agent 를 추가해도 Makefile 수정 불필요.
@@ -75,8 +79,7 @@ make sync
 
 ```
 .claude/
-├── plans/                  # 작업 계획서 (계획 모드에서 자동 생성)
-├── rules/
-│   └── coding-style.md     # 코딩 스타일 규칙 (자동 로드)
+├── plan/                   # 작업 계획서 (claude/settings.json 의 plansDirectory, 계획 모드에서 자동 생성)
+├── skills/                 # 프로젝트 로컬 skill (setup-env, dotfiles-doctor)
 └── settings.local.json     # 프로젝트 로컬 설정
 ```

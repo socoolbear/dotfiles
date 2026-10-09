@@ -166,8 +166,6 @@ esac
 # mise — Node, Go 등 통합 버전 관리 (nvm/rbenv 대체). PATH prepend 하므로 기존 PATH 설정 이후에 호출.
 eval "$(mise activate zsh)"
 
-alias claude-mem='bun "$HOME/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs"'
-
 # tools
 eval "$(zoxide init zsh)"
 eval "$(direnv hook zsh)"

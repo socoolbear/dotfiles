@@ -29,6 +29,7 @@
 #                                                    # 재부팅·Ghostty 재시작 뒤. resume (기본) = 같은 대화로,
 #                                                    # handoff = 새 세션이 handoff 문서 (없으면 /catchup <ID>) 로 시작
 #   term-session restart [--force] [--no-enter]      # Claude 버전업·zsh 설정 반영 (모든 세션 제자리 재시작)
+#   term-session close   [-o <file>] [--yes]                   # handoff → 저장 → tmux·Ghostty 모두 닫기 (확인 창, --yes 면 생략)
 #   term-session status                              # 마지막 저장 요약 한 줄
 #   term-session run   <save|save-handoff|restore|restore-handoff|preview|restart>  # 창 없이 실행, 결과는 ~/.local/state/term-session/last.log (Alfred)
 #
@@ -632,7 +633,7 @@ set sep to character id 9
 tell application "Ghostty"
     set out to ""
     repeat with w in windows
-        set out to out & "W" & linefeed
+        set out to out & "W" & sep & (id of w) & linefeed
         repeat with t in tabs of w
             set out to out & "T" & sep & (selected of t) & sep & (count of terminals of t) & sep & (name of t) & linefeed
         end repeat
@@ -686,10 +687,10 @@ isClaudeInputEmpty() {
     [[ -z "$(LC_ALL=C sed $'s/\e\\[[0-9;]*m//g' <<<"${line}" | tr -d ' ')" ]]
 }
 
-# idle 인 claude 마다 /handoff <이름> 을 보내고, 문서가 새로 써지고 idle 로 돌아올 때까지 기다린다.
+# idle 인 claude 마다 /handoff <이름> 을 보내고, 일을 마치고 idle 로 돌아올 때까지 기다린다.
 # 작업 중인 claude 는 하던 일을 방해하지 않도록 건너뛴다.
 requestHandoffs() {
-    local startEpoch
+    local startEpoch failed=0
     startEpoch=$(date +%s)
 
     local -a pending=()
@@ -704,11 +705,13 @@ requestHandoffs() {
         name=$(jq -r '.name // .sessionId[0:8]' "${sessionFile}")
         if [[ "${status}" != idle ]]; then
             warn "pane ${paneId} 의 claude (${name}) 는 ${status} 상태라 handoff 를 건너뜀 — 끝난 뒤 다시 저장하세요"
+            failed=$((failed + 1))
             continue
         fi
 
         if ! isClaudeInputEmpty "${paneId}"; then
             warn "pane ${paneId} 의 claude (${name}) 입력창에 보내지 않은 글 (또는 확인 창) 이 있어 handoff 를 건너뜀 — 비운 뒤 다시 저장하세요"
+            failed=$((failed + 1))
             continue
         fi
 
@@ -721,17 +724,19 @@ requestHandoffs() {
         tm send-keys -t "${paneId}" Enter
 
         echo "handoff 요청 — ${name} (pane ${paneId})" >&2
-        pending+=("${sessionFile}${TAB}${handoffFile}${TAB}${name}")
+        pending+=("${sessionFile}${TAB}${handoffFile}${TAB}${name}${TAB}$(( $(date +%s) * 1000 ))")
     done < <(tm list-panes -a -F '#{pane_id}')
 
-    local entry left
+    local entry left sentAtMs
     while (( ${#pending[@]} > 0 && $(date +%s) - startEpoch < HANDOFF_TIMEOUT )); do
         sleep 5
         left=()
         for entry in "${pending[@]}"; do
-            IFS=${TAB} read -r sessionFile handoffFile name <<<"${entry}"
-            if [[ -f "${handoffFile}" ]] && (( $(stat -f %m "${handoffFile}") >= startEpoch )) \
-                && [[ "$(jq -r '.status' "${sessionFile}" 2>/dev/null)" == idle ]]; then
+            IFS=${TAB} read -r sessionFile handoffFile name sentAtMs <<<"${entry}"
+            # 보낸 뒤에 일을 마치고 idle 로 돌아왔는지로 판단한다. 바뀐 게 없으면 claude 가 문서를 다시 쓰지 않으므로
+            # 파일 시각은 기준이 될 수 없다 — 문서가 있기만 하면 된다.
+            if [[ -f "${handoffFile}" ]] && jq -e --argjson sent "${sentAtMs}" \
+                '.status == "idle" and .statusUpdatedAt >= $sent' "${sessionFile}" >/dev/null 2>&1; then
                 echo "  ✓ ${name} → ${handoffFile}" >&2
                 continue
             fi
@@ -741,22 +746,65 @@ requestHandoffs() {
     done
 
     for entry in ${pending[@]+"${pending[@]}"}; do
-        IFS=${TAB} read -r _ _ name <<<"${entry}"
+        IFS=${TAB} read -r _ _ name _ <<<"${entry}"
         warn "${name} 의 handoff 가 ${HANDOFF_TIMEOUT}초 안에 끝나지 않음 — 그 claude 를 확인하세요"
+        failed=$((failed + 1))
     done
+
+    (( failed == 0 ))
+}
+
+# pane 하나에 빈 셸뿐인 세션 — Ghostty 를 열 때 zsh 가 자동으로 만든 세션이 대개 이렇다.
+# 되살릴 내용이 없고, 저장·복원을 반복하면 이런 세션이 하나씩 쌓이므로 저장에서 빼고 복원 뒤 정리한다.
+isEmptyShellSession() {
+    local session=$1
+
+    local panes
+    panes=$(tm list-panes -s -t "=${session}" -F '#{pane_pid}')
+    [[ $(wc -l <<<"${panes}") -eq 1 && -z "$(listDescendants "${panes}")" ]]
 }
 
 saveAll() {
     local outFile=$1
 
-    local session sessions=""
+    local session sessions="" saved=""
     while IFS= read -r session; do
+        if isEmptyShellSession "${session}"; then
+            echo "세션 ${session} 은 빈 셸 하나뿐이라 저장하지 않음" >&2
+            continue
+        fi
         sessions+=$(snapshotSession "${session}")$'\n'
+        saved+="${session}"$'\n'
     done < <(tm list-sessions -F '#{session_name}')
 
-    writeSnapshot "${outFile}" "$(jq -cn --argjson ghostty "$(snapshotGhostty)" \
+    # 저장하지 않은 세션의 Ghostty 탭도 뺀다 (복원할 때 열 수 없으므로)
+    local ghostty
+    ghostty=$(jq -c --argjson saved "$(jq -R . <<<"${saved%$'\n'}" | jq -s -c .)" \
+        'map(.tabs |= map(select(.session as $s | $saved | index($s)))) | map(select(.tabs | length > 0))' \
+        <<<"$(snapshotGhostty)")
+
+    writeSnapshot "${outFile}" "$(jq -cn --argjson ghostty "${ghostty}" \
         --argjson sessions "$(jq -s . <<<"${sessions}")" '{ghostty: $ghostty, sessions: $sessions}')"
     reportSaved "${outFile}"
+}
+
+# 복원 뒤, 기록에 없는 빈 셸 세션 (Ghostty 를 열 때 생긴 것) 을 닫는다. zsh 가 tmux 와 함께 끝나 그 탭도 닫힌다.
+# 이 명령을 그 세션 안에서 실행했을 수 있어 맨 마지막에 한다.
+closeEmptySessions() {
+    local nameMap=$1
+
+    local session
+    while IFS= read -r session; do
+        awk -F '\t' -v s="${session}" '$2 == s { found = 1 } END { exit !found }' <<<"${nameMap}" && continue
+        isEmptyShellSession "${session}" || continue
+
+        if (( dryRun )); then
+            echo "빈 세션 ${session} 을 닫음 (Ghostty 를 열 때 생긴 것)" >&2
+            continue
+        fi
+        echo "빈 세션 ${session} 을 닫음 (Ghostty 를 열 때 생긴 것)" >&2
+        tm kill-session -t "=${session}"
+    done < <(tm list-sessions -F '#{session_name}')
 }
 
 previewSession() {
@@ -914,7 +962,92 @@ restoreAll() {
 
     local failedCount
     failedCount=$(awk -F '\t' '$3 == "partial"' <<<"${nameMap}" | wc -l | tr -d ' ')
-    (( failedCount == 0 )) || die "세션 ${failedCount} 개가 일부만 복원됨 (위 메시지 참고)"
+    (( failedCount == 0 )) || warn "세션 ${failedCount} 개가 일부만 복원됨 (위 메시지 참고)"
+
+    closeEmptySessions "${nameMap}"
+    (( failedCount == 0 ))
+}
+
+# 정리할 것을 확인 창으로 보여 준다. "정리" 를 눌러야 0 을 돌려준다.
+confirmClose() {
+    local summary=$1
+
+    osascript - "${summary}" <<'APPLESCRIPT' 2>/dev/null | grep -q '정리'
+on run argv
+    display dialog "아래를 handoff · 저장한 뒤 모두 닫습니다." & return & return & (item 1 of argv) ¬
+        buttons {"취소", "정리"} default button "취소" cancel button "취소" with title "term-session 작업 정리"
+end run
+APPLESCRIPT
+}
+
+# 닫을 것 요약: 세션 수, claude 이름, 다른 프로그램 pane (닫으면 꺼짐)
+describeClose() {
+    local paneId shellPid claudePid child claudes="" programs="" sessionCount
+    sessionCount=$(tm list-sessions | wc -l | tr -d ' ')
+
+    while IFS= read -r paneId; do
+        shellPid=$(tm display-message -p -t "${paneId}" '#{pane_pid}')
+        claudePid=$(findClaudePid "${shellPid}")
+        if [[ -n "${claudePid}" ]]; then
+            claudes+="  · $(jq -r '.name // .sessionId[0:8]' "${SESSIONS_DIR}/${claudePid}.json" 2>/dev/null || echo "pid ${claudePid}")"$'\n'
+            continue
+        fi
+        child=$(listDescendants "${shellPid}" | head -1)
+        [[ -z "${child}" ]] || programs+="  · $(ps -o args= -p "${child}" | cut -c1-60)"$'\n'
+    done < <(tm list-panes -a -F '#{pane_id}')
+
+    printf 'tmux 세션 %s 개\n\nclaude (handoff 후 종료):\n%s' "${sessionCount}" "${claudes:-  · 없음}"
+    [[ -z "${programs}" ]] || printf '\n다른 프로그램 (종료됨, 복원 때 명령만 입력):\n%s' "${programs}"
+}
+
+# Ghostty 창 가운데 tmux 세션 탭만 있는 창을 닫고, 남은 창이 없으면 Ghostty 를 끝낸다.
+closeGhostty() {
+    local sessions=$1
+
+    local kind windowId title session closable windows=""
+    while IFS=${TAB} read -r kind windowId _ title; do
+        if [[ "${kind}" == "W" ]]; then
+            [[ -z "${closable:-}" ]] || windows+="${closable}"$'\n'
+            closable=${windowId}
+            continue
+        fi
+        session=$(sessionFromTitle "${title}") && grep -qxF "${session}" <<<"${sessions}" || closable=""
+    done < <(listGhosttyTabs)
+    [[ -z "${closable:-}" ]] || windows+="${closable}"$'\n'
+
+    while IFS= read -r windowId; do
+        [[ -n "${windowId}" ]] || continue
+        osascript -e "tell application \"Ghostty\" to close window (first window whose id is \"${windowId}\")" >/dev/null 2>&1 || true
+    done <<<"${windows}"
+
+    [[ -z "${TERM_SESSION_TMUX_SOCKET:-}" ]] || return 0
+    if [[ "$(osascript -e 'tell application "Ghostty" to return (count of windows)' 2>/dev/null)" == "0" ]]; then
+        echo "Ghostty 종료" >&2
+        osascript -e 'tell application "Ghostty" to quit' >/dev/null 2>&1 || true
+    fi
+}
+
+# handoff → 저장 → tmux 정리 → Ghostty 정리. handoff 를 하나라도 못 하면 아무것도 닫지 않는다.
+closeAll() {
+    local file=$1
+    local assumeYes=$2
+
+    tm has-session 2>/dev/null || die "닫을 tmux 세션이 없음"
+
+    local summary
+    summary=$(describeClose)
+    echo "${summary}" >&2
+    (( assumeYes )) || confirmClose "${summary}" || die "취소함"
+
+    requestHandoffs || die "handoff 를 못 한 claude 가 있어 정리를 멈춤 (위 메시지 참고) — 아무것도 닫지 않았습니다"
+    saveAll "${file}"
+
+    local sessions
+    sessions=$(tm list-sessions -F '#{session_name}')
+    echo "tmux 정리 — 세션 $(wc -l <<<"${sessions}" | tr -d ' ') 개" >&2
+    tm kill-server
+    closeGhostty "${sessions}"
+    echo "정리 끝 — 복원: Alfred ts → 복원 (resume) / 복원 (handoff 로 새 세션)" >&2
 }
 
 restartAll() {
@@ -964,6 +1097,7 @@ runLogged() {
         restore-handoff) args=(restore --mode handoff) ;;
         preview) args=(restore --dry-run) ;;
         restart) args=(restart) ;;
+        close) args=(close) ;;
         *) die "알 수 없는 동작 — ${action}" ;;
     esac
 
@@ -1006,7 +1140,7 @@ main() {
     subcommand=${1:-}
     shift || true
 
-    local force enter dryRun pane record session outFile withHandoff=0
+    local force enter dryRun pane record session outFile withHandoff=0 assumeYes=0
     local snapshotFile="${STATE_DIR}/snapshot.json"
 
     case "${subcommand}" in
@@ -1030,6 +1164,17 @@ main() {
         restart)
             parseRestoreFlags "$@"
             restartAll "${force}" "${enter}"
+            ;;
+        close)
+            while (( $# > 0 )); do
+                case "$1" in
+                    -o) snapshotFile=${2:?"-o 뒤에 파일 경로가 필요합니다"}; shift ;;
+                    --yes) assumeYes=1 ;;
+                    *) die "알 수 없는 옵션 — $1" ;;
+                esac
+                shift
+            done
+            closeAll "${snapshotFile}" "${assumeYes}"
             ;;
         status)
             printStatus "${snapshotFile}"

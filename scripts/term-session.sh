@@ -210,6 +210,22 @@ buildClaudeCommand() {
     echo "${line}"
 }
 
+# 셸에 자식 프로세스가 없으면 빈 셸이다. 막 연 pane 은 zsh 가 설정을 읽으며 잠깐 띄우는
+# 프로세스 (프롬프트용 git 등) 가 있으므로 최대 3초 기다린다.
+isPaneIdle() {
+    local pane=$1
+    local shellPid
+    shellPid=$(tm display-message -p -t "${pane}" '#{pane_pid}')
+
+    local _
+    for _ in $(seq 10); do
+        [[ -n "$(listDescendants "${shellPid}")" ]] || return 0
+        sleep 0.3
+    done
+
+    return 1
+}
+
 restorePane() {
     local pane=$1
     local record=$2
@@ -221,9 +237,7 @@ restorePane() {
     [[ -d "${cwd}" ]] || die "cwd 가 없어 건너뜀 (worktree 정리됨?) — ${cwd}"
 
     if (( ! force )); then
-        local shellPid
-        shellPid=$(tm display-message -p -t "${pane}" '#{pane_pid}')
-        [[ -z "$(listDescendants "${shellPid}")" ]] || die "pane ${pane} 에서 프로그램이 실행 중 — 덮어쓰려면 --force"
+        isPaneIdle "${pane}" || die "pane ${pane} 에서 프로그램이 실행 중 — 덮어쓰려면 --force"
     fi
 
     local line=""

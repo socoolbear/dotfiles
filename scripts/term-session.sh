@@ -27,6 +27,9 @@
 #   term-session save    [-o <file>]                 # 끄기 전에 (claude 가 살아 있을 때)
 #   term-session restore [<file>] [--no-enter] [--dry-run]   # 재부팅·Ghostty 재시작 뒤 (--dry-run 은 할 일만 출력)
 #   term-session restart [--force] [--no-enter]      # Claude 버전업·zsh 설정 반영 (모든 세션 제자리 재시작)
+#   term-session status                              # 마지막 저장 요약 한 줄
+#   term-session run   <save|restore|preview|restart>  # 창 없이 실행, 결과는 ~/.local/state/term-session/last.log (SwiftBar·Alfred)
+#   term-session popup <save|restore|restart>          # tmux 팝업용 (prefix + C-s / C-r / R)
 #
 #   term-session pane-save    [<pane>]                         # 레코드를 stdout 으로
 #   term-session pane-restore <pane> <file|-> [--force] [--no-enter]
@@ -805,6 +808,84 @@ restartAll() {
     (( failed == 0 )) || die "세션 ${failed} 개에서 건너뛴 pane 이 있음 (위 메시지 참고)"
 }
 
+# 마지막 저장 요약 한 줄 (SwiftBar·Alfred 표시용)
+printStatus() {
+    local file=$1
+
+    if [[ ! -f "${file}" ]]; then
+        echo "저장 기록 없음"
+        return
+    fi
+
+    local ageMinutes
+    ageMinutes=$(( ($(date +%s) - $(jq -r '.savedEpoch' "${file}")) / 60 ))
+
+    local age="${ageMinutes}분 전"
+    (( ageMinutes < 60 )) || age="$(( ageMinutes / 60 ))시간 전"
+    (( ageMinutes < 1440 )) || age="$(( ageMinutes / 1440 ))일 전"
+
+    jq -r --arg age "${age}" '
+        "\(.savedAt[5:16] | sub("T"; " ")) 저장 (\($age)) · 세션 \(.sessions | length) · pane \([.. | objects | select(has("cwd"))] | length)"
+        + " · claude \([.. | objects | select(has("claude"))] | length)"
+        + ([.. | objects | select(.claude?) | .claude.lost // [] | .[]] | length | if . > 0 then " · 돌아오지 않을 작업 \(.)" else "" end)
+    ' "${file}"
+}
+
+# 창 없이 실행하고 결과를 last.log 에 남긴다 (SwiftBar·Alfred 용). TMUX_PANE 을 비워 모든 pane 이 대상이 되게 한다.
+runLogged() {
+    local action=$1
+
+    local -a args
+    case "${action}" in
+        save) args=(save) ;;
+        restore) args=(restore) ;;
+        preview) args=(restore --dry-run) ;;
+        restart) args=(restart) ;;
+        *) die "알 수 없는 동작 — ${action}" ;;
+    esac
+
+    mkdir -p "${STATE_DIR}"
+    local status=0
+    {
+        echo "[$(date '+%m-%d %H:%M:%S')] term-session ${args[*]}"
+        TMUX_PANE="" "$0" "${args[@]}" 2>&1 || status=$?
+        (( status == 0 )) || echo "→ 실패 (종료 코드 ${status})"
+    } >"${STATE_DIR}/last.log"
+
+    cat "${STATE_DIR}/last.log"
+    return "${status}"
+}
+
+# tmux 팝업용. 복원은 미리보기 뒤 y 로 진행하고, 재시작은 확인을 받는다.
+runPopup() {
+    local action=$1
+    local answer=""
+
+    case "${action}" in
+        save)
+            "$0" save || true
+            ;;
+        restore)
+            "$0" restore --dry-run || true
+            echo
+            read -r -p "이대로 복원할까요? [y/N] " answer
+            [[ "${answer}" != [yY] ]] || "$0" restore || true
+            ;;
+        restart)
+            echo "모든 tmux 세션의 claude pane 과 빈 셸 pane 을 제자리에서 다시 띄웁니다."
+            echo "(작업 중인 claude 와 다른 프로그램이 도는 pane 은 건너뜀)"
+            read -r -p "진행할까요? [y/N] " answer
+            [[ "${answer}" != [yY] ]] || "$0" restart || true
+            ;;
+        *)
+            die "알 수 없는 동작 — ${action}"
+            ;;
+    esac
+
+    echo
+    read -r -n 1 -s -p "아무 키나 누르면 닫힙니다"
+}
+
 parseRestoreFlags() {
     force=0
     enter=1
@@ -843,6 +924,15 @@ main() {
         restart)
             parseRestoreFlags "$@"
             restartAll "${force}" "${enter}"
+            ;;
+        status)
+            printStatus "${snapshotFile}"
+            ;;
+        run)
+            runLogged "${1:?"동작을 지정하세요 (save|restore|preview|restart)"}"
+            ;;
+        popup)
+            TMUX_PANE="" runPopup "${1:?"동작을 지정하세요 (save|restore|restart)"}"
             ;;
         pane-save)
             savePane "${1:-}"

@@ -208,7 +208,8 @@ sync: ohmyzsh ohmytmux
 	        ln -sf "$(DOTFILES)/alfred/workflows/$$wf" "$$target"; \
 	        pgrep -xq Alfred || continue; \
 	        sleep 1; \
-	        osascript -e "tell application \"Alfred 5\" to reload workflow \"$$wf\"" >/dev/null 2>&1 \
+	        bundleId=$$(plutil -extract bundleid raw "$(DOTFILES)/alfred/workflows/$$wf/info.plist"); \
+	        osascript -e "tell application id \"com.runningwithcrayons.Alfred\" to reload workflow \"$$bundleId\"" >/dev/null 2>&1 \
 	            && echo "==> Alfred 워크플로우 등록: $$wf" \
 	            || echo "==> Alfred 워크플로우 등록 실패: $$wf (Alfred 재시작 후 인식됨)"; \
 	    done; \

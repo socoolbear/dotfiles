@@ -1,10 +1,11 @@
 ---
 description: 현재 작업 상태를 HANDOFF.md 로 기록하여 새 세션에서 재개할 수 있도록 합니다.
+argument-hint: "[이름] — 주면 .prompts/HANDOFF-<이름>.md 에 저장 (같은 폴더의 여러 세션이 덮어쓰지 않게)"
 ---
 
 # HANDOFF.md 생성
 
-현재 세션에서 진행한 모든 작업을 분석하고 `.prompts/HANDOFF.md` 파일로 기록해주세요.
+현재 세션에서 진행한 모든 작업을 분석하고 아래 저장 위치에 기록해주세요.
 
 ## 작성 지침
 
@@ -15,7 +16,12 @@ description: 현재 작업 상태를 HANDOFF.md 로 기록하여 새 세션에�
 
 ## 저장 위치
 
-`.prompts/HANDOFF.md`
+- 인자가 있으면: `.prompts/HANDOFF-$ARGUMENTS.md`
+- 인자가 없으면: `.prompts/HANDOFF.md`
+
+인자: `$ARGUMENTS`
+
+같은 폴더에서 여러 세션이 돌 때 서로 덮어쓰지 않도록 이름을 받는다 (`term-session save --handoff` 가 claude 이름을 넘긴다).
 
 ---
 

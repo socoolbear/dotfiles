@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# 터미널 작업 환경 저장·복원 — 1단계: tmux pane 1개.
+# 터미널 작업 환경 저장·복원 — 1단계: tmux pane 1개, 2단계: tmux 세션 1개 (= Ghostty 탭 1개).
 # ~/.local/bin/term-session 으로 링크된다.
 #
 # pane 상태를 레코드 (JSON 1개) 로 읽고, 같은 레코드로 pane 을 다시 띄운다.
@@ -15,18 +15,28 @@
 # claude 는 `claude <원래 옵션> --resume <id>` 를 입력하고 Enter 까지 친다 (--no-enter 면 입력만).
 # 다른 프로그램은 자동 재실행이 위험하므로 항상 입력만 해 둔다.
 #
+# 세션 기록 = 이름 + tmux 탭 (window) 목록. 탭마다 이름·#{window_layout}·pane 레코드 목록을 담는다.
+# 복원은 탭마다 pane 을 같은 수만큼 나눈 뒤 select-layout 으로 배치를 되살리고 pane 마다 1단계를 반복한다.
+# 제자리 재시작은 claude pane 과 빈 셸 pane 만 다시 띄운다 (다른 프로그램 pane 은 건드리지 않음).
+#
 # 사용법:
 #   term-session pane-save    [<pane>]                         # 레코드를 stdout 으로
 #   term-session pane-restore <pane> <file|-> [--force] [--no-enter]
 #   term-session pane-restart [<pane>] [--force] [--no-enter]  # 제자리 재시작 (save + restore)
 #
-# <pane> 은 tmux target (예: %3). 생략하면 현재 pane.
+#   term-session session-save    [<session>] [-o <file>]        # 기본 파일: ~/.local/state/term-session/<session>.json
+#   term-session session-restore <file> [--no-enter]           # 같은 이름의 세션이 있으면 거부
+#   term-session session-restart [<session>] [--force] [--no-enter]
+#
+# <pane> 은 tmux target (예: %3), <session> 은 세션 이름. 생략하면 현재 pane / 세션.
 # TERM_SESSION_TMUX_SOCKET 를 주면 그 이름의 tmux 서버 (tmux -L) 를 쓴다 (시험용).
 
 set -euo pipefail
 
 readonly SESSIONS_DIR="${HOME}/.claude/sessions"
 readonly PROJECTS_DIR="${HOME}/.claude/projects"
+readonly TAB=$'\t'
+readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/term-session"
 
 tm() {
     if [[ -n "${TERM_SESSION_TMUX_SOCKET:-}" ]]; then
@@ -267,6 +277,198 @@ restorePane() {
     tm "${cmd[@]}"
 }
 
+resolveSession() {
+    local session=$1
+
+    if [[ -z "${session}" ]]; then
+        [[ -n "${TMUX_PANE:-}" ]] || die "세션을 지정하세요 (tmux 밖에서 실행 중)"
+        session=$(tm display-message -p -t "${TMUX_PANE}" '#S')
+    fi
+
+    tm has-session -t "=${session}" 2>/dev/null || die "세션을 찾을 수 없음 — ${session}"
+    echo "${session}"
+}
+
+saveWindow() {
+    local windowId=$1
+    local active=$2
+    local layout=$3
+    local width=$4
+    local height=$5
+    local name=$6
+
+    local autoRename
+    autoRename=$(tm display-message -p -t "${windowId}" '#{automatic-rename}')
+
+    local paneId paneActive record
+    local panes=""
+    while IFS=${TAB} read -r paneId paneActive; do
+        if ! record=$(savePane "${paneId}"); then
+            warn "pane ${paneId} 는 cwd 만 저장합니다"
+            record=$(jq -cn --arg cwd "$(tm display-message -p -t "${paneId}" '#{pane_current_path}')" \
+                '{cwd: $cwd, saveFailed: true}')
+        fi
+
+        if [[ "$(jq -r '.claude.status // empty' <<<"${record}")" == "busy" ]]; then
+            warn "pane ${paneId} 의 claude 가 작업 중 (busy) — 끄기 전에 끝났는지 확인하세요"
+        fi
+
+        panes+=$(jq -c --argjson active "${paneActive}" '. + {active: ($active == 1)}' <<<"${record}")$'\n'
+    done < <(tm list-panes -t "${windowId}" -F "#{pane_id}${TAB}#{pane_active}")
+
+    jq -cn --arg name "${name}" --arg layout "${layout}" --argjson active "${active}" \
+        --argjson width "${width}" --argjson height "${height}" --arg autoRename "${autoRename}" \
+        --argjson panes "$(jq -s . <<<"${panes}")" \
+        '{name: $name, autoRename: ($autoRename == "1"), active: ($active == 1),
+          layout: $layout, width: $width, height: $height, panes: $panes}'
+}
+
+saveSession() {
+    local session=$1
+    local outFile=$2
+
+    local windowId active layout width height name
+    local windows=""
+    while IFS=${TAB} read -r windowId active layout width height name; do
+        windows+=$(saveWindow "${windowId}" "${active}" "${layout}" "${width}" "${height}" "${name}")$'\n'
+    done < <(tm list-windows -t "=${session}" \
+        -F "#{window_id}${TAB}#{window_active}${TAB}#{window_layout}${TAB}#{window_width}${TAB}#{window_height}${TAB}#{window_name}")
+
+    mkdir -p "$(dirname "${outFile}")"
+    jq -n --arg name "${session}" --arg savedAt "$(date '+%Y-%m-%dT%H:%M:%S%z')" \
+        --argjson windows "$(jq -s . <<<"${windows}")" \
+        '{name: $name, savedAt: $savedAt, windows: $windows}' >"${outFile}.tmp"
+    mv "${outFile}.tmp" "${outFile}"
+
+    echo "세션 ${session} → ${outFile} ($(jq '[.windows[].panes[]] | length' "${outFile}") pane," \
+        "claude $(jq '[.windows[].panes[] | select(.claude)] | length' "${outFile}") 개)" >&2
+    local failedCount
+    failedCount=$(jq '[.windows[].panes[] | select(.saveFailed)] | length' "${outFile}")
+    (( failedCount == 0 )) || die "pane ${failedCount} 개의 claude 를 저장하지 못함 (위 경고 참고)"
+}
+
+# cwd 가 없으면 (worktree 정리됨) 일단 HOME 에서 pane 을 만든다. 그 pane 은 restorePane 이 건너뛰고 보고한다.
+existingDir() {
+    local dir=$1
+
+    [[ -d "${dir}" ]] && echo "${dir}" || echo "${HOME}"
+}
+
+restoreWindow() {
+    local session=$1
+    local window=$2
+    local isFirst=$3
+    local enter=$4
+
+    local firstCwd width height
+    firstCwd=$(existingDir "$(jq -r '.panes[0].cwd' <<<"${window}")")
+    width=$(jq -r '.width' <<<"${window}")
+    height=$(jq -r '.height' <<<"${window}")
+
+    local windowId
+    if (( isFirst )); then
+        windowId=$(tm new-session -d -P -F '#{window_id}' -s "${session}" -x "${width}" -y "${height}" -c "${firstCwd}")
+    else
+        windowId=$(tm new-window -d -P -F '#{window_id}' -t "=${session}:" -c "${firstCwd}")
+    fi
+
+    local -a paneIds
+    paneIds=("$(tm display-message -p -t "${windowId}" '#{pane_id}')")
+
+    local paneCount index
+    paneCount=$(jq '.panes | length' <<<"${window}")
+    for (( index = 1; index < paneCount; index++ )); do
+        paneIds+=("$(tm split-window -d -P -F '#{pane_id}' -t "${paneIds[index - 1]}" \
+            -c "$(existingDir "$(jq -r ".panes[${index}].cwd" <<<"${window}")")")")
+    done
+
+    tm select-layout -t "${windowId}" "$(jq -r '.layout' <<<"${window}")" >/dev/null \
+        || warn "탭 $(jq -r '.name' <<<"${window}") 의 배치를 되살리지 못함"
+
+    tm rename-window -t "${windowId}" "$(jq -r '.name' <<<"${window}")"
+    if jq -e '.autoRename' <<<"${window}" >/dev/null; then
+        tm set-window-option -t "${windowId}" automatic-rename on >/dev/null
+    fi
+
+    for (( index = 0; index < paneCount; index++ )); do
+        ( restorePane "${paneIds[index]}" "$(jq -c ".panes[${index}]" <<<"${window}")" 1 "${enter}" ) \
+            || failedCount=$((failedCount + 1))
+
+        if jq -e ".panes[${index}].active" <<<"${window}" >/dev/null; then
+            tm select-pane -t "${paneIds[index]}"
+        fi
+    done
+
+    if jq -e '.active' <<<"${window}" >/dev/null; then
+        tm select-window -t "${windowId}"
+    fi
+}
+
+restoreSession() {
+    local file=$1
+    local enter=$2
+
+    local snapshot session
+    snapshot=$(cat "${file}")
+    session=$(jq -r '.name' <<<"${snapshot}")
+
+    if tm has-session -t "=${session}" 2>/dev/null; then
+        die "세션 ${session} 이 이미 떠 있어 건너뜀 (중복 방지)"
+    fi
+
+    local failedCount=0
+
+    local windowCount index
+    windowCount=$(jq '.windows | length' <<<"${snapshot}")
+    for (( index = 0; index < windowCount; index++ )); do
+        restoreWindow "${session}" "$(jq -c ".windows[${index}]" <<<"${snapshot}")" $(( index == 0 )) "${enter}"
+    done
+
+    echo "세션 ${session} 복원 — 붙이기: tmux switch-client -t ${session} (tmux 안) / tmux attach -t ${session}" >&2
+    (( failedCount == 0 )) || die "pane ${failedCount} 개를 되살리지 못함 (위 메시지 참고)"
+}
+
+# claude pane 과 빈 셸 pane 을 다시 띄운다. 이 명령을 실행한 pane 은 재시작하면 스크립트가 죽으므로 건드리지 않는다.
+restartSession() {
+    local session=$1
+    local force=$2
+    local enter=$3
+
+    local -a paneIds=()
+    local paneId
+    while IFS= read -r paneId; do
+        paneIds+=("${paneId}")
+    done < <(tm list-panes -s -t "=${session}" -F '#{pane_id}')
+
+    local record skipped=0
+    for paneId in "${paneIds[@]}"; do
+        if [[ "${paneId}" == "${TMUX_PANE:-}" ]]; then
+            echo "pane ${paneId} 는 이 명령을 실행한 pane 이라 그대로 둠 — 다시 띄우려면: term-session pane-restart --force" >&2
+            continue
+        fi
+
+        if ! record=$(savePane "${paneId}"); then
+            skipped=$((skipped + 1))
+            continue
+        fi
+
+        if [[ "$(jq -r '.claude.status // empty' <<<"${record}")" == "busy" ]] && (( ! force )); then
+            warn "pane ${paneId} 의 claude 가 작업 중 (busy) — 건너뜀 (--force 로 강제)"
+            skipped=$((skipped + 1))
+            continue
+        fi
+
+        if jq -e '.command' <<<"${record}" >/dev/null; then
+            echo "pane ${paneId} 는 다른 프로그램 실행 중이라 그대로 둠 — $(jq -r '.command' <<<"${record}")" >&2
+            continue
+        fi
+
+        ( restorePane "${paneId}" "${record}" 1 "${enter}" ) || skipped=$((skipped + 1))
+    done
+
+    (( skipped == 0 )) || die "pane ${skipped} 개를 건너뜀 (위 메시지 참고)"
+}
+
 parseRestoreFlags() {
     force=0
     enter=1
@@ -285,7 +487,7 @@ main() {
     local subcommand=${1:-}
     shift || true
 
-    local force enter pane record
+    local force enter pane record session outFile
 
     case "${subcommand}" in
         pane-save)
@@ -311,6 +513,30 @@ main() {
             fi
 
             restorePane "${pane}" "${record}" 1 "${enter}"
+            ;;
+        session-save)
+            session=""
+            [[ "${1:-}" == -o ]] || { session=${1:-}; shift || true; }
+            session=$(resolveSession "${session}")
+            outFile="${STATE_DIR}/${session}.json"
+            if [[ "${1:-}" == -o ]]; then
+                outFile=${2:?"-o 뒤에 파일 경로가 필요합니다"}
+            fi
+            saveSession "${session}" "${outFile}"
+            ;;
+        session-restore)
+            (( $# >= 1 )) || die "사용법: term-session session-restore <file> [--no-enter]"
+            record=$1
+            shift
+            parseRestoreFlags "$@"
+            restoreSession "${record}" "${enter}"
+            ;;
+        session-restart)
+            session=""
+            [[ "${1:-}" == --* ]] || { session=${1:-}; shift || true; }
+            session=$(resolveSession "${session}")
+            parseRestoreFlags "$@"
+            restartSession "${session}" "${force}" "${enter}"
             ;;
         *)
             sed -n '2,/^set -euo/p' "$0" | sed '$d; s/^# \{0,1\}//'

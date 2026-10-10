@@ -29,7 +29,7 @@
 #                                                    # 재부팅·Ghostty 재시작 뒤. resume (기본) = 같은 대화로,
 #                                                    # handoff = 새 세션이 handoff 문서 (없으면 /catchup <ID>) 로 시작
 #   term-session restart [--force] [--no-enter]      # Claude 버전업·zsh 설정 반영 (모든 세션 제자리 재시작)
-#   term-session close   [-o <file>] [--yes]                   # handoff → 저장 → tmux·Ghostty 모두 닫기 (확인 창, --yes 면 생략)
+#   term-session close   [-o <file>]                 # handoff → 저장 → tmux·Ghostty 모두 닫기 (handoff 를 못 하면 멈춤)
 #   term-session status                              # 마지막 저장 요약 한 줄
 #   term-session run   <save|save-handoff|restore|restore-handoff|preview|restart>  # 창 없이 실행, 결과는 ~/.local/state/term-session/last.log (Alfred)
 #
@@ -968,18 +968,6 @@ restoreAll() {
     (( failedCount == 0 ))
 }
 
-# 정리할 것을 확인 창으로 보여 준다. "정리" 를 눌러야 0 을 돌려준다.
-confirmClose() {
-    local summary=$1
-
-    osascript - "${summary}" <<'APPLESCRIPT' 2>/dev/null | grep -q '정리'
-on run argv
-    display dialog "아래를 handoff · 저장한 뒤 모두 닫습니다." & return & return & (item 1 of argv) ¬
-        buttons {"취소", "정리"} default button "취소" cancel button "취소" with title "term-session 작업 정리"
-end run
-APPLESCRIPT
-}
-
 # 닫을 것 요약: 세션 수, claude 이름, 다른 프로그램 pane (닫으면 꺼짐)
 describeClose() {
     local paneId shellPid claudePid child claudes="" programs="" sessionCount
@@ -1030,14 +1018,12 @@ closeGhostty() {
 # handoff → 저장 → tmux 정리 → Ghostty 정리. handoff 를 하나라도 못 하면 아무것도 닫지 않는다.
 closeAll() {
     local file=$1
-    local assumeYes=$2
 
     tm has-session 2>/dev/null || die "닫을 tmux 세션이 없음"
 
     local summary
     summary=$(describeClose)
     echo "${summary}" >&2
-    (( assumeYes )) || confirmClose "${summary}" || die "취소함"
 
     requestHandoffs || die "handoff 를 못 한 claude 가 있어 정리를 멈춤 (위 메시지 참고) — 아무것도 닫지 않았습니다"
     saveAll "${file}"
@@ -1140,7 +1126,7 @@ main() {
     subcommand=${1:-}
     shift || true
 
-    local force enter dryRun pane record session outFile withHandoff=0 assumeYes=0
+    local force enter dryRun pane record session outFile withHandoff=0
     local snapshotFile="${STATE_DIR}/snapshot.json"
 
     case "${subcommand}" in
@@ -1169,12 +1155,11 @@ main() {
             while (( $# > 0 )); do
                 case "$1" in
                     -o) snapshotFile=${2:?"-o 뒤에 파일 경로가 필요합니다"}; shift ;;
-                    --yes) assumeYes=1 ;;
                     *) die "알 수 없는 옵션 — $1" ;;
                 esac
                 shift
             done
-            closeAll "${snapshotFile}" "${assumeYes}"
+            closeAll "${snapshotFile}"
             ;;
         status)
             printStatus "${snapshotFile}"

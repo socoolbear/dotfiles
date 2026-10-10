@@ -12,3 +12,5 @@ grapheme-width-method = "unicode"
 
 font-family = "JetBrainsMono Nerd Font"
 font-size = 14
+# 창 복원은 term-session 한 곳에서 (Ghostty 가 따로 되살리면 zsh 가 빈 tmux 세션을 새로 만들어 겹침)
+window-save-state = never

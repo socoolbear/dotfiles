@@ -35,3 +35,8 @@ unbind -T prefix m #!important
 
 unbind r
 bind r source-file ~/.config/tmux/tmux.conf \; display-message 'tmux.conf reloaded' #!important
+# -- term-session (터미널 작업 환경 저장·복원) — 결과를 팝업으로 보여 준다 --
+# 복원은 미리보기를 먼저 보여 주고 y 로 진행, 재시작은 확인을 받는다
+bind C-s display-popup -E -w 90% -h 70% -T ' term-session 저장 ' '~/.local/bin/term-session popup save'
+bind C-r display-popup -E -w 90% -h 70% -T ' term-session 복원 ' '~/.local/bin/term-session popup restore'
+bind R display-popup -E -w 80% -h 50% -T ' term-session 재시작 ' '~/.local/bin/term-session popup restart'

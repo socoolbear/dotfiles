@@ -81,5 +81,6 @@ make sync
 .claude/
 ├── plan/                   # 작업 계획서 (claude/settings.json 의 plansDirectory, 계획 모드에서 자동 생성)
 ├── skills/                 # 프로젝트 로컬 skill (setup-env, dotfiles-doctor)
+├── settings.json           # 프로젝트 훅 (세션 시작 시 dotfiles-doctor 실행 제안)
 └── settings.local.json     # 프로젝트 로컬 설정
 ```

@@ -3,7 +3,7 @@
 > `~/.claude/AGENTS.md` 워크플로우 규칙 8의 상세. 팀메이트를 띄우기 전에 이 문서를 먼저 참조할 것.
 > 아래 동작 사실은 Claude Code **2.1.295** 기준으로 직접 띄워 확인한 것이다. 버전이 크게 오르면 재확인할 것.
 
-팀 모드는 `zsh/zshrc` 의 `cc` · `cct` alias 로 기본으로 켠다 (2026-10-09 사용자 결정). alias 없이 `claude` 로 띄운 세션에는 팀 기능 자체가 없다:
+팀 모드는 `zsh/zshrc` 의 `cc` alias · `cct` 함수로 기본으로 켠다 (2026-10-09 사용자 결정). alias 없이 `claude` 로 띄운 세션에는 팀 기능 자체가 없다:
 
 ```bash
 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude

@@ -98,7 +98,22 @@ alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 alias pn='pnpm'
 alias vf='vim $(fzf)'
 alias cc='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude'
-alias cct='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude -n "task-$(basename "$PWD")" --dangerously-skip-permissions'
+# tmux 탭 이름을 세션 이름과 같게 고정하고, 종료 후 자동 이름으로 되돌린다
+cct() {
+    local taskName="task-$(basename "${PWD}")"
+
+    if [[ -z "${TMUX}" ]]; then
+        CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude -n "${taskName}" --dangerously-skip-permissions "$@"
+        return
+    fi
+
+    command tmux rename-window "${taskName}"
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude -n "${taskName}" --dangerously-skip-permissions "$@"
+    local exitCode=$?
+
+    command tmux set-window-option automatic-rename on
+    return ${exitCode}
+}
 
 [ -x "$(command -v bat)" ] && alias cat="bat --paging=never" || alias cat="batcat --paging=never"
 

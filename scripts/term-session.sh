@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# 터미널 작업 환경 저장·복원 — 1단계: tmux pane 1개, 2단계: tmux 세션 1개 (= Ghostty 탭 1개).
+# 터미널 작업 환경 저장·복원 — Ghostty 창·탭 / tmux 세션·탭·pane / pane 안의 claude.
 # ~/.local/bin/term-session 으로 링크된다.
 #
 # pane 상태를 레코드 (JSON 1개) 로 읽고, 같은 레코드로 pane 을 다시 띄운다.
@@ -19,7 +19,14 @@
 # 복원은 탭마다 pane 을 같은 수만큼 나눈 뒤 select-layout 으로 배치를 되살리고 pane 마다 1단계를 반복한다.
 # 제자리 재시작은 claude pane 과 빈 셸 pane 만 다시 띄운다 (다른 프로그램 pane 은 건드리지 않음).
 #
+# 전체 기록 (save) = Ghostty 창·탭 목록 + tmux 세션 기록 전부, 파일 하나 (~/.local/state/term-session/snapshot.json).
+# restore 는 사라진 층만 되살린다 — 살아 있는 tmux 세션은 다시 붙이기만, 이미 Ghostty 탭에 떠 있는 세션은 건너뜀.
+#
 # 사용법:
+#   term-session save    [-o <file>]                 # 끄기 전에 (claude 가 살아 있을 때)
+#   term-session restore [<file>] [--no-enter]       # 재부팅·Ghostty 재시작 뒤
+#   term-session restart [--force] [--no-enter]      # Claude 버전업·zsh 설정 반영 (모든 세션 제자리 재시작)
+#
 #   term-session pane-save    [<pane>]                         # 레코드를 stdout 으로
 #   term-session pane-restore <pane> <file|-> [--force] [--no-enter]
 #   term-session pane-restart [<pane>] [--force] [--no-enter]  # 제자리 재시작 (save + restore)
@@ -323,9 +330,8 @@ saveWindow() {
           layout: $layout, width: $width, height: $height, panes: $panes}'
 }
 
-saveSession() {
+snapshotSession() {
     local session=$1
-    local outFile=$2
 
     local windowId active layout width height name
     local windows=""
@@ -334,16 +340,30 @@ saveSession() {
     done < <(tm list-windows -t "=${session}" \
         -F "#{window_id}${TAB}#{window_active}${TAB}#{window_layout}${TAB}#{window_width}${TAB}#{window_height}${TAB}#{window_name}")
 
-    mkdir -p "$(dirname "${outFile}")"
-    jq -n --arg name "${session}" --arg savedAt "$(date '+%Y-%m-%dT%H:%M:%S%z')" \
-        --argjson windows "$(jq -s . <<<"${windows}")" \
-        '{name: $name, savedAt: $savedAt, windows: $windows}' >"${outFile}.tmp"
-    mv "${outFile}.tmp" "${outFile}"
+    jq -cn --arg name "${session}" --argjson windows "$(jq -s . <<<"${windows}")" '{name: $name, windows: $windows}'
+}
 
-    echo "세션 ${session} → ${outFile} ($(jq '[.windows[].panes[]] | length' "${outFile}") pane," \
-        "claude $(jq '[.windows[].panes[] | select(.claude)] | length' "${outFile}") 개)" >&2
+# 직전 기록은 .prev 로 남긴다 (잘못 저장해 덮어써도 한 번은 되돌릴 수 있게).
+writeSnapshot() {
+    local outFile=$1
+    local snapshot=$2
+
+    mkdir -p "$(dirname "${outFile}")"
+    jq --arg savedAt "$(date '+%Y-%m-%dT%H:%M:%S%z')" --argjson savedEpoch "$(date +%s)" \
+        '. + {savedAt: $savedAt, savedEpoch: $savedEpoch}' <<<"${snapshot}" >"${outFile}.tmp"
+    [[ ! -f "${outFile}" ]] || mv "${outFile}" "${outFile%.json}.prev.json"
+    mv "${outFile}.tmp" "${outFile}"
+}
+
+reportSaved() {
+    local outFile=$1
+
+    echo "저장 → ${outFile} (tmux 세션 $(jq '[.. | objects | select(has("windows") and has("name"))] | length' "${outFile}") 개," \
+        "pane $(jq '[.. | objects | select(has("cwd"))] | length' "${outFile}") 개," \
+        "claude $(jq '[.. | objects | select(has("claude"))] | length' "${outFile}") 개)" >&2
+
     local failedCount
-    failedCount=$(jq '[.windows[].panes[] | select(.saveFailed)] | length' "${outFile}")
+    failedCount=$(jq '[.. | objects | select(.saveFailed?)] | length' "${outFile}")
     (( failedCount == 0 )) || die "pane ${failedCount} 개의 claude 를 저장하지 못함 (위 경고 참고)"
 }
 
@@ -354,22 +374,16 @@ existingDir() {
     [[ -d "${dir}" ]] && echo "${dir}" || echo "${HOME}"
 }
 
+# windowId 가 비어 있으면 세션에 새 탭을 만든다 (첫 탭은 restoreSession 이 세션과 함께 만든다).
 restoreWindow() {
     local session=$1
     local window=$2
-    local isFirst=$3
+    local windowId=$3
     local enter=$4
 
-    local firstCwd width height
-    firstCwd=$(existingDir "$(jq -r '.panes[0].cwd' <<<"${window}")")
-    width=$(jq -r '.width' <<<"${window}")
-    height=$(jq -r '.height' <<<"${window}")
-
-    local windowId
-    if (( isFirst )); then
-        windowId=$(tm new-session -d -P -F '#{window_id}' -s "${session}" -x "${width}" -y "${height}" -c "${firstCwd}")
-    else
-        windowId=$(tm new-window -d -P -F '#{window_id}' -t "=${session}:" -c "${firstCwd}")
+    if [[ -z "${windowId}" ]]; then
+        windowId=$(tm new-window -d -P -F '#{window_id}' -t "=${session}:" \
+            -c "$(existingDir "$(jq -r '.panes[0].cwd' <<<"${window}")")")
     fi
 
     local -a paneIds
@@ -404,28 +418,36 @@ restoreWindow() {
     fi
 }
 
+# 세션을 만들고 실제 이름을 stdout 으로 낸다. name 이 비어 있으면 tmux 가 번호를 붙인다.
 restoreSession() {
-    local file=$1
+    local snapshot=$1
     local enter=$2
+    local name=$3
 
-    local snapshot session
-    snapshot=$(cat "${file}")
-    session=$(jq -r '.name' <<<"${snapshot}")
+    local firstWindow
+    firstWindow=$(jq -c '.windows[0]' <<<"${snapshot}")
 
-    if tm has-session -t "=${session}" 2>/dev/null; then
-        die "세션 ${session} 이 이미 떠 있어 건너뜀 (중복 방지)"
-    fi
+    local -a nameArgs=()
+    [[ -z "${name}" ]] || nameArgs=(-s "${name}")
 
+    local created
+    created=$(tm new-session -d -P -F "#{session_name}${TAB}#{window_id}" ${nameArgs[@]+"${nameArgs[@]}"} \
+        -x "$(jq -r '.width' <<<"${firstWindow}")" -y "$(jq -r '.height' <<<"${firstWindow}")" \
+        -c "$(existingDir "$(jq -r '.panes[0].cwd' <<<"${firstWindow}")")")
+
+    local session=${created%%"${TAB}"*}
     local failedCount=0
 
-    local windowCount index
+    local windowCount index windowId
     windowCount=$(jq '.windows | length' <<<"${snapshot}")
     for (( index = 0; index < windowCount; index++ )); do
-        restoreWindow "${session}" "$(jq -c ".windows[${index}]" <<<"${snapshot}")" $(( index == 0 )) "${enter}"
+        windowId=""
+        (( index > 0 )) || windowId=${created#*"${TAB}"}
+        restoreWindow "${session}" "$(jq -c ".windows[${index}]" <<<"${snapshot}")" "${windowId}" "${enter}"
     done
 
-    echo "세션 ${session} 복원 — 붙이기: tmux switch-client -t ${session} (tmux 안) / tmux attach -t ${session}" >&2
-    (( failedCount == 0 )) || die "pane ${failedCount} 개를 되살리지 못함 (위 메시지 참고)"
+    echo "${session}"
+    (( failedCount == 0 )) || { warn "세션 ${session}: pane ${failedCount} 개를 되살리지 못함 (위 메시지 참고)"; return 1; }
 }
 
 # claude pane 과 빈 셸 pane 을 다시 띄운다. 이 명령을 실행한 pane 은 재시작하면 스크립트가 죽으므로 건드리지 않는다.
@@ -469,6 +491,210 @@ restartSession() {
     (( skipped == 0 )) || die "pane ${skipped} 개를 건너뜀 (위 메시지 참고)"
 }
 
+# Ghostty 탭 제목은 tmux set-titles-string 이 정한다 (oh-my-tmux 기본값 "#h ❐ #S ● #I #W").
+# 탭과 tmux 세션을 짝지을 단서가 이 제목뿐이라, 형식이 바뀌면 sessionFromTitle 도 고쳐야 한다.
+sessionFromTitle() {
+    local title=$1
+
+    [[ "${title}" == *"❐ "*" ●"* ]] || return 1
+    title=${title#*"❐ "}
+    echo "${title%%" ●"*}"
+}
+
+# Ghostty 창·탭 목록. 줄마다 "W" (창 시작) 또는 "T<TAB>선택 여부<TAB>터미널 수<TAB>제목".
+listGhosttyTabs() {
+    osascript <<'APPLESCRIPT'
+if application "Ghostty" is not running then return ""
+-- tell 블록 안의 tab 은 Ghostty 의 탭 객체라서 탭 문자를 밖에서 정해 둔다
+set sep to character id 9
+tell application "Ghostty"
+    set out to ""
+    repeat with w in windows
+        set out to out & "W" & linefeed
+        repeat with t in tabs of w
+            set out to out & "T" & sep & (selected of t) & sep & (count of terminals of t) & sep & (name of t) & linefeed
+        end repeat
+    end repeat
+    return out
+end tell
+APPLESCRIPT
+}
+
+# [{tabs: [{session, selected}]}] — tmux 가 아닌 탭은 빼고 알린다.
+snapshotGhostty() {
+    local kind selected terminalCount title session
+    local windows="" tabs=""
+
+    while IFS=${TAB} read -r kind selected terminalCount title; do
+        [[ -n "${kind}" ]] || continue
+
+        if [[ "${kind}" == "W" ]]; then
+            [[ -z "${tabs}" ]] || windows+=$(jq -s -c '{tabs: .}' <<<"${tabs}")$'\n'
+            tabs=""
+            continue
+        fi
+
+        if ! session=$(sessionFromTitle "${title}"); then
+            warn "tmux 가 아닌 Ghostty 탭은 저장하지 않음 — ${title}"
+            continue
+        fi
+
+        (( terminalCount == 1 )) || warn "Ghostty 탭을 나눈 칸 (split) 은 저장하지 않음 — 세션 ${session}"
+        tabs+=$(jq -cn --arg session "${session}" --argjson selected "${selected}" \
+            '{session: $session, selected: $selected}')$'\n'
+    done < <(listGhosttyTabs || warn "Ghostty 창 목록을 읽지 못함 (자동화 권한 확인)")
+
+    [[ -z "${tabs}" ]] || windows+=$(jq -s -c '{tabs: .}' <<<"${tabs}")$'\n'
+    jq -s -c . <<<"${windows}"
+}
+
+saveAll() {
+    local outFile=$1
+
+    local session sessions=""
+    while IFS= read -r session; do
+        sessions+=$(snapshotSession "${session}")$'\n'
+    done < <(tm list-sessions -F '#{session_name}')
+
+    writeSnapshot "${outFile}" "$(jq -cn --argjson ghostty "$(snapshotGhostty)" \
+        --argjson sessions "$(jq -s . <<<"${sessions}")" '{ghostty: $ghostty, sessions: $sessions}')"
+    reportSaved "${outFile}"
+}
+
+# 세션마다 이번 복원에서 쓸 이름을 정한다 (줄마다 "저장 당시 이름<TAB>지금 이름<TAB>ok|partial").
+# tmux 서버가 저장 전부터 떠 있고 같은 이름이 있으면 살아 있는 세션이다 (Ghostty 만 재시작한 경우).
+# 서버가 저장 뒤에 떴으면 (재부팅) 같은 이름이 있어도 새로 생긴 세션이므로 번호를 새로 받는다.
+restoreSessions() {
+    local snapshot=$1
+    local enter=$2
+
+    local savedEpoch serverStart
+    savedEpoch=$(jq -r '.savedEpoch' <<<"${snapshot}")
+    serverStart=$(tm display-message -p '#{start_time}' 2>/dev/null || echo 0)
+
+    local count index session name restored
+    count=$(jq '.sessions | length' <<<"${snapshot}")
+    for (( index = 0; index < count; index++ )); do
+        session=$(jq -r ".sessions[${index}].name" <<<"${snapshot}")
+
+        if tm has-session -t "=${session}" 2>/dev/null; then
+            if (( serverStart > 0 && serverStart <= savedEpoch )); then
+                echo "세션 ${session} 은 살아 있어 그대로 씀" >&2
+                printf '%s\t%s\tok\n' "${session}" "${session}"
+                continue
+            fi
+            name=""
+        else
+            name=${session}
+        fi
+
+        local status=ok
+        restored=$(restoreSession "$(jq -c ".sessions[${index}]" <<<"${snapshot}")" "${enter}" "${name}") \
+            || status=partial
+        echo "세션 ${session} → ${restored} 로 복원" >&2
+        printf '%s\t%s\t%s\n' "${session}" "${restored}" "${status}"
+    done
+}
+
+# 창 하나를 연다. 인자: 선택할 탭 번호, 탭마다 실행할 명령...
+openGhosttyWindow() {
+    osascript - "$@" <<'APPLESCRIPT' >/dev/null
+on run argv
+    set selectedIndex to (item 1 of argv) as integer
+    tell application "Ghostty"
+        set cfg to new surface configuration
+        set command of cfg to item 2 of argv
+        set w to new window with configuration cfg
+        repeat with i from 3 to count of argv
+            set cfg to new surface configuration
+            set command of cfg to item i of argv
+            new tab in w with configuration cfg
+        end repeat
+        if selectedIndex > 0 then select tab (tab selectedIndex of w)
+    end tell
+end run
+APPLESCRIPT
+}
+
+# Ghostty 창·탭을 저장 당시 구성대로 연다. 이미 어느 탭에 떠 있는 세션은 건너뛴다.
+restoreGhostty() {
+    local snapshot=$1
+    local nameMap=$2
+
+    # 탭 제목에 있고 tmux client 도 붙어 있어야 떠 있는 것으로 본다 (연결이 끊긴 채 남은 탭은 제목만 남는다).
+    local shown title kind
+    shown=$(comm -12 \
+        <(listGhosttyTabs | while IFS=${TAB} read -r kind _ _ title; do
+            [[ "${kind}" == "T" ]] && sessionFromTitle "${title}"
+        done | sort -u) \
+        <(tm list-clients -F '#{session_name}' | sort -u) || true)
+
+    local tmuxBin
+    tmuxBin=$(command -v tmux)
+    [[ -z "${TERM_SESSION_TMUX_SOCKET:-}" ]] || tmuxBin+=" -L ${TERM_SESSION_TMUX_SOCKET}"
+
+    local windowCount windowIndex tabCount tabIndex session current
+    windowCount=$(jq '.ghostty | length' <<<"${snapshot}")
+    for (( windowIndex = 0; windowIndex < windowCount; windowIndex++ )); do
+        local -a commands=()
+        local selectedIndex=0
+        tabCount=$(jq ".ghostty[${windowIndex}].tabs | length" <<<"${snapshot}")
+
+        for (( tabIndex = 0; tabIndex < tabCount; tabIndex++ )); do
+            session=$(jq -r ".ghostty[${windowIndex}].tabs[${tabIndex}].session" <<<"${snapshot}")
+            current=$(awk -F '\t' -v s="${session}" '$1 == s { print $2 }' <<<"${nameMap}")
+
+            if [[ -z "${current}" ]]; then
+                warn "세션 ${session} 이 복원되지 않아 Ghostty 탭을 열지 않음"
+                continue
+            fi
+            if grep -qxF "${current}" <<<"${shown}"; then
+                echo "세션 ${current} 은 이미 Ghostty 탭에 떠 있어 건너뜀" >&2
+                continue
+            fi
+
+            commands+=("${tmuxBin} attach-session -t =${current}")
+            if jq -e ".ghostty[${windowIndex}].tabs[${tabIndex}].selected" <<<"${snapshot}" >/dev/null; then
+                selectedIndex=${#commands[@]}
+            fi
+        done
+
+        (( ${#commands[@]} > 0 )) || continue
+        echo "Ghostty 창 열기 — 탭 ${#commands[@]} 개" >&2
+        openGhosttyWindow "${selectedIndex}" "${commands[@]}" || warn "Ghostty 창을 열지 못함 (자동화 권한 확인)"
+    done
+}
+
+restoreAll() {
+    local file=$1
+    local enter=$2
+
+    [[ -f "${file}" ]] || die "저장 파일이 없음 — ${file}"
+
+    local snapshot nameMap
+    snapshot=$(cat "${file}")
+    echo "복원 ← ${file} ($(jq -r '.savedAt' <<<"${snapshot}") 저장)" >&2
+
+    nameMap=$(restoreSessions "${snapshot}" "${enter}")
+    restoreGhostty "${snapshot}" "${nameMap}"
+
+    local failedCount
+    failedCount=$(awk -F '\t' '$3 == "partial"' <<<"${nameMap}" | wc -l | tr -d ' ')
+    (( failedCount == 0 )) || die "세션 ${failedCount} 개가 일부만 복원됨 (위 메시지 참고)"
+}
+
+restartAll() {
+    local force=$1
+    local enter=$2
+
+    local session failed=0
+    while IFS= read -r session; do
+        ( restartSession "${session}" "${force}" "${enter}" ) || failed=$((failed + 1))
+    done < <(tm list-sessions -F '#{session_name}')
+
+    (( failed == 0 )) || die "세션 ${failed} 개에서 건너뛴 pane 이 있음 (위 메시지 참고)"
+}
+
 parseRestoreFlags() {
     force=0
     enter=1
@@ -488,8 +714,22 @@ main() {
     shift || true
 
     local force enter pane record session outFile
+    local snapshotFile="${STATE_DIR}/snapshot.json"
 
     case "${subcommand}" in
+        save)
+            [[ "${1:-}" != -o ]] || snapshotFile=${2:?"-o 뒤에 파일 경로가 필요합니다"}
+            saveAll "${snapshotFile}"
+            ;;
+        restore)
+            [[ -z "${1:-}" || "${1}" == --* ]] || { snapshotFile=$1; shift; }
+            parseRestoreFlags "$@"
+            restoreAll "${snapshotFile}" "${enter}"
+            ;;
+        restart)
+            parseRestoreFlags "$@"
+            restartAll "${force}" "${enter}"
+            ;;
         pane-save)
             savePane "${1:-}"
             ;;
@@ -522,14 +762,18 @@ main() {
             if [[ "${1:-}" == -o ]]; then
                 outFile=${2:?"-o 뒤에 파일 경로가 필요합니다"}
             fi
-            saveSession "${session}" "${outFile}"
+            writeSnapshot "${outFile}" "$(snapshotSession "${session}")"
+            reportSaved "${outFile}"
             ;;
         session-restore)
             (( $# >= 1 )) || die "사용법: term-session session-restore <file> [--no-enter]"
-            record=$1
+            record=$(cat "$1")
+            session=$(jq -r '.name' <<<"${record}")
             shift
             parseRestoreFlags "$@"
-            restoreSession "${record}" "${enter}"
+            ! tm has-session -t "=${session}" 2>/dev/null || die "세션 ${session} 이 이미 떠 있어 건너뜀 (중복 방지)"
+            restoreSession "${record}" "${enter}" "${session}" >/dev/null
+            echo "세션 ${session} 복원 — 붙이기: tmux switch-client -t ${session} (tmux 안) / tmux attach -t ${session}" >&2
             ;;
         session-restart)
             session=""

@@ -21,19 +21,6 @@
 				<false/>
 			</dict>
 		</array>
-		<key>7E5A0C1D-0002-4000-8000-000000000002</key>
-		<array>
-			<dict>
-				<key>destinationuid</key>
-				<string>7E5A0C1D-0003-4000-8000-000000000003</string>
-				<key>modifiers</key>
-				<integer>0</integer>
-				<key>modifiersubtext</key>
-				<string></string>
-				<key>vitoclose</key>
-				<false/>
-			</dict>
-		</array>
 	</dict>
 	<key>createdby</key>
 	<string>socoolbear</string>
@@ -117,38 +104,9 @@
 			<key>version</key>
 			<integer>2</integer>
 		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>alignment</key>
-				<integer>0</integer>
-				<key>backgroundcolor</key>
-				<string></string>
-				<key>fadespeed</key>
-				<integer>0</integer>
-				<key>fillmode</key>
-				<integer>0</integer>
-				<key>font</key>
-				<string></string>
-				<key>ignoredynamicplaceholders</key>
-				<false/>
-				<key>largetypetext</key>
-				<string>{query}</string>
-				<key>textcolor</key>
-				<string></string>
-				<key>wrapat</key>
-				<integer>80</integer>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.output.largetype</string>
-			<key>uid</key>
-			<string>7E5A0C1D-0003-4000-8000-000000000003</string>
-			<key>version</key>
-			<integer>3</integer>
-		</dict>
 	</array>
 	<key>readme</key>
-	<string>Alfred 에서 `ts` 입력 후 동작을 고르고 Enter. 결과는 Large Type 으로 보여 주고 ~/.local/state/term-session/last.log 에도 남는다.
+	<string>Alfred 에서 `ts` 입력 후 동작을 고르고 Enter. 결과는 ~/.local/state/term-session/last.log 에 남는다.
 스크립트: ~/.local/bin/term-session (dotfiles scripts/term-session.sh)</string>
 	<key>uidata</key>
 	<dict>
@@ -163,13 +121,6 @@
 		<dict>
 			<key>xpos</key>
 			<real>300.0</real>
-			<key>ypos</key>
-			<real>50.0</real>
-		</dict>
-		<key>7E5A0C1D-0003-4000-8000-000000000003</key>
-		<dict>
-			<key>xpos</key>
-			<real>550.0</real>
 			<key>ypos</key>
 			<real>50.0</real>
 		</dict>

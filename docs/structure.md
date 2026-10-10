@@ -45,6 +45,7 @@
 | `scripts/magic-trackpad-toggle.sh` | `~/.local/bin/magic-trackpad` |
 | `scripts/mcp-mysql-reader.sh` | `~/.local/bin/mcp-mysql-reader` |
 | `scripts/mcp-pg-reader.sh` | `~/.local/bin/mcp-pg-reader` |
+| `scripts/term-session.sh` | `~/.local/bin/term-session` |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 
 > `claude/commands/*.md`, `claude/skills/*/`, `claude/agents/*.md` 는 Makefile 의 `COMMANDS` / `SKILLS` / `AGENT_DEFS` 와일드카드가 자동 발견하므로, 새 명령/skill/agent 를 추가해도 Makefile 수정 불필요.

@@ -114,6 +114,7 @@
       "autoUpdate": true
     }
   },
+  "language": "korean",
   "effortLevel": "high",
   "autoCompactWindow": 500000,
   "plansDirectory": ".claude/plan",

@@ -118,13 +118,14 @@ mise trust ~/.dotfiles/mise/config.toml
 
 ### Claude
 
-`make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, AGENTS.md, rules, scripts, docs, commands, skills) 와 `~/.mcp.json` 을 심링크합니다. `claude/skills/*/` 는 와일드카드로 자동 발견되어 디렉토리 단위로 심링크됩니다 — `[ -L ]` 체크가 있어 dotfiles 에 없는 머신별 skill (예: 로컬에서만 만든 것) 은 보존됩니다.
+`make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, AGENTS.md, rules, scripts, docs, commands, skills) 를 심링크합니다. `claude/skills/*/` 는 와일드카드로 자동 발견되어 디렉토리 단위로 심링크됩니다 — `[ -L ]` 체크가 있어 dotfiles 에 없는 머신별 skill (예: 로컬에서만 만든 것) 은 보존됩니다.
 
 plugin 관리는 `/plugin` 명령어로 일원화 — 변경사항은 committed `settings.json` 에 자동 기록되어 모든 장비에 동기화됩니다 (host 가 없는 plugin 은 inert 상태로 무해). `~/.claude/settings.local.json` 은 시크릿/머신별 permission 같은 진짜 머신별 항목에만 사용합니다.
 
 프로젝트 로컬 skill (`.claude/skills/`, dotfiles repo 안에서만 트리거):
 
 - `setup-env` — dotfiles 의 환경 세팅 워크플로우 진입점. "환경 세팅해줘", "dotfiles 동기화", "make update" 같은 표현으로 트리거됩니다.
+- `dotfiles-doctor` — 끊긴 링크·Makefile 매핑·문법을 기계적으로 점검하고, claude/ 하네스를 현재 Claude Code 버전에 맞게 정리합니다. "dotfiles 점검", "하네스 최신화" 같은 표현으로 트리거됩니다. 이 저장소에서 세션을 열면 훅 (`.claude/settings.json`) 이 마지막 실행 이후 Claude Code 버전 변경 · 30일 경과 · `doctor.sh` FAIL 중 하나라도 있으면 실행을 제안합니다 (실행은 하지 않음).
 
 ### 잠자기 방지 (sleepguard)
 
@@ -155,4 +156,4 @@ SwiftBar 첫 실행 시 플러그인 폴더를 물으면 `~/.swiftbar-plugins` �
 
 - **macOS 시스템 기본값**: `make macos` 가 처리 (`macos/defaults.sh`)
 - **oh-my-zsh agnoster 테마**: [멀티라인 설정 gist](https://gist.github.com/socoolbear/d59447cfaffc24ee914e27fe3019cd81)
-- **Karabiner-Elements**: `Brewfile.apps` 의 cask 주석 해제. 설정은 `karabiner/` 가 자동 심링크
+- **Karabiner-Elements**: `Brewfile.apps` 에 포함 (`make brew-apps` 가 설치). 설정은 `karabiner/` 가 자동 심링크

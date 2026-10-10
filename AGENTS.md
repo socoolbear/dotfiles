@@ -14,6 +14,8 @@ make fresh       # 새 장비용: brew + sync + mise + npm + macos 일괄
 make update      # 일상 동기화: brew + sync
 make brew        # Brewfile 적용 (코어 CLI 도구)
 make brew-apps   # Brewfile.apps 적용 (GUI 앱 + Mac App Store)
+make brew-cleanup        # Brewfile 에 없는 패키지 출력 (dry-run)
+make brew-cleanup-force  # Brewfile 에 없는 패키지 실제 제거
 make brew-scheduled-update     # Homebrew 예약 갱신을 지금 즉시 실행 (예약 대기 없이)
 make brew-scheduled-update-log # 예약 갱신 최근 로그 확인
 make sync        # 심볼릭 링크 생성 (oh-my-zsh, oh-my-tmux 자동 설치)
@@ -23,7 +25,7 @@ make macos       # macOS 시스템 기본값 (macos/defaults.sh)
 make sleepguard  # 잠자기 방지 셋업 (sudoers 룰 + SwiftBar 폴더 지정, sudo 필요 · 새 장비 1회)
 make bootstrap   # 1-shot 부트스트랩 (Xcode CLT, Homebrew 설치 포함)
 make clean       # 심볼릭 링크 제거
-make backup      # 기존 dotfiles 백업 (~/backup_dotfiles/)
+make backup      # 호스트 로컬 데이터 백업 (~/backup_dotfiles/)
 make help        # 명령어 목록 출력
 ```
 
@@ -36,6 +38,7 @@ make help        # 명령어 목록 출력
 | 새 장비 셋업 (사전 준비 + 후속 작업: Homebrew, SSH, Git, Claude, 앱별 설정) | `@docs/setup.md` |
 | 기존 장비에서 옮길 파일 + zsh history 동기화 옵션 | `@docs/migration.md` |
 | 프로젝트별 `.env` 관리 (1Password CLI) | `@docs/secrets.md` |
+| GitHub 계정 분리 (side 계정 적용 범위) | `@docs/github-accounts.md` |
 
 > 위 표의 `@docs/...` 항목은 해당 작업에 진입할 때 **반드시 먼저 읽어야 함** 을 의미합니다.
 

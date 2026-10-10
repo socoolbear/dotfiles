@@ -86,7 +86,6 @@ LINKS_SINGLE := \
     claude/settings.json:.claude/settings.json \
     claude/CLAUDE.md:.claude/CLAUDE.md \
     claude/AGENTS.md:.claude/AGENTS.md \
-    claude/.mcp.json:.mcp.json \
     mise/config.toml:.config/mise/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \

@@ -31,7 +31,8 @@ if [[ -n "$GHOSTTY_TERMINAL" ]] && ! is_intellij_terminal; then
     # 새 창/탭마다 기존 세션에 attach 하지 않고 새 세션 생성 (화면 미러링 방지)
     export ZSH_TMUX_AUTOCONNECT=false
     plugins+=(tmux)
-    [[ -o login ]] && cd $HOME/code
+    # tmux 안의 셸은 tmux 가 정한 cwd (split -c, respawn-pane -c) 를 따른다
+    [[ -o login && -z "$TMUX" ]] && cd $HOME/code
 fi
 
 # Idea 예외처리

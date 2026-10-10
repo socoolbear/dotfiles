@@ -125,7 +125,7 @@ plugin 관리는 `/plugin` 명령어로 일원화 — 변경사항은 committed 
 프로젝트 로컬 skill (`.claude/skills/`, dotfiles repo 안에서만 트리거):
 
 - `setup-env` — dotfiles 의 환경 세팅 워크플로우 진입점. "환경 세팅해줘", "dotfiles 동기화", "make update" 같은 표현으로 트리거됩니다.
-- `dotfiles-doctor` — 끊긴 링크·Makefile 매핑·문법을 기계적으로 점검하고, claude/ 하네스를 현재 Claude Code 버전에 맞게 정리합니다. "dotfiles 점검", "하네스 최신화" 같은 표현으로 트리거됩니다.
+- `dotfiles-doctor` — 끊긴 링크·Makefile 매핑·문법을 기계적으로 점검하고, claude/ 하네스를 현재 Claude Code 버전에 맞게 정리합니다. "dotfiles 점검", "하네스 최신화" 같은 표현으로 트리거됩니다. 이 저장소에서 세션을 열면 훅 (`.claude/settings.json`) 이 마지막 실행 이후 Claude Code 버전 변경 · 30일 경과 · `doctor.sh` FAIL 중 하나라도 있으면 실행을 제안합니다 (실행은 하지 않음).
 
 ### 잠자기 방지 (sleepguard)
 

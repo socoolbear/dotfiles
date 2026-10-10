@@ -24,11 +24,13 @@
 # claude 안의 백그라운드 명령·cron·/loop 는 resume 해도 돌아오지 않으므로 save 때와 restore 뒤에 목록으로 알린다.
 #
 # 사용법:
-#   term-session save    [-o <file>]                 # 끄기 전에 (claude 가 살아 있을 때)
-#   term-session restore [<file>] [--no-enter] [--dry-run]   # 재부팅·Ghostty 재시작 뒤 (--dry-run 은 할 일만 출력)
+#   term-session save    [-o <file>] [--handoff]     # 끄기 전에 (claude 가 살아 있을 때). --handoff: idle claude 마다 /handoff <이름>
+#   term-session restore [<file>] [--mode resume|handoff] [--no-enter] [--dry-run]
+#                                                    # 재부팅·Ghostty 재시작 뒤. resume (기본) = 같은 대화로,
+#                                                    # handoff = 새 세션이 handoff 문서 (없으면 /catchup <ID>) 로 시작
 #   term-session restart [--force] [--no-enter]      # Claude 버전업·zsh 설정 반영 (모든 세션 제자리 재시작)
 #   term-session status                              # 마지막 저장 요약 한 줄
-#   term-session run   <save|restore|preview|restart>  # 창 없이 실행, 결과는 ~/.local/state/term-session/last.log (Alfred)
+#   term-session run   <save|save-handoff|restore|restore-handoff|preview|restart>  # 창 없이 실행, 결과는 ~/.local/state/term-session/last.log (Alfred)
 #
 #   term-session pane-save    [<pane>]                         # 레코드를 stdout 으로
 #   term-session pane-restore <pane> <file|-> [--force] [--no-enter]
@@ -46,6 +48,7 @@ set -euo pipefail
 readonly SESSIONS_DIR="${HOME}/.claude/sessions"
 readonly PROJECTS_DIR="${HOME}/.claude/projects"
 readonly TAB=$'\t'
+readonly HANDOFF_TIMEOUT=600
 readonly STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/term-session"
 
 tm() {
@@ -190,6 +193,21 @@ listScheduledWork() {
     ' "${transcript}"
 }
 
+# /handoff 에 넘길 이름. 공백·경로 구분자·따옴표처럼 파일명이나 셸에서 곤란한 글자만 - 로 바꾼다 (한글은 그대로).
+handoffSlug() {
+    local name=$1
+
+    tr " /:*?\"<>|\\\$\`'" '-' <<<"${name}"
+}
+
+# /handoff <이름> 이 쓰는 파일
+handoffPath() {
+    local cwd=$1
+    local name=$2
+
+    echo "${cwd}/.prompts/HANDOFF-$(handoffSlug "${name}").md"
+}
+
 readClaudeRecord() {
     local pid=$1
     local shellPid=$2
@@ -224,8 +242,16 @@ readClaudeRecord() {
     lost=$( { listBackgroundCommands "${pid}"
               listScheduledWork "${sessionId}" "$(jq -r '.startedAt // 0' "${sessionFile}")"; } | jq -R . | jq -s -c .)
 
+    # handoff 문서가 있으면 경로와 작성 시각을 남긴다 (대화 기록이 정리돼도 이어갈 수 있게)
+    local handoffFile handoff=null
+    handoffFile=$(handoffPath "$(jq -r '.cwd' "${sessionFile}")" "$(jq -r '.name // .sessionId[0:8]' "${sessionFile}")")
+    if [[ -f "${handoffFile}" ]]; then
+        handoff=$(jq -cn --arg path "${handoffFile}" --argjson mtime "$(stat -f %m "${handoffFile}")" '{path: $path, mtime: $mtime}')
+    fi
+
     jq -c --argjson args "${args}" --argjson env "${env}" --argjson transcript "${transcript}" --argjson lost "${lost}" \
-        '{sessionId, name, status, args: $args, env: $env, transcript: $transcript, lost: $lost}' "${sessionFile}"
+        --argjson handoff "${handoff}" \
+        '{sessionId, name, status, args: $args, env: $env, transcript: $transcript, lost: $lost, handoff: $handoff}' "${sessionFile}"
 }
 
 savePane() {
@@ -257,9 +283,18 @@ savePane() {
     jq -cn --arg cwd "${cwd}" '{cwd: $cwd}'
 }
 
+# 셸에 입력할 작은따옴표 문자열 (printf %q 는 한글을 $'\355…' 로 바꿔 history 가 읽기 어렵다)
+quoteSingle() {
+    local text=$1
+
+    # shellcheck disable=SC2001 # bash 3.2 는 큰따옴표 안 치환에서 작은따옴표를 다르게 다뤄 sed 로 한다
+    printf "'%s'\n" "$(sed "s/'/'\\\\''/g" <<<"${text}")"
+}
+
+# tail: 옵션 뒤에 붙일 것 (--resume <id> 또는 첫 메시지). 이미 셸 인용이 끝난 문자열.
 buildClaudeCommand() {
     local record=$1
-    local useResume=$2
+    local tail=$2
 
     local line="" key value arg
     while IFS=$'\t' read -r key value; do
@@ -276,9 +311,7 @@ buildClaudeCommand() {
         line+=" $(printf '%q' "${arg}")"
     done < <(jq -r '.claude.args[]?' <<<"${record}")
 
-    if (( useResume )); then
-        line+=" --resume $(jq -r '.claude.sessionId' <<<"${record}")"
-    fi
+    [[ -z "${tail}" ]] || line+=" ${tail}"
 
     echo "${line}"
 }
@@ -304,13 +337,26 @@ buildPaneCommand() {
     local record=$1
 
     if jq -e '.claude' <<<"${record}" >/dev/null; then
-        if jq -e '.claude.transcript' <<<"${record}" >/dev/null; then
-            buildClaudeCommand "${record}" 1
+        local sessionId handoffFile
+        sessionId=$(jq -r '.claude.sessionId' <<<"${record}")
+        handoffFile=$(jq -r '.claude.handoff.path // empty' <<<"${record}")
+
+        if [[ "${restoreMode:-resume}" == resume ]] && jq -e '.claude.transcript' <<<"${record}" >/dev/null; then
+            buildClaudeCommand "${record}" "--resume ${sessionId}"
             return
         fi
+        [[ "${restoreMode:-resume}" == handoff ]] || warn "대화 기록이 없어 resume 대신 새 세션으로 띄웁니다"
 
-        warn "대화 기록이 없어 새 세션으로 띄웁니다 — 들어가서 /catchup $(jq -r '.claude.name // empty' <<<"${record}") 를 실행하세요"
-        buildClaudeCommand "${record}" 0
+        # 새 세션의 첫 메시지: handoff 문서 → 없으면 대화 기록으로 catchup (ID 로 지정해 고를 필요 없음).
+        # 복원만으로 새 작업이 시작되지 않도록 요약까지만 시킨다.
+        if [[ -n "${handoffFile}" && -f "${handoffFile}" ]]; then
+            buildClaudeCommand "${record}" "$(quoteSingle "${handoffFile} 를 읽고 작업 상태를 짧게 요약해줘. 다음 작업은 내가 지시할 때까지 시작하지 마")"
+        elif jq -e '.claude.transcript' <<<"${record}" >/dev/null; then
+            buildClaudeCommand "${record}" "$(quoteSingle "/catchup ${sessionId:0:8}")"
+        else
+            warn "handoff 문서도 대화 기록도 없어 빈 새 세션으로 띄웁니다 — $(jq -r '.claude.name // empty' <<<"${record}")"
+            buildClaudeCommand "${record}" ""
+        fi
         return
     fi
 
@@ -624,6 +670,82 @@ snapshotGhostty() {
     jq -s -c . <<<"${windows}"
 }
 
+# claude 입력창이 비었는지 본다. 입력창 줄은 화면에서 ❯ 가 있는 마지막 줄이다.
+# 빈 입력창은 ❯ 뒤가 비었거나 흐린 글씨 (ESC[2m) 의 안내 문구 ("Try …") 뿐이다.
+# 쓰다 만 글이나 확인 창 선택지 (❯ 1. …) 가 있으면 비지 않은 것으로 본다 — 그 위에 입력하면 섞여 전송된다.
+isClaudeInputEmpty() {
+    local pane=$1
+
+    local line
+    line=$(tm capture-pane -e -p -t "${pane}" | grep '❯' | tail -1)
+    line=${line#*❯}
+    line=$(LC_ALL=C sed -e $'s/^\xc2\xa0//' -e 's/^ *//' <<<"${line}")
+
+    [[ "${line}" != $'\e[2m'* ]] || return 0
+    # shellcheck disable=SC2001 # 색상 코드를 바이트 단위로 지워야 해서 LC_ALL=C sed 를 쓴다
+    [[ -z "$(LC_ALL=C sed $'s/\e\\[[0-9;]*m//g' <<<"${line}" | tr -d ' ')" ]]
+}
+
+# idle 인 claude 마다 /handoff <이름> 을 보내고, 문서가 새로 써지고 idle 로 돌아올 때까지 기다린다.
+# 작업 중인 claude 는 하던 일을 방해하지 않도록 건너뛴다.
+requestHandoffs() {
+    local startEpoch
+    startEpoch=$(date +%s)
+
+    local -a pending=()
+    local paneId shellPid claudePid sessionFile status name handoffFile
+    while IFS= read -r paneId; do
+        shellPid=$(tm display-message -p -t "${paneId}" '#{pane_pid}')
+        claudePid=$(findClaudePid "${shellPid}")
+        sessionFile="${SESSIONS_DIR}/${claudePid}.json"
+        [[ -n "${claudePid}" && -f "${sessionFile}" ]] || continue
+
+        status=$(jq -r '.status' "${sessionFile}")
+        name=$(jq -r '.name // .sessionId[0:8]' "${sessionFile}")
+        if [[ "${status}" != idle ]]; then
+            warn "pane ${paneId} 의 claude (${name}) 는 ${status} 상태라 handoff 를 건너뜀 — 끝난 뒤 다시 저장하세요"
+            continue
+        fi
+
+        if ! isClaudeInputEmpty "${paneId}"; then
+            warn "pane ${paneId} 의 claude (${name}) 입력창에 보내지 않은 글 (또는 확인 창) 이 있어 handoff 를 건너뜀 — 비운 뒤 다시 저장하세요"
+            continue
+        fi
+
+        handoffFile=$(handoffPath "$(jq -r '.cwd' "${sessionFile}")" "${name}")
+        # vim 모드의 일반 모드면 입력 모드로 바꾼 뒤 입력한다 (Escape 는 보내지 않는다)
+        if tm capture-pane -p -t "${paneId}" | grep -q -- '-- NORMAL --'; then
+            tm send-keys -t "${paneId}" i
+        fi
+        tm send-keys -t "${paneId}" -l "/handoff $(handoffSlug "${name}")"
+        tm send-keys -t "${paneId}" Enter
+
+        echo "handoff 요청 — ${name} (pane ${paneId})" >&2
+        pending+=("${sessionFile}${TAB}${handoffFile}${TAB}${name}")
+    done < <(tm list-panes -a -F '#{pane_id}')
+
+    local entry left
+    while (( ${#pending[@]} > 0 && $(date +%s) - startEpoch < HANDOFF_TIMEOUT )); do
+        sleep 5
+        left=()
+        for entry in "${pending[@]}"; do
+            IFS=${TAB} read -r sessionFile handoffFile name <<<"${entry}"
+            if [[ -f "${handoffFile}" ]] && (( $(stat -f %m "${handoffFile}") >= startEpoch )) \
+                && [[ "$(jq -r '.status' "${sessionFile}" 2>/dev/null)" == idle ]]; then
+                echo "  ✓ ${name} → ${handoffFile}" >&2
+                continue
+            fi
+            left+=("${entry}")
+        done
+        pending=(${left[@]+"${left[@]}"})
+    done
+
+    for entry in ${pending[@]+"${pending[@]}"}; do
+        IFS=${TAB} read -r _ _ name <<<"${entry}"
+        warn "${name} 의 handoff 가 ${HANDOFF_TIMEOUT}초 안에 끝나지 않음 — 그 claude 를 확인하세요"
+    done
+}
+
 saveAll() {
     local outFile=$1
 
@@ -837,7 +959,9 @@ runLogged() {
     local -a args
     case "${action}" in
         save) args=(save) ;;
+        save-handoff) args=(save --handoff) ;;
         restore) args=(restore) ;;
+        restore-handoff) args=(restore --mode handoff) ;;
         preview) args=(restore --dry-run) ;;
         restart) args=(restart) ;;
         *) die "알 수 없는 동작 — ${action}" ;;
@@ -860,15 +984,20 @@ parseRestoreFlags() {
     enter=1
     dryRun=0
 
-    local flag
-    for flag in "$@"; do
-        case "${flag}" in
+    restoreMode=resume
+
+    while (( $# > 0 )); do
+        case "$1" in
             --force) force=1 ;;
             --no-enter) enter=0 ;;
             --dry-run) dryRun=1 ;;
-            *) die "알 수 없는 옵션 — ${flag}" ;;
+            --mode) restoreMode=${2:-}; shift ;;
+            *) die "알 수 없는 옵션 — $1" ;;
         esac
+        shift
     done
+
+    [[ "${restoreMode}" == resume || "${restoreMode}" == handoff ]] || die "--mode 는 resume 또는 handoff"
 
     (( ! dryRun )) || [[ "${subcommand}" == restore ]] || die "--dry-run 은 restore 에서만 쓸 수 있습니다"
 }
@@ -877,12 +1006,20 @@ main() {
     subcommand=${1:-}
     shift || true
 
-    local force enter dryRun pane record session outFile
+    local force enter dryRun pane record session outFile withHandoff=0
     local snapshotFile="${STATE_DIR}/snapshot.json"
 
     case "${subcommand}" in
         save)
-            [[ "${1:-}" != -o ]] || snapshotFile=${2:?"-o 뒤에 파일 경로가 필요합니다"}
+            while (( $# > 0 )); do
+                case "$1" in
+                    -o) snapshotFile=${2:?"-o 뒤에 파일 경로가 필요합니다"}; shift ;;
+                    --handoff) withHandoff=1 ;;
+                    *) die "알 수 없는 옵션 — $1" ;;
+                esac
+                shift
+            done
+            (( ! withHandoff )) || requestHandoffs
             saveAll "${snapshotFile}"
             ;;
         restore)

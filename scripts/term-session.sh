@@ -21,10 +21,11 @@
 #
 # 전체 기록 (save) = Ghostty 창·탭 목록 + tmux 세션 기록 전부, 파일 하나 (~/.local/state/term-session/snapshot.json).
 # restore 는 사라진 층만 되살린다 — 살아 있는 tmux 세션은 다시 붙이기만, 이미 Ghostty 탭에 떠 있는 세션은 건너뜀.
+# claude 안의 백그라운드 명령·cron·/loop 는 resume 해도 돌아오지 않으므로 save 때와 restore 뒤에 목록으로 알린다.
 #
 # 사용법:
 #   term-session save    [-o <file>]                 # 끄기 전에 (claude 가 살아 있을 때)
-#   term-session restore [<file>] [--no-enter]       # 재부팅·Ghostty 재시작 뒤
+#   term-session restore [<file>] [--no-enter] [--dry-run]   # 재부팅·Ghostty 재시작 뒤 (--dry-run 은 할 일만 출력)
 #   term-session restart [--force] [--no-enter]      # Claude 버전업·zsh 설정 반영 (모든 세션 제자리 재시작)
 #
 #   term-session pane-save    [<pane>]                         # 레코드를 stdout 으로
@@ -139,6 +140,54 @@ hasTranscript() {
     compgen -G "${PROJECTS_DIR}/*/${sessionId}.jsonl" >/dev/null
 }
 
+listAncestors() {
+    local pid=$$
+
+    while (( pid > 1 )); do
+        echo "${pid}"
+        pid=$(ps -o ppid= -p "${pid}" | tr -d ' ')
+    done
+}
+
+# claude 의 Bash 도구 명령은 claude 의 자식 셸 (shell-snapshots 를 source) 로 돈다.
+# 이 스크립트를 실행 중인 셸 (내 조상) 을 빼면 남는 것이 백그라운드 명령이다.
+listBackgroundCommands() {
+    local claudePid=$1
+
+    local ancestors
+    ancestors=$(listAncestors)
+
+    local pid args
+    while read -r pid args; do
+        [[ "${args}" == *shell-snapshots* ]] || continue
+        grep -qx "${pid}" <<<"${ancestors}" && continue
+
+        args=${args#*"eval '"}
+        echo "백그라운드 명령: ${args%%"' < /dev/null"*}" | cut -c1-120
+    done < <(ps -ax -ww -o pid=,ppid=,args= | awk -v p="${claudePid}" '$2 == p { $2 = ""; print }')
+}
+
+# cron (/loop 고정 주기) 과 ScheduleWakeup (/loop 동적) 은 claude 메모리에만 있어 디스크에 남지 않는다.
+# 대화 기록의 도구 호출로 추정한다 — 이 프로세스가 시작된 뒤 만들고 지우지 않은 cron, 마지막이 stop 이 아닌 wakeup.
+listScheduledWork() {
+    local sessionId=$1
+    local startedAtMs=$2
+
+    local transcript
+    transcript=$(compgen -G "${PROJECTS_DIR}/*/${sessionId}.jsonl" | head -1)
+    [[ -n "${transcript}" ]] || return 0
+
+    jq -rs --argjson started "${startedAtMs}" '
+        [.[] | select(.timestamp? and
+            ((.timestamp | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) * 1000 >= $started))] as $recent
+        | ([$recent[] | .message.content[]? | select(.type? == "tool_use" and .name == "CronDelete") | .input.id]) as $deleted
+        | ([$recent[] | .toolUseResult? | objects | select(.humanSchedule? and (.id as $id | $deleted | index($id) | not))]
+            | .[] | "cron \(.id) (\(.humanSchedule), \(if .recurring then "반복" else "1회 — 이미 실행됐을 수 있음" end))"),
+          ([$recent[] | .message.content[]? | select(.type? == "tool_use" and .name == "ScheduleWakeup") | .input]
+            | last | select(. != null and (.stop != true)) | "/loop (ScheduleWakeup) 진행 중일 수 있음")
+    ' "${transcript}"
+}
+
 readClaudeRecord() {
     local pid=$1
     local shellPid=$2
@@ -168,8 +217,13 @@ readClaudeRecord() {
     args=$(stripClaudeArgs "${rawArgs[@]:1}" | jq -R . | jq -s .)
     env=$(readClaudeEnv "${pid}" "${shellPid}" | jq -R 'split("=") | {(.[0]): (.[1:] | join("="))}' | jq -s 'add // {}')
 
-    jq -c --argjson args "${args}" --argjson env "${env}" --argjson transcript "${transcript}" \
-        '{sessionId, name, status, args: $args, env: $env, transcript: $transcript}' "${sessionFile}"
+    # resume 해도 돌아오지 않는 작업 — 저장할 때와 복원한 뒤에 알린다
+    local lost
+    lost=$( { listBackgroundCommands "${pid}"
+              listScheduledWork "${sessionId}" "$(jq -r '.startedAt // 0' "${sessionFile}")"; } | jq -R . | jq -s -c .)
+
+    jq -c --argjson args "${args}" --argjson env "${env}" --argjson transcript "${transcript}" --argjson lost "${lost}" \
+        '{sessionId, name, status, args: $args, env: $env, transcript: $transcript, lost: $lost}' "${sessionFile}"
 }
 
 savePane() {
@@ -243,6 +297,24 @@ isPaneIdle() {
     return 1
 }
 
+# pane 에 입력할 명령 (빈 셸이면 빈 줄)
+buildPaneCommand() {
+    local record=$1
+
+    if jq -e '.claude' <<<"${record}" >/dev/null; then
+        if jq -e '.claude.transcript' <<<"${record}" >/dev/null; then
+            buildClaudeCommand "${record}" 1
+            return
+        fi
+
+        warn "대화 기록이 없어 새 세션으로 띄웁니다 — 들어가서 /catchup $(jq -r '.claude.name // empty' <<<"${record}") 를 실행하세요"
+        buildClaudeCommand "${record}" 0
+        return
+    fi
+
+    jq -r '.command // empty' <<<"${record}"
+}
+
 restorePane() {
     local pane=$1
     local record=$2
@@ -257,22 +329,9 @@ restorePane() {
         isPaneIdle "${pane}" || die "pane ${pane} 에서 프로그램이 실행 중 — 덮어쓰려면 --force"
     fi
 
-    local line=""
-    local pressEnter=0
-
-    if jq -e '.claude' <<<"${record}" >/dev/null; then
-        if jq -e '.claude.transcript' <<<"${record}" >/dev/null; then
-            line=$(buildClaudeCommand "${record}" 1)
-        else
-            local name
-            name=$(jq -r '.claude.name // empty' <<<"${record}")
-            warn "대화 기록이 없어 새 세션으로 띄웁니다 — 들어가서 /catchup ${name} 를 실행하세요"
-            line=$(buildClaudeCommand "${record}" 0)
-        fi
-        pressEnter=${enter}
-    elif jq -e '.command' <<<"${record}" >/dev/null; then
-        line=$(jq -r '.command' <<<"${record}")
-    fi
+    local line pressEnter=0
+    line=$(buildPaneCommand "${record}")
+    ! jq -e '.claude' <<<"${record}" >/dev/null || pressEnter=${enter}
 
     # 한 번의 tmux 호출로 묶는다 — 자기 pane 을 재시작하면 respawn 이 이 스크립트를 죽이지만
     # 명령은 이미 tmux 서버가 받았으므로 send-keys 까지 끝난다.
@@ -355,9 +414,24 @@ writeSnapshot() {
     mv "${outFile}.tmp" "${outFile}"
 }
 
+# 끄면 (또는 resume 해도) 돌아오지 않는 작업 목록. 저장할 때와 복원한 뒤에 같은 목록을 보여 준다.
+reportLostWork() {
+    local snapshot=$1
+    local heading=$2
+
+    local lines
+    lines=$(jq -r '[.. | objects | select(.claude?) | .claude | select((.lost // []) | length > 0)]
+        | .[] | "  [\(.name // .sessionId[0:8])]", (.lost[] | "    - \(.)")' <<<"${snapshot}")
+    [[ -n "${lines}" ]] || return 0
+
+    echo "${heading}" >&2
+    echo "${lines}" >&2
+}
+
 reportSaved() {
     local outFile=$1
 
+    reportLostWork "$(cat "${outFile}")" "끄기 전 점검 — 아래 작업은 resume 해도 돌아오지 않습니다 (끝났는지 확인하거나 복원 뒤 다시 시작):"
     echo "저장 → ${outFile} (tmux 세션 $(jq '[.. | objects | select(has("windows") and has("name"))] | length' "${outFile}") 개," \
         "pane $(jq '[.. | objects | select(has("cwd"))] | length' "${outFile}") 개," \
         "claude $(jq '[.. | objects | select(has("claude"))] | length' "${outFile}") 개)" >&2
@@ -396,7 +470,7 @@ restoreWindow() {
             -c "$(existingDir "$(jq -r ".panes[${index}].cwd" <<<"${window}")")")")
     done
 
-    tm select-layout -t "${windowId}" "$(jq -r '.layout' <<<"${window}")" >/dev/null \
+    tm select-layout -t "${windowId}" "$(jq -r '.layout' <<<"${window}")" >/dev/null 2>&1 \
         || warn "탭 $(jq -r '.name' <<<"${window}") 의 배치를 되살리지 못함"
 
     tm rename-window -t "${windowId}" "$(jq -r '.name' <<<"${window}")"
@@ -561,7 +635,25 @@ saveAll() {
     reportSaved "${outFile}"
 }
 
-# 세션마다 이번 복원에서 쓸 이름을 정한다 (줄마다 "저장 당시 이름<TAB>지금 이름<TAB>ok|partial").
+previewSession() {
+    local snapshot=$1
+
+    jq -c '.windows[]' <<<"${snapshot}" | while IFS= read -r window; do
+        echo "    탭 $(jq -r '.name' <<<"${window}") (pane $(jq '.panes | length' <<<"${window}") 개)" >&2
+        jq -c '.panes[]' <<<"${window}" | while IFS= read -r record; do
+            local cwd line
+            cwd=$(jq -r '.cwd' <<<"${record}")
+            if [[ ! -d "${cwd}" ]]; then
+                echo "      ✗ ${cwd} — cwd 가 없어 건너뜀" >&2
+                continue
+            fi
+            line=$(buildPaneCommand "${record}")
+            echo "      ${cwd} ← ${line:-(빈 셸)}" >&2
+        done
+    done
+}
+
+# 세션마다 이번 복원에서 쓸 이름을 정한다 (줄마다 "저장 당시 이름<TAB>지금 이름<TAB>ok|partial|reused").
 # tmux 서버가 저장 전부터 떠 있고 같은 이름이 있으면 살아 있는 세션이다 (Ghostty 만 재시작한 경우).
 # 서버가 저장 뒤에 떴으면 (재부팅) 같은 이름이 있어도 새로 생긴 세션이므로 번호를 새로 받는다.
 restoreSessions() {
@@ -580,12 +672,19 @@ restoreSessions() {
         if tm has-session -t "=${session}" 2>/dev/null; then
             if (( serverStart > 0 && serverStart <= savedEpoch )); then
                 echo "세션 ${session} 은 살아 있어 그대로 씀" >&2
-                printf '%s\t%s\tok\n' "${session}" "${session}"
+                printf '%s\t%s\treused\n' "${session}" "${session}"
                 continue
             fi
             name=""
         else
             name=${session}
+        fi
+
+        if (( dryRun )); then
+            echo "세션 ${session} → ${name:-(이름이 겹쳐 새 번호)} 로 새로 만듦" >&2
+            previewSession "$(jq -c ".sessions[${index}]" <<<"${snapshot}")"
+            printf '%s\t%s\tok\n' "${session}" "${name:-(새 번호)}"
+            continue
         fi
 
         local status=ok
@@ -661,6 +760,10 @@ restoreGhostty() {
 
         (( ${#commands[@]} > 0 )) || continue
         echo "Ghostty 창 열기 — 탭 ${#commands[@]} 개" >&2
+        if (( dryRun )); then
+            printf '    %s\n' "${commands[@]}" >&2
+            continue
+        fi
         openGhosttyWindow "${selectedIndex}" "${commands[@]}" || warn "Ghostty 창을 열지 못함 (자동화 권한 확인)"
     done
 }
@@ -668,6 +771,7 @@ restoreGhostty() {
 restoreAll() {
     local file=$1
     local enter=$2
+    dryRun=$3
 
     [[ -f "${file}" ]] || die "저장 파일이 없음 — ${file}"
 
@@ -675,8 +779,14 @@ restoreAll() {
     snapshot=$(cat "${file}")
     echo "복원 ← ${file} ($(jq -r '.savedAt' <<<"${snapshot}") 저장)" >&2
 
+    (( ! dryRun )) || echo "(미리보기 — 아무것도 만들지 않음)" >&2
     nameMap=$(restoreSessions "${snapshot}" "${enter}")
     restoreGhostty "${snapshot}" "${nameMap}"
+    # 새로 만든 세션의 claude 만 알린다 — 살아 있던 세션은 작업도 그대로 돌고 있다
+    local recreated
+    recreated=$(awk -F '\t' '$3 != "reused" { print $1 }' <<<"${nameMap}" | jq -R . | jq -s -c .)
+    reportLostWork "$(jq -c --argjson names "${recreated}" '.sessions |= map(select(.name as $n | $names | index($n)))' <<<"${snapshot}")" \
+        "저장할 때 돌던 아래 작업은 돌아오지 않습니다 (필요하면 다시 시작):"
 
     local failedCount
     failedCount=$(awk -F '\t' '$3 == "partial"' <<<"${nameMap}" | wc -l | tr -d ' ')
@@ -698,22 +808,26 @@ restartAll() {
 parseRestoreFlags() {
     force=0
     enter=1
+    dryRun=0
 
     local flag
     for flag in "$@"; do
         case "${flag}" in
             --force) force=1 ;;
             --no-enter) enter=0 ;;
+            --dry-run) dryRun=1 ;;
             *) die "알 수 없는 옵션 — ${flag}" ;;
         esac
     done
+
+    (( ! dryRun )) || [[ "${subcommand}" == restore ]] || die "--dry-run 은 restore 에서만 쓸 수 있습니다"
 }
 
 main() {
-    local subcommand=${1:-}
+    subcommand=${1:-}
     shift || true
 
-    local force enter pane record session outFile
+    local force enter dryRun pane record session outFile
     local snapshotFile="${STATE_DIR}/snapshot.json"
 
     case "${subcommand}" in
@@ -724,7 +838,7 @@ main() {
         restore)
             [[ -z "${1:-}" || "${1}" == --* ]] || { snapshotFile=$1; shift; }
             parseRestoreFlags "$@"
-            restoreAll "${snapshotFile}" "${enter}"
+            restoreAll "${snapshotFile}" "${enter}" "${dryRun}"
             ;;
         restart)
             parseRestoreFlags "$@"

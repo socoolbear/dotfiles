@@ -17,6 +17,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "AskUserQuestion|ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh wait",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -25,6 +35,15 @@
           {
             "type": "command",
             "command": "bash ~/.claude/scripts/context-guard.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh busy",
             "timeout": 5
           }
         ]
@@ -40,6 +59,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh reset",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "Stop": [
@@ -48,6 +77,11 @@
           {
             "type": "command",
             "command": "if [ -n \"$TMUX\" ]; then printf '\\033]777;notify;Claude Code;작업 완료\\a' > \"$(command tmux display -p '#{client_tty}')\" 2>/dev/null; else printf '\\033]777;notify;Claude Code;작업 완료\\a' > /dev/tty 2>/dev/null; fi; true",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh stop",
             "timeout": 5
           }
         ]
@@ -59,6 +93,81 @@
           {
             "type": "command",
             "command": "if [ -n \"$TMUX\" ]; then printf '\\033]777;notify;Claude Code;확인 필요\\a' > \"$(command tmux display -p '#{client_tty}')\" 2>/dev/null; else printf '\\033]777;notify;Claude Code;확인 필요\\a' > /dev/tty 2>/dev/null; fi; true",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "permission_prompt|elicitation_dialog",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh wait",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh idle",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh busy",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh reset",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh stop",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh agent-start",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh agent-stop",
             "timeout": 5
           }
         ]

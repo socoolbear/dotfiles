@@ -35,3 +35,19 @@ unbind -T prefix m #!important
 
 unbind r
 bind r source-file ~/.config/tmux/tmux.conf \; display-message 'tmux.conf reloaded' #!important
+
+# -- Claude Code 작업 상태 표시 (창 목록) --
+# claude/scripts/tmux-claude-state.sh 가 Claude 훅에서 pane 옵션(@claude_state, @claude_agents)을 기록하고,
+# 아래 포맷이 창 안의 모든 pane(메인 · 팀 에이전트 pane)을 모아 창 이름 앞에 표시한다.
+#   🌑🌒…🌘 (1초마다 회전) 작업 중 (메인 또는 서브에이전트) · 🔔 권한/질문 응답 대기 · ✅ 끝났는데 아직 안 본 창
+# '%' 가 들어간 포맷은 window-status-format 에 직접 넣지 않고 옵션에 담아 #{E:} 로 참조한다 (strftime 처리 회피).
+set -g status-interval 1                  # gpakosz 기본값 10 → 1 (스피너 애니메이션)
+set -g @claude_sec '%s'
+set -g @claude_frame '#{e|%%:#{T:@claude_sec},8}'
+set -g @claude_spinner '#{?#{==:#{E:@claude_frame},0},🌑,#{?#{==:#{E:@claude_frame},1},🌒,#{?#{==:#{E:@claude_frame},2},🌓,#{?#{==:#{E:@claude_frame},3},🌔,#{?#{==:#{E:@claude_frame},4},🌕,#{?#{==:#{E:@claude_frame},5},🌖,#{?#{==:#{E:@claude_frame},6},🌗,🌘}}}}}}}'
+set -g @claude_panes '#{P:#{@claude_state}#{?#{e|>:#{?@claude_agents,#{@claude_agents},0},0},+agent,} }'
+set -g @claude_indicator '#{?#{m:*wait*,#{E:@claude_panes}},🔔 ,#{?#{||:#{m:*busy*,#{E:@claude_panes}},#{m:*agent*,#{E:@claude_panes}}},#{E:@claude_spinner} ,#{?#{m:*done*,#{E:@claude_panes}},✅ ,}}}'
+tmux_conf_theme_window_status_format='#I #{E:@claude_indicator}#W#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,}'
+tmux_conf_theme_window_status_current_format='#I #{E:@claude_indicator}#W#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,}'
+set-hook -g 'session-window-changed[90]' 'run -b "bash ~/.claude/scripts/tmux-claude-state.sh clear-done #{window_id}"'
+set-hook -g 'client-session-changed[90]' 'run -b "bash ~/.claude/scripts/tmux-claude-state.sh clear-done #{window_id}"'

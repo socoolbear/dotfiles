@@ -10,3 +10,6 @@
 
 ## 새 장비에서 따로 옮길 것
 - `~/.claude/settings.local.json` (머신별 설정, dotfiles 관리 밖)
+
+## 스킬
+- `worktree-setup` · `worktree-refresh` 는 플러그인 `worktrees` (socoolbear/cc-marketplace) 로 관리한다 (2026-10-13 사용자 결정)

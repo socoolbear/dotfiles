@@ -11,7 +11,7 @@
 | `ghostty/` | Ghostty 터미널 | `~/.config/ghostty/` | ✅ |
 | `karabiner/` | 키보드 리맵핑 | `~/.config/karabiner/` | ✅ |
 | `swiftbar/` | SwiftBar 메뉴바 플러그인 (잠자기 방지 토글) | `~/.swiftbar-plugins/` | ✅ |
-| `alfred/` | Alfred 워크플로우 (Magic Trackpad 페어링 토글) | `~/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/<name>` | ✅ |
+| `alfred/` | Alfred 워크플로우 (Magic Trackpad 페어링 토글, 터미널 세션 저장·복원) | `~/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/<name>` | ✅ |
 | `claude/` | Claude Code 글로벌 설정 | `~/.claude/` | ✅ (부분) |
 | `mise/` | mise 글로벌 도구 매니페스트 (node, go 등) | `~/.config/mise/config.toml` | ✅ |
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |

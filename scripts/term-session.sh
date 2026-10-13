@@ -349,9 +349,9 @@ buildPaneCommand() {
         [[ "${restoreMode:-resume}" == handoff ]] || warn "대화 기록이 없어 resume 대신 새 세션으로 띄웁니다"
 
         # 새 세션의 첫 메시지: handoff 문서 → 없으면 대화 기록으로 catchup (ID 로 지정해 고를 필요 없음).
-        # 복원만으로 새 작업이 시작되지 않도록 요약까지만 시킨다.
+        # 복원만으로 새 작업이 시작되지 않도록 요약과 꺼진 백그라운드 작업 재시작까지만 시킨다.
         if [[ -n "${handoffFile}" && -f "${handoffFile}" ]]; then
-            buildClaudeCommand "${record}" "$(quoteSingle "${handoffFile} 를 읽고 작업 상태를 짧게 요약해줘. 다음 작업은 내가 지시할 때까지 시작하지 마")"
+            buildClaudeCommand "${record}" "$(quoteSingle "${handoffFile} 를 읽고 작업 상태를 짧게 요약해줘. 문서에 '실행 중인 백그라운드 작업' 이 있으면 적힌 명령 그대로 다시 백그라운드로 띄워줘. 그 밖의 다음 작업은 내가 지시할 때까지 시작하지 마")"
         elif jq -e '.claude.transcript' <<<"${record}" >/dev/null; then
             buildClaudeCommand "${record}" "$(quoteSingle "/catchup ${sessionId:0:8}")"
         else
@@ -689,6 +689,7 @@ isClaudeInputEmpty() {
 
 # idle 인 claude 마다 /handoff <이름> 을 보내고, 일을 마치고 idle 로 돌아올 때까지 기다린다.
 # 작업 중인 claude 는 하던 일을 방해하지 않도록 건너뛴다.
+# status "shell" 은 입력 대기 중이지만 백그라운드 Bash (run_in_background 등) 가 남아 있는 상태라 idle 과 같게 본다.
 requestHandoffs() {
     local startEpoch failed=0
     startEpoch=$(date +%s)
@@ -703,7 +704,7 @@ requestHandoffs() {
 
         status=$(jq -r '.status' "${sessionFile}")
         name=$(jq -r '.name // .sessionId[0:8]' "${sessionFile}")
-        if [[ "${status}" != idle ]]; then
+        if [[ "${status}" != idle && "${status}" != shell ]]; then
             warn "pane ${paneId} 의 claude (${name}) 는 ${status} 상태라 handoff 를 건너뜀 — 끝난 뒤 다시 저장하세요"
             failed=$((failed + 1))
             continue
@@ -736,7 +737,7 @@ requestHandoffs() {
             # 보낸 뒤에 일을 마치고 idle 로 돌아왔는지로 판단한다. 바뀐 게 없으면 claude 가 문서를 다시 쓰지 않으므로
             # 파일 시각은 기준이 될 수 없다 — 문서가 있기만 하면 된다.
             if [[ -f "${handoffFile}" ]] && jq -e --argjson sent "${sentAtMs}" \
-                '.status == "idle" and .statusUpdatedAt >= $sent' "${sessionFile}" >/dev/null 2>&1; then
+                '(.status == "idle" or .status == "shell") and .statusUpdatedAt >= $sent' "${sessionFile}" >/dev/null 2>&1; then
                 echo "  ✓ ${name} → ${handoffFile}" >&2
                 continue
             fi

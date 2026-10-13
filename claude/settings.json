@@ -27,6 +27,15 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/tmux-claude-state.sh agent",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PostToolUse": [

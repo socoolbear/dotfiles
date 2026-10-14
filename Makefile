@@ -89,7 +89,6 @@ LINKS_SINGLE := \
     mise/config.toml:.config/mise/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
-    scripts/magic-trackpad-toggle.sh:.local/bin/magic-trackpad \
     scripts/mcp-mysql-reader.sh:.local/bin/mcp-mysql-reader \
     scripts/mcp-pg-reader.sh:.local/bin/mcp-pg-reader \
     scripts/term-session.sh:.local/bin/term-session \

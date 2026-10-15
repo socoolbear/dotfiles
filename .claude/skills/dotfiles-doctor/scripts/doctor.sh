@@ -8,6 +8,7 @@ set -uo pipefail
 DOTFILES="${DOTFILES:-${HOME}/.dotfiles}"
 GITLEAKS_CONFIG_FILE="$(cd "$(dirname "$0")" && pwd)/gitleaks.toml"   # cd 전에 이 스크립트 위치 기준으로 잡는다
 fail_count=0
+tilde="~"   # 경로 표시용. ${x/#${HOME}/~} 처럼 ~ 를 바로 쓰면 bash 5.x 는 홈 경로로 다시 풀어 버린다
 
 fail() { printf '[FAIL] %s\n' "$*"; fail_count=$(( fail_count + 1 )); }
 warn() { printf '[WARN] %s\n' "$*"; }
@@ -55,7 +56,7 @@ while IFS= read -r dir; do
   while IFS= read -r link; do
     target=$(readlink "${link}")
     [[ "${target}" == "${DOTFILES}"/* ]] || continue
-    [[ -e "${link}" ]] || fail "끊긴 링크: ${link/#${HOME}/~} -> ${target/#${HOME}/~}"
+    [[ -e "${link}" ]] || fail "끊긴 링크: ${link/#${HOME}/${tilde}} -> ${target/#${HOME}/${tilde}}"
   done < <(find "${dir}" -maxdepth 1 -type l)
 done < <(printf '%s\n' "${link_parents}" | grep -v '^$' | sort -u)
 
@@ -198,7 +199,6 @@ print_worktree() {
 }
 
 if command -v gitleaks >/dev/null 2>&1; then
-  tilde="~"   # 치환 결과에 ~ 를 바로 쓰면 bash 3.2 는 \~, 5.x 는 홈 경로로 찍힌다
   config_display="${GITLEAKS_CONFIG_FILE/#${HOME}/${tilde}}"
 
   # 인자: 대상 이름, 확인 명령, 종료 코드 (파이프라인이면 gitleaks 쪽 PIPESTATUS 를 넘긴다)
@@ -227,9 +227,9 @@ if [[ -s "${sensitive_words}" ]]; then
   done < <(git grep -I -n -i -E --untracked -f <(printf '%s\n' "${words}") 2>/dev/null)
 
   history_hits=$(git log --all -p --format='commit %h%nAuthor: %an <%ae>%n%B' | grep -i -c -E -f <(printf '%s\n' "${words}"))
-  (( history_hits == 0 )) || fail "금지어 (git 이력): ${history_hits}줄 — git log --all -p --format=fuller | grep -i -n -E -f ${sensitive_words/#${HOME}/~}"
+  (( history_hits == 0 )) || fail "금지어 (git 이력): ${history_hits}줄 — git log --all -p --format=fuller | grep -i -n -E -f ${sensitive_words/#${HOME}/${tilde}}"
 else
-  info "금지어 목록 없음 (${sensitive_words/#${HOME}/~}) — 회사·사람 이름 점검 건너뜀"
+  info "금지어 목록 없음 (${sensitive_words/#${HOME}/${tilde}}) — 회사·사람 이름 점검 건너뜀"
 fi
 
 # 형식으로 잡히는 개인정보 (휴대폰 번호 · 주민등록번호) — 예시 값일 수 있어 WARN

@@ -12,8 +12,8 @@ regex = '''ntfy\.sh/[A-Za-z0-9_-]{8,}'''
 
 [[rules]]
 id = "ntfy-topic-assignment"
-description = "NTFY_TOPIC 에 토픽 이름을 직접 대입 (`${NTFY_TOPIC:-…}` 기본값 문법은 제외)"
-regex = '''(?i)ntfy_topic\s*[:=]\s*["']?[A-Za-z0-9_][A-Za-z0-9_-]{3,}'''
+description = "NTFY_TOPIC 에 토픽 이름을 직접 대입하거나 기본값 (`${NTFY_TOPIC:-…}`) 으로 넣음 — 8자 미만은 자리표시자·타입 이름으로 보고 제외"
+regex = '''(?i)ntfy_topic\s*(?::-|[:=])\s*["']?[A-Za-z0-9_][A-Za-z0-9_-]{7,}'''
 
 [[rules]]
 id = "discord-webhook-url"

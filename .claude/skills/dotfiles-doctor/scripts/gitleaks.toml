@@ -1,0 +1,21 @@
+# doctor.sh 8절이 `gitleaks -c` 로 넘기는 설정 — 기본 규칙 위에 「주소·값 자체가 비밀」 인 형식을 더한다.
+# -c 는 기본 설정을 대체하므로 [extend] useDefault 를 지우면 기본 규칙이 조용히 전부 꺼진다.
+# 이 파일에 실제 예시 값을 적지 말 것 — 이 파일 자신이 걸린다. 문서 예시 값은 `xxx` 만 쓴다.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "ntfy-topic-url"
+description = "ntfy 토픽 주소 — 토픽 이름을 아는 사람은 누구나 알림을 읽고 보낼 수 있다"
+regex = '''ntfy\.sh/[A-Za-z0-9_-]{8,}'''
+
+[[rules]]
+id = "ntfy-topic-assignment"
+description = "NTFY_TOPIC 에 토픽 이름을 직접 대입 (`${NTFY_TOPIC:-…}` 기본값 문법은 제외)"
+regex = '''(?i)ntfy_topic\s*[:=]\s*["']?[A-Za-z0-9_][A-Za-z0-9_-]{3,}'''
+
+[[rules]]
+id = "discord-webhook-url"
+description = "Discord 웹훅 주소 — 주소만으로 채널에 글을 쓸 수 있다"
+regex = '''discord(?:app)?\.com/api/(?:v[0-9]+/)?webhooks/[0-9]{17,20}/[A-Za-z0-9_-]{60,}'''

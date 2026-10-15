@@ -6,6 +6,7 @@
 set -uo pipefail
 
 DOTFILES="${DOTFILES:-${HOME}/.dotfiles}"
+GITLEAKS_CONFIG_FILE="$(cd "$(dirname "$0")" && pwd)/gitleaks.toml"   # cd 전에 이 스크립트 위치 기준으로 잡는다
 fail_count=0
 
 fail() { printf '[FAIL] %s\n' "$*"; fail_count=$(( fail_count + 1 )); }
@@ -185,6 +186,8 @@ fi
 # 회사·사람 이름은 저장소에 적으면 그 자체로 노출이므로 목록을 저장소 밖에 둔다 (한 줄에 정규식 하나, # 주석).
 # 이력에만 남은 것도 FAIL 이다 — 지우려면 이력 재작성 + force push 가 필요하므로 doctor 는 고치지 않고 묻는다.
 # 이미 무효화한 비밀키는 `gitleaks git` 출력의 Fingerprint 를 .gitleaksignore 에 넣어 끈다.
+# gitleaks 기본 규칙이 모르는 형식 (ntfy 토픽 · Discord 웹훅 등) 은 같은 폴더의 gitleaks.toml 에 규칙을 더한다.
+# --exit-code 3 은 비밀키 발견, 그 밖의 0 아닌 값은 gitleaks 자체 오류 (설정 파일 등) — 섞으면 설정이 깨졌을 때 매 세션 거짓 경보가 난다.
 echo "## 8. 민감 정보"
 
 sensitive_words="${XDG_CONFIG_HOME:-${HOME}/.config}/dotfiles/sensitive-words"
@@ -195,10 +198,23 @@ print_worktree() {
 }
 
 if command -v gitleaks >/dev/null 2>&1; then
-  gitleaks git --redact --no-banner --log-level error --exit-code 1 . >/dev/null 2>&1 \
-    || fail "gitleaks: git 이력에 비밀키 의심 — 'gitleaks git --redact -v' 로 확인"
-  print_worktree | gitleaks stdin --redact --no-banner --log-level error --exit-code 1 >/dev/null 2>&1 \
-    || fail "gitleaks: 미커밋·미추적 변경에 비밀키 의심 — 'git diff HEAD | gitleaks stdin --redact -v' 와 미추적 파일 확인"
+  tilde="~"   # 치환 결과에 ~ 를 바로 쓰면 bash 3.2 는 \~, 5.x 는 홈 경로로 찍힌다
+  config_display="${GITLEAKS_CONFIG_FILE/#${HOME}/${tilde}}"
+
+  # 인자: 대상 이름, 확인 명령, 종료 코드 (파이프라인이면 gitleaks 쪽 PIPESTATUS 를 넘긴다)
+  report_gitleaks() {
+    case "${3}" in
+      0) ;;
+      3) fail "gitleaks: ${1}에 비밀키 의심 — '${2}' 로 확인" ;;
+      *) fail "gitleaks: 실행 실패 (exit ${3} — 설정 파일 ${config_display} 등 확인)" ;;
+    esac
+  }
+
+  gitleaks git -c "${GITLEAKS_CONFIG_FILE}" --redact --no-banner --log-level error --exit-code 3 . >/dev/null 2>&1
+  report_gitleaks "git 이력" "gitleaks git -c ${config_display} --redact -v" "$?"
+
+  print_worktree | gitleaks stdin -c "${GITLEAKS_CONFIG_FILE}" --redact --no-banner --log-level error --exit-code 3 >/dev/null 2>&1
+  report_gitleaks "미커밋·미추적 변경" "git diff HEAD | gitleaks stdin -c ${config_display} --redact -v (미추적 파일도)" "${PIPESTATUS[1]}"
 else
   warn "gitleaks 없음 — 비밀키 점검 건너뜀 (make brew)"
 fi

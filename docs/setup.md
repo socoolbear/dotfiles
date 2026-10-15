@@ -109,7 +109,7 @@ mise trust ~/.dotfiles/mise/config.toml
   - `cmd + shift + A` 충돌 해결: 설정 → 키보드 단축키 → 서비스 → 텍스트 → "터미널에서 man 페이지 인덱스 검색" off
   - `cmd + esc` 안 눌리는 문제 해결: 설정 → 키보드 단축키 → 미션 컨트롤 → "게임 오버레이" off
 - **Claude Code**:
-  - Playwright MCP
+  - 브라우저 MCP 는 aside: aside 앱을 먼저 설치한 뒤 (dotfiles 밖, `~/.aside/` 에 설치되고 `~/.local/bin/aside` 가 생긴다) `claude mcp add -s user aside -- aside mcp` (Playwright MCP 는 쓰지 않는다 — `claude/AGENTS.md` 「도구 기본값」)
 - **ngrok**: `ngrok config add-authtoken <token>` 으로 인증 (`~/.config/ngrok/ngrok.yml` 생성). 토큰은 [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken) 에서 확인
 - **BetterDisplay**: 첫 실행 시 화면 녹화 권한 요청 승인 (시스템 설정 → 개인정보 보호 및 보안 → 화면 녹화). Pro 라이선스 키 있으면 메뉴바 아이콘 → Settings → License 에서 입력
 - **VS Code / Cursor**: dotfiles 외부 항목

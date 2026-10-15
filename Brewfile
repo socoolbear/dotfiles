@@ -93,6 +93,8 @@ brew "ruff"
 brew "gh"
 # Syntax-highlighting pager for git and diff output
 brew "git-delta"
+# Detect secrets in git repos (dotfiles-doctor 민감 정보 점검)
+brew "gitleaks"
 # Simple terminal UI for git commands
 brew "lazygit"
 # Blazing fast terminal file manager written in Rust, based on async I/O

@@ -1,6 +1,7 @@
 # 디렉토리별 GitHub 계정 분리
 
 `~/code/workspace/<side>/` 아래에서는 side 계정, 그 밖에서는 기본 계정이 자동으로 쓰이도록 한 설정.
+`<side>` 는 side 계정 작업 디렉토리 이름이다 (공개 저장소라 실제 이름은 적지 않는다 — 명령을 쓸 때 바꿔 넣는다).
 (이전 작업 위치 `~/code/side/` 는 archive 로 남아 있어 git `includeIf` 만 유지한다.)
 git 작성자·커밋 서명·SSH 인증·`gh` CLI 네 가지가 모두 디렉토리 기준으로 갈린다.
 

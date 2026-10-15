@@ -311,6 +311,7 @@ backup:
 	-cp -i $(HOME)/.gitconfig_local $(HOME)/backup_dotfiles/gitconfig_local
 	-cp -i $(HOME)/.private-exports $(HOME)/backup_dotfiles/private-exports
 	-cp -i $(HOME)/.config/claude-notify/config.json $(HOME)/backup_dotfiles/claude-notify-config.json
+	-cp -i $(HOME)/.config/dotfiles/sensitive-words $(HOME)/backup_dotfiles/sensitive-words
 	# dotfiles 심링크의 실제 내용 (참고용 — 원본은 repo)
 	-cp -L -i $(HOME)/.zshrc $(HOME)/backup_dotfiles/zshrc
 	-cp -L -i $(HOME)/.vimrc $(HOME)/backup_dotfiles/vimrc

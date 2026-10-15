@@ -180,6 +180,47 @@ else
   info "이전 doctor 실행 커밋 없음 — 전체를 같은 깊이로 점검"
 fi
 
+# --- 8. 민감 정보: 공개 저장소에 비밀키·개인정보·회사/사람 이름이 들어갔는가 ---
+# 작업 트리 (미커밋·미추적 포함) 와 git 이력 (커밋 메시지·작성자 포함) 을 본다.
+# 회사·사람 이름은 저장소에 적으면 그 자체로 노출이므로 목록을 저장소 밖에 둔다 (한 줄에 정규식 하나, # 주석).
+# 이력에만 남은 것도 FAIL 이다 — 지우려면 이력 재작성 + force push 가 필요하므로 doctor 는 고치지 않고 묻는다.
+# 이미 무효화한 비밀키는 `gitleaks git` 출력의 Fingerprint 를 .gitleaksignore 에 넣어 끈다.
+echo "## 8. 민감 정보"
+
+sensitive_words="${XDG_CONFIG_HOME:-${HOME}/.config}/dotfiles/sensitive-words"
+
+print_worktree() {
+  git diff HEAD
+  git ls-files --others --exclude-standard -z | xargs -0 cat 2>/dev/null
+}
+
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --redact --no-banner --log-level error --exit-code 1 . >/dev/null 2>&1 \
+    || fail "gitleaks: git 이력에 비밀키 의심 — 'gitleaks git --redact -v' 로 확인"
+  print_worktree | gitleaks stdin --redact --no-banner --log-level error --exit-code 1 >/dev/null 2>&1 \
+    || fail "gitleaks: 미커밋·미추적 변경에 비밀키 의심 — 'git diff HEAD | gitleaks stdin --redact -v' 와 미추적 파일 확인"
+else
+  warn "gitleaks 없음 — 비밀키 점검 건너뜀 (make brew)"
+fi
+
+if [[ -s "${sensitive_words}" ]]; then
+  words=$(grep -vE '^[[:space:]]*(#|$)' "${sensitive_words}")
+
+  while IFS= read -r hit; do
+    fail "금지어 (작업 트리): ${hit:0:160}"
+  done < <(git grep -I -n -i -E --untracked -f <(printf '%s\n' "${words}") 2>/dev/null)
+
+  history_hits=$(git log --all -p --format='commit %h%nAuthor: %an <%ae>%n%B' | grep -i -c -E -f <(printf '%s\n' "${words}"))
+  (( history_hits == 0 )) || fail "금지어 (git 이력): ${history_hits}줄 — git log --all -p --format=fuller | grep -i -n -E -f ${sensitive_words/#${HOME}/~}"
+else
+  info "금지어 목록 없음 (${sensitive_words/#${HOME}/~}) — 회사·사람 이름 점검 건너뜀"
+fi
+
+# 형식으로 잡히는 개인정보 (휴대폰 번호 · 주민등록번호) — 예시 값일 수 있어 WARN
+while IFS= read -r hit; do
+  warn "개인정보 형식: ${hit:0:160}"
+done < <(git grep -I -n -E --untracked '01[016789]-?[0-9]{3,4}-?[0-9]{4}|[0-9]{6}-[1-4][0-9]{6}' 2>/dev/null)
+
 echo
 echo "FAIL ${fail_count}건"
 (( fail_count == 0 ))

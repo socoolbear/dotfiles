@@ -35,7 +35,7 @@
 | `tmux/tmux.conf.local` | `~/.config/tmux/tmux.conf.local` |
 | `claude/settings.json` | `~/.claude/settings.json` |
 | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
-| `claude/AGENTS.md` | (심링크 없음 — `claude/CLAUDE.md` 가 `@AGENTS.md` 로 실경로 import) |
+| `claude/AGENTS.md` | `~/.codex/AGENTS.md` (Claude Code 는 `claude/CLAUDE.md` 가 `@AGENTS.md` 로 실경로 import — `~/.claude/AGENTS.md` 링크는 두지 않음) |
 | `claude/commands/*.md` | `~/.claude/commands/<name>.md` *(와일드카드 자동 발견)* |
 | `claude/skills/*/` | `~/.claude/skills/<name>/` *(와일드카드 자동 발견, 디렉토리 단위)* |
 | `claude/agents/*.md` | `~/.claude/agents/<name>.md` *(와일드카드 자동 발견)* |

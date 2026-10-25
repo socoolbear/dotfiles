@@ -85,6 +85,7 @@ LINKS_SINGLE := \
     tmux/tmux.conf.local:.config/tmux/tmux.conf.local \
     claude/settings.json:.claude/settings.json \
     claude/CLAUDE.md:.claude/CLAUDE.md \
+    claude/AGENTS.md:.codex/AGENTS.md \
     mise/config.toml:.config/mise/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
@@ -158,6 +159,12 @@ sync: ohmyzsh ohmytmux
 	@mkdir -p $(HOME)/.local/bin $(HOME)/.config $(HOME)/.config/mise \
 	          $(HOME)/.claude $(HOME)/.claude/commands $(HOME)/.claude/skills \
 	          $(HOME)/.claude/agents
+
+	@# ~/.codex/AGENTS.md 가 실파일이면 백업 (아래 ln -sf 가 덮어쓰므로 — 이전엔 Codex 가 손으로 만든 실파일이었다)
+	@if [ -e $(HOME)/.codex/AGENTS.md ] && [ ! -L $(HOME)/.codex/AGENTS.md ]; then \
+		mv $(HOME)/.codex/AGENTS.md $(HOME)/.codex/AGENTS.md.bak; \
+		echo "==> ~/.codex/AGENTS.md 실파일을 AGENTS.md.bak 으로 백업 (claude/AGENTS.md 심링크로 교체)"; \
+	fi
 
 	@# 단일 파일 심링크
 	@for entry in $(LINKS_SINGLE); do \

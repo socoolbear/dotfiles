@@ -88,6 +88,11 @@ while IFS= read -r script; do
   [[ -f "${DOTFILES}/claude/scripts/${script}" ]] || fail "settings.json 이 없는 스크립트를 부름: ~/.claude/scripts/${script}"
 done < <(jq -r '.. | .command? // empty' claude/settings.json | grep -oE '~/\.claude/scripts/[A-Za-z0-9._-]+' | sed 's|.*/||' | sort -u)
 
+# 홈 하위에서 연 세션은 상위 디렉토리를 훑다가 ~/.claude/AGENTS.md 를 프로젝트 지시로 한 번 더 읽는다
+# (claude/CLAUDE.md 의 @AGENTS.md 와 중복 로딩). 공용 규칙은 import 로만 들어와야 한다
+[[ -e "${HOME}/.claude/AGENTS.md" || -L "${HOME}/.claude/AGENTS.md" ]] \
+  && fail "~/.claude/AGENTS.md 가 있음 — 홈 하위 세션에서 전역 지시가 두 번 로드된다 (make sync 가 링크면 지운다)"
+
 # --- 5. 문서가 가리키는 경로가 있는가 ---
 # 백틱 안의 '/' 가 들어간 경로만 본다. 자리표시자 (<, *, {, $) 와 다른 프로젝트 기준 경로 (.claude/, .prompts/, harness/) 는 제외.
 # ~/ 경로는 dotfiles 가 링크하는 ~/.claude/ 하위만 본다 (그 밖은 머신별 선택 파일이라 없어도 정상).

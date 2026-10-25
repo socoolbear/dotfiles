@@ -190,7 +190,7 @@
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": false,
     "php-lsp@claude-plugins-official": true,
     "codex@openai-codex": true,
     "documents@socoolbear-cc-marketplace": true,

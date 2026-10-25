@@ -1,6 +1,6 @@
 ---
 name: dotfiles-doctor
-description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·Makefile 매핑·문법·새 디렉토리 감지·민감 정보 (비밀키·개인정보·회사/사람 이름) 같은 기계적 점검, 모든 디렉토리의 공통 점검, 그리고 claude/ 하네스 (전역 AGENTS.md · docs · settings · 훅 · 에이전트) 를 현재 Claude Code 버전에 맞게 진화시키는 점검. 추천안을 스스로 골라 적대적 검증 루프를 거친 뒤 중단 없이 적용·검증·커밋·push 까지 진행한다. "dotfiles 점검", "doctor", "하네스 점검/정리/최신화", "claude 설정 모순 찾아줘", "낡은 설정 정리" 같은 요청에 사용한다. 설치·동기화 실행 (make fresh/update, brew) 은 이 스킬이 아니라 setup-env 다.
+description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·Makefile 매핑·문법·새 디렉토리 감지·민감 정보 (비밀키·개인정보·회사/사람 이름) 같은 기계적 점검, 모든 디렉토리의 공통 점검, 그리고 claude/ 하네스 (전역 CLAUDE.md·AGENTS.md · docs · settings · 훅 · 에이전트) 를 현재 Claude Code 버전에 맞게 진화시키는 점검. 추천안을 스스로 골라 적대적 검증 루프를 거친 뒤 중단 없이 적용·검증·커밋·push 까지 진행한다. "dotfiles 점검", "doctor", "하네스 점검/정리/최신화", "claude 설정 모순 찾아줘", "낡은 설정 정리" 같은 요청에 사용한다. 설치·동기화 실행 (make fresh/update, brew) 은 이 스킬이 아니라 setup-env 다.
 ---
 
 # dotfiles doctor

@@ -48,7 +48,7 @@
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 
 > `claude/commands/*.md`, `claude/skills/*/`, `claude/agents/*.md` 는 Makefile 의 `COMMANDS` / `SKILLS` / `AGENT_DEFS` 와일드카드가 자동 발견하므로, 새 명령/skill/agent 를 추가해도 Makefile 수정 불필요.
-> 단, skills 와 agents 는 `[ -L ]` 체크로 심링크만 만들고 머신별 실파일/실디렉토리 (예: dotfiles 에 없는 로컬 agent) 는 보존합니다.
+> 단, skills 와 agents 는 dotfiles 에 있는 항목만 링크하므로 dotfiles 에 없는 머신별 실파일/실디렉토리 (예: 로컬에서만 만든 agent) 는 보존됩니다. 같은 이름의 실파일은 덮어씁니다.
 
 ## 심볼릭 링크 매핑 — 디렉토리
 

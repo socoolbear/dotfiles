@@ -7,5 +7,6 @@ intelephense
 npm-check-updates
 tree-sitter-cli
 typescript
+typescript-language-server
 vscode-langservers-extracted
 emmet-ls

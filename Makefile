@@ -107,11 +107,11 @@ LINKS_DIR := \
 COMMANDS := $(notdir $(wildcard $(DOTFILES)/claude/commands/*.md))
 
 # claude/skills/*/ — 와일드카드 자동 발견 (skill 추가 시 Makefile 수정 불필요)
-# 디렉토리 단위 심링크 + [ -L ] 체크로 머신별 실디렉토리 (예: commit-and-push) 보존
+# 디렉토리 단위 심링크. [ -L ] 는 이미 링크면 건너뛸 뿐이고, dotfiles 에 없는 머신별 실디렉토리는 루프 대상이 아니라서 보존된다
 SKILLS := $(notdir $(wildcard $(DOTFILES)/claude/skills/*))
 
 # claude/agents/*.md — 와일드카드 자동 발견 (agent 추가 시 Makefile 수정 불필요)
-# 파일 단위 심링크로 머신별 실파일 (예: nestjs-impl-executor.md) 보존
+# 파일 단위 심링크로 머신별 실파일 (dotfiles 에 없는 로컬 에이전트) 보존
 AGENT_DEFS := $(notdir $(wildcard $(DOTFILES)/claude/agents/*.md))
 
 # alfred/workflows/*/ — 와일드카드 자동 발견 (워크플로우 추가 시 Makefile 수정 불필요)
@@ -186,13 +186,13 @@ sync: ohmyzsh ohmytmux
 	    [ -L "$$target" ] || ln -sf "$(DOTFILES)/claude/commands/$$cmd" "$$target"; \
 	done
 
-	@# claude/skills/* 자동 발견 후 심링크 ([ -L ] 체크로 머신별 실디렉토리 보존)
+	@# claude/skills/* 자동 발견 후 심링크 (이미 링크면 건너뜀)
 	@for skill in $(SKILLS); do \
 	    target="$(HOME)/.claude/skills/$$skill"; \
 	    [ -L "$$target" ] || ln -sf "$(DOTFILES)/claude/skills/$$skill" "$$target"; \
 	done
 
-	@# claude/agents/*.md 자동 발견 후 심링크 ([ -L ] 체크로 머신별 실파일 보존)
+	@# claude/agents/*.md 자동 발견 후 심링크 (이미 링크면 건너뜀 — 같은 이름의 실파일은 덮어쓴다)
 	@for agent in $(AGENT_DEFS); do \
 	    target="$(HOME)/.claude/agents/$$agent"; \
 	    [ -L "$$target" ] || ln -sf "$(DOTFILES)/claude/agents/$$agent" "$$target"; \

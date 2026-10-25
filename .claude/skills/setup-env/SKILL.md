@@ -103,4 +103,4 @@ make -C ~/.dotfiles help     # 사용 가능 타겟 한 번 더 보여주기 (�
 - **`make backup` 은 새 장비 셋업 *전* (구 장비에서)** 실행해야 의미 있다. 새 장비에서 셋업 *후* 호출하면 빈 `~/backup_dotfiles/` 만 만들어진다.
 - **`brew-apps` 의 `mas` 항목**은 App Store 로그인이 안 되어 있으면 조용히 실패한다. 출력에서 `mas` 관련 에러가 보이면 사용자에게 App Store 로그인 후 `make brew-apps` 재실행을 안내.
 - **bootstrap.sh 는 sudo 와 GUI 다이얼로그**를 요구한다. CI/원격 세션에서 호출하지 말 것 (Xcode CLT 설치 창이 데스크톱에 뜬다).
-- **글로벌 규칙 우선** — `~/.claude/AGENTS.md` 의 한국어/존댓말 규칙을 모든 안내 메시지에 적용. 영어와 한국어 혼용 시 띄어쓰기 추가 (예: "Brewfile 에서").
+- **글로벌 규칙 우선** — `~/.dotfiles/claude/AGENTS.md` 의 한국어/존댓말 규칙을 모든 안내 메시지에 적용. 영어와 한국어 혼용 시 띄어쓰기 추가 (예: "Brewfile 에서").

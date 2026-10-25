@@ -121,7 +121,7 @@ mise trust ~/.dotfiles/mise/config.toml
 
 `make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, rules, scripts, docs, commands, skills, agents) 와 `~/.codex/AGENTS.md` (공용 지시 `claude/AGENTS.md`) 를 심링크합니다. `claude/skills/*/` 는 와일드카드로 자동 발견되어 디렉토리 단위로 심링크됩니다 — dotfiles 에 있는 skill 만 링크하므로 dotfiles 에 없는 머신별 skill (예: 로컬에서만 만든 것) 은 보존됩니다.
 
-plugin 관리는 `/plugin` 명령어로 일원화 — 변경사항은 committed `settings.json` 에 자동 기록되어 모든 장비에 동기화됩니다 (host 가 없는 plugin 은 inert 상태로 무해). `~/.claude/settings.local.json` 은 시크릿/머신별 permission 같은 진짜 머신별 항목에만 사용합니다.
+plugin 관리는 `/plugin` 명령어로 일원화 — 변경사항은 committed `settings.json` 에 자동 기록되어 모든 장비에 동기화됩니다. 설정이 필요한 plugin 을 켜 두면 설정하지 않은 장비에서 MCP 연결 실패가 매 세션 나므로, 장비마다 다른 plugin (예: 회사 장비의 datadog) 은 공용에서 끄고 `~/.config/claude/machine.json` 에서 켭니다 — `/plugin` 으로 켜면 공용 `settings.json` 이 바뀝니다. 자세한 사용법은 `claude/Readme.md`. `~/.claude/settings.local.json` 은 사용자 수준에서 읽히지 않습니다.
 
 프로젝트 로컬 skill (`.claude/skills/`, dotfiles repo 안에서만 트리거):
 

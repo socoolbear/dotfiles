@@ -198,7 +198,7 @@
     "phpstorm-plugin@phpstorm-marketplace": true,
     "snippets@socoolbear-cc-marketplace": false,
     "frontend-design@claude-plugins-official": true,
-    "datadog@claude-plugins-official": true,
+    "datadog@claude-plugins-official": false,
     "catchup@socoolbear-cc-marketplace": true,
     "worktrees@socoolbear-cc-marketplace": true,
     "taskspace@socoolbear-cc-marketplace": true,

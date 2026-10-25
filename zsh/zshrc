@@ -98,18 +98,26 @@ alias he='helm'
 alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
 alias pn='pnpm'
 alias vf='vim $(fzf)'
-alias cc='CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude'
+# 장비별 Claude 설정 (dotfiles 밖) 이 있으면 --settings 로 덧붙인다 — ~/.claude/settings.local.json 은 사용자 수준에서 읽히지 않는다 (2.1.310 시험)
+claudeTeam() {
+    local machineSettings="${XDG_CONFIG_HOME:-${HOME}/.config}/claude/machine.json"
+    local settingsArgs=()
+
+    [[ -f "${machineSettings}" ]] && settingsArgs=(--settings "${machineSettings}")
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude "${settingsArgs[@]}" "$@"
+}
+alias cc='claudeTeam'
 # tmux 탭 이름을 세션 이름과 같게 고정하고, 종료 후 자동 이름으로 되돌린다
 cct() {
     local taskName="task-$(basename "${PWD}")"
 
     if [[ -z "${TMUX}" ]]; then
-        CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude -n "${taskName}" --dangerously-skip-permissions "$@"
+        claudeTeam -n "${taskName}" --dangerously-skip-permissions "$@"
         return
     fi
 
     command tmux rename-window "${taskName}"
-    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude -n "${taskName}" --dangerously-skip-permissions "$@"
+    claudeTeam -n "${taskName}" --dangerously-skip-permissions "$@"
     local exitCode=$?
 
     command tmux set-window-option automatic-rename on

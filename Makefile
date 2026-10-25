@@ -85,7 +85,6 @@ LINKS_SINGLE := \
     tmux/tmux.conf.local:.config/tmux/tmux.conf.local \
     claude/settings.json:.claude/settings.json \
     claude/CLAUDE.md:.claude/CLAUDE.md \
-    claude/AGENTS.md:.claude/AGENTS.md \
     mise/config.toml:.config/mise/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
@@ -170,6 +169,9 @@ sync: ohmyzsh ohmytmux
 
 	@# tmux.conf 잔재 정리 (oh-my-tmux 가 ~/.config/tmux/tmux.conf 사용)
 	@rm -f $(HOME)/.tmux.conf
+
+	@# ~/.claude/AGENTS.md 잔재 정리 (있으면 홈 하위 세션에서 전역 지시가 프로젝트 지시로 한 번 더 로드됨 — claude/CLAUDE.md 가 @AGENTS.md 로 실경로 import)
+	@[ ! -L $(HOME)/.claude/AGENTS.md ] || rm $(HOME)/.claude/AGENTS.md
 
 	@# claude/commands/*.md 자동 발견 후 심링크
 	@for cmd in $(COMMANDS); do \

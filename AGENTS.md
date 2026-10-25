@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > AI 에이전트가 이 저장소를 이해하고 작업하기 위한 가이드
-> 코딩 스타일은 `claude/rules/coding-style.md`, 워크플로우/언어/환경은 `~/.claude/AGENTS.md` 참조
+> 코딩 스타일은 `claude/rules/coding-style.md`, 워크플로우/언어/환경은 `~/.dotfiles/claude/AGENTS.md` 참조
 
 ## 프로젝트 개요
 

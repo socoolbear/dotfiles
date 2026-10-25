@@ -203,7 +203,8 @@
     "worktrees@socoolbear-cc-marketplace": true,
     "taskspace@socoolbear-cc-marketplace": true,
     "cc-plugin-you-should-know@builtin": true,
-    "daemon@socoolbear-cc-marketplace": true
+    "daemon@socoolbear-cc-marketplace": true,
+    "clangd-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -237,6 +238,7 @@
   "theme": "dark",
   "editorMode": "vim",
   "autoCompactEnabled": true,
+  "switchModelsOnFlag": false,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }

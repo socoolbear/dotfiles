@@ -5,7 +5,7 @@
 @AGENTS.md
 
 ## 도구 기본값
-- 파일 읽기는 Read, 검색은 Bash 의 `rg` · `grep` · `find` (2.1.295 기준 Grep · Glob 도구는 없고 셸 명령이 그 역할을 한다).
+- 파일 읽기는 Read, 검색은 Bash 의 `rg` · `grep` · `find` (2.1.310 기준 Grep · Glob 도구는 없고 셸 명령이 그 역할을 한다).
 - **의존성 없는 도구 호출은 한 메시지에 묶어 병렬 실행.** 앞 결과가 다음 호출의 인자를 정할 때만 순차.
 - **브라우저 작업은 aside (`mcp__aside__exec` / `mcp__aside__repl`) 를 쓴다.**
 

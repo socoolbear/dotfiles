@@ -169,3 +169,18 @@
 - 선례 조사 없이 일반론으로 만든 선택지를 바로 질문하지 않는다
 - **묻지 않을 것을 먼저 걸러낸다.** 질문을 앞에 모으는 것이지 늘리는 것이 아니다. 다음은 묻지 않는다: 관례상 답이 정해진 것, 코드·문서·명령으로 직접 확인할 수 있는 사실, 나중에 쉽게 되돌릴 수 있는 사소한 선택. 이런 것은 질문과 같은 메시지에 «이렇게 가정하고 진행합니다» 로 한 줄씩 밝혀 두고, 이의가 있으면 고치게 한다 (2026-10-09 사용자 결정)
 - 답을 받으면 결정을 기록(태스크 notes 등)하고, 서로 독립적인 후속 작업은 §3-2 대로 병렬로 띄운다
+
+## 8. 태스크 세션은 현재 tmux 세션의 window 로 연다
+
+> 태스크(taskspace `tasks/<ID>/` 등) 를 처리할 Claude 세션을 새로 띄울 때는 **지금 내가 도는 tmux 세션에 window(탭) 를 추가**한다. 새 tmux 세션·새 Ghostty 창(`open -na Ghostty`) 으로 띄우지 않는다 — 창이 흩어져 사용자가 다시 모아야 한다 (2026-11-02 사용자 지시).
+
+```bash
+cmd="claude -n task-<ID> --dangerously-skip-permissions $(printf %q "<첫 지시>"); exec zsh"
+command tmux new-window -d -t "$(command tmux display -p '#{session_name}'):" -n "task-<ID>" -c "<태스크 디렉토리>" "${cmd}"
+```
+
+- `tmux` 는 zsh 플러그인 alias 라 `command tmux` 로 부른다. 대상 세션은 `$TMUX` 기준 `display -p` 로 현재 세션을 고른다
+- `-n task-<ID>` 는 `ListAgents`·`SendMessage` 의 주소가 된다. 이후 추가 전달은 `SendMessage` 로
+- 첫 지시에 `*` 같은 glob 을 넣지 않는다 — 전달 중 빠질 수 있다 (2026-11-02 브랜치명이 `bugfix/<ID>-` 로 잘린 사례). 브랜치명은 전체를 적는다
+- `-d` 로 띄워 사용자의 현재 window 를 빼앗지 않는다. 띄운 뒤 `ListAgents` 로 살아 있는지 확인한다
+- `$TMUX` 가 비어 있으면 (tmux 밖) 띄우지 말고 사용자에게 어떻게 열지 묻는다

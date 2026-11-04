@@ -4,6 +4,8 @@
 # -- 기본 설정 오버라이드 --
 set -g history-limit 10000                # gpakosz 기본값 5000 → 10000
 set -s escape-time 0                      # gpakosz 기본값 10 → 0 (vim 모드 전환 지연 제거)
+# gpakosz 의 조건식은 Ghostty 에서도 on 으로 평가된다. on 이면 한글 입력 중 ctrl+b · ctrl+v 가 안 먹혀서 끈다
+set -s extended-keys off
 
 # -- gpakosz 에 없는 추가 설정 --
 set -g mouse on

@@ -175,10 +175,11 @@
 > 태스크(taskspace `tasks/<ID>/` 등) 를 처리할 Claude 세션을 새로 띄울 때는 **지금 내가 도는 tmux 세션에 window(탭) 를 추가**한다. 새 tmux 세션·새 Ghostty 창(`open -na Ghostty`) 으로 띄우지 않는다 — 창이 흩어져 사용자가 다시 모아야 한다 (2026-11-02 사용자 지시).
 
 ```bash
-cmd="claude -n task-<ID> --dangerously-skip-permissions $(printf %q "<첫 지시>"); exec zsh"
+cmd="CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude -n task-<ID> --dangerously-skip-permissions $(printf %q "<첫 지시>"); exec zsh"
 command tmux new-window -d -t "$(command tmux display -p '#{session_name}'):" -n "task-<ID>" -c "<태스크 디렉토리>" "${cmd}"
 ```
 
+- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 을 직접 붙인다 — `cct` 는 zsh 함수라 이 명령에서 쓰지 않고, 빼면 그 세션은 팀 기능이 꺼진다
 - `tmux` 는 zsh 플러그인 alias 라 `command tmux` 로 부른다. 대상 세션은 `$TMUX` 기준 `display -p` 로 현재 세션을 고른다
 - `-n task-<ID>` 는 `ListAgents`·`SendMessage` 의 주소가 된다. 이후 추가 전달은 `SendMessage` 로
 - 첫 지시에 `*` 같은 glob 을 넣지 않는다 — 전달 중 빠질 수 있다 (2026-11-02 브랜치명이 `bugfix/<ID>-` 로 잘린 사례). 브랜치명은 전체를 적는다

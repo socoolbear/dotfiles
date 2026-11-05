@@ -101,6 +101,11 @@
             "type": "command",
             "command": "bash ~/.claude/scripts/tmux-claude-state.sh stop",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/team-cleanup-check.sh",
+            "timeout": 5
           }
         ]
       }
@@ -243,6 +248,7 @@
   "autoCompactWindow": 500000,
   "plansDirectory": ".claude/plan",
   "tui": "fullscreen",
+  "teammateMode": "auto",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
   "editorMode": "vim",

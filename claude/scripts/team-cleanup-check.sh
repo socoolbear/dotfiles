@@ -66,7 +66,9 @@ printf '%s\t%s\t%s\n' \
   >> "${state_dir}/fired.log"
 
 # --- 5. 정리 지시 ---
-{
+# exit 2 나 decision:block 은 화면에 "Stop hook error" 로 떠서 정상 동작이 고장처럼 보인다.
+# additionalContext 는 턴을 똑같이 이어 가면서 "Stop hook feedback" 으로 뜬다 (2.1.318 실측).
+message=$(
   echo "[팀 정리] 아래 팀메이트는 자기 턴을 마치고 대기 중입니다. 명단에 남겨두면 창과 컨텍스트만 차지합니다."
   echo
   while IFS= read -r name; do printf '  - %s\n' "${name}"; done <<< "${stale}"
@@ -77,6 +79,7 @@ printf '%s\t%s\t%s\n' \
   echo
   echo "아직 결과를 기다리는 중이거나 계획 승인 대기 중이라면, 이 메시지를 무시하고 하던 일을 계속하세요."
   echo "편성/해산 기준: ~/.claude/docs/team-mode.md"
-} >&2
+)
 
-exit 2
+jq -n --arg context "${message}" \
+  '{hookSpecificOutput: {hookEventName: "Stop", additionalContext: $context}}'

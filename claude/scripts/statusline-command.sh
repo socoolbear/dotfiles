@@ -153,7 +153,7 @@ if [[ -n "${cost_usd}" && -n "${duration_ms}" ]]; then
   fi
 fi
 
-# 6. 누적 토큰
+# 6. 현재 토큰 (입력: 컨텍스트 전체, 출력: 마지막 응답)
 if [[ -n "${total_in}" || -n "${total_out}" ]]; then
   in_fmt=$(format_tokens "${total_in:-0}")
   out_fmt=$(format_tokens "${total_out:-0}")

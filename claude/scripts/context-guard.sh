@@ -49,7 +49,7 @@ IFS='|' read -r used model < <(
 # --- 3. 기준 토큰 (base) ---
 # 창 우선순위: 환경변수 > settings.json autoCompactWindow > 모델 창. 최종값은 모델 창을 넘지 못한다.
 model_window=1000000
-[[ "${model}" == *haiku* ]] && model_window=200000
+[[ "${model}" == *haiku-4* ]] && model_window=200000
 
 window="${CLAUDE_CODE_AUTO_COMPACT_WINDOW:-}"
 

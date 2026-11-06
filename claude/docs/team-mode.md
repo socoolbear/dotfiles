@@ -16,7 +16,7 @@ CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude
 - **팀메이트 (teammate)**: `Agent` 도구에 **`name` 파라미터**를 주면 뜨는 에이전트. 독립적으로 돌고,
   `SendMessage` 로 서로 대화할 수 있으며, 명단 (roster) 에 등록된다.
   표시 방식은 `claude/settings.json` 의 `teammateMode: "auto"` 를 따른다 — tmux 안이면 창 분할, 밖이면 리드와 같은 프로세스 안 (`in-process`).
-  이 문서의 동작 사실은 `in-process` 에서 확인한 것이라 창 분할에서는 다를 수 있다.
+  §4 의 Stop 훅·창 분할 내용을 뺀 동작 사실은 `in-process` 에서 확인한 것이라 창 분할에서는 다를 수 있다.
 - **서브에이전트 (subagent)**: `name` 없이 띄우는 에이전트. 한 번 던지고 결과만 돌려받는다.
 
 핵심 차이는 **명단에 남는가** 다. 서브에이전트는 끝나면 사라지지만, 팀메이트는 명시적으로 해산시켜야 사라진다.

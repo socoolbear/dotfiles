@@ -217,8 +217,8 @@
     "worktrees@socoolbear-cc-marketplace": true,
     "taskspace@socoolbear-cc-marketplace": true,
     "cc-plugin-you-should-know@builtin": true,
-    "daemon@socoolbear-cc-marketplace": true,
-    "clangd-lsp@claude-plugins-official": true
+    "clangd-lsp@claude-plugins-official": true,
+    "programming@socoolbear-cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -248,12 +248,12 @@
   "autoCompactWindow": 500000,
   "plansDirectory": ".claude/plan",
   "tui": "fullscreen",
-  "teammateMode": "auto",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
   "editorMode": "vim",
   "autoCompactEnabled": true,
   "switchModelsOnFlag": false,
+  "teammateMode": "auto",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }

@@ -22,7 +22,7 @@ IFS='|' read -r agent_id session_id transcript_path cwd < <(
 [[ -n "${agent_id}" ]]   && exit 0   # 서브에이전트 컨텍스트
 [[ -n "${session_id}" ]] || exit 0
 
-# --- 2. context-guard 상태 초기화 (compact 후 50% / 80% 알림이 다시 나가도록) ---
+# --- 2. context-guard 상태 초기화 (compact 후 진행 문서 알림이 처음부터 다시 나가도록) ---
 rm -f "${TMPDIR:-/tmp}/claude-context-guard/${session_id}" 2>/dev/null
 
 # --- 3. 복원 본문 조립 (진행 문서를 앞에 둬서 절단돼도 핵심이 남게 한다) ---

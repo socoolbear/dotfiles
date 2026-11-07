@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# PostToolUse 훅 — 컨텍스트 사용량이 자동 compact 기준의 50% / 80% 를 넘으면
-# 진행 문서(.prompts/PROGRESS-<세션 앞 8자>.md)를 작성·갱신하라고 한 번씩 알린다.
+# PostToolUse 훅 — 컨텍스트 사용량이 첫 알림 기준을 넘으면 진행 문서
+# (.prompts/PROGRESS-<세션 앞 8자>.md) 를 작성하라고 알리고, 이후 일정 토큰마다 갱신을 다시 알린다.
+#
+# 첫 알림은 idle compact 시작점 (200K) 보다 앞서야 한다. 자리를 비운 사이 compact 되면
+# 이 훅이 끼어들 도구 호출이 없어서, 그 전에 문서가 있어야 복원된다.
 #
 # set -e 를 쓰지 않는 이유: 모든 도구 호출마다 도는 훅이라, 예기치 못한 실패가
 # 종료 코드로 새어 나가면 작업 흐름이 깨진다. 실패는 전부 exit 0 으로 흡수한다.
@@ -8,6 +11,9 @@
 # 한계: --autocompact CLI 플래그로 준 창 크기는 훅이 알 수 없다.
 # (CLAUDE_CODE_AUTO_COMPACT_WINDOW 환경변수와 settings.json 의 autoCompactWindow 만 반영한다.)
 set -uo pipefail
+
+FIRST_ALERT_MAX_TOKENS=150000   # 첫 알림 상한 (idle compact 시작점 200K 보다 작게)
+REMINDER_INTERVAL_TOKENS=50000  # 마지막 알림 뒤 이만큼 늘면 갱신을 다시 알린다
 
 input=$(cat)
 
@@ -70,31 +76,33 @@ fi
 
 (( base > 0 )) || exit 0
 
-# --- 4. 임계 단계 판정 ---
-pct=$(( used * 100 / base ))
-stage=0
-(( pct >= 50 )) && stage=1
-(( pct >= 80 )) && stage=2
-(( stage > 0 )) || exit 0
+# --- 4. 첫 알림 기준 판정 ---
+first_alert_tokens=$(( base / 2 ))
+(( first_alert_tokens > FIRST_ALERT_MAX_TOKENS )) && first_alert_tokens="${FIRST_ALERT_MAX_TOKENS}"
+(( used >= first_alert_tokens )) || exit 0
 
-# --- 5. 같은 단계는 한 번만 알린다 ---
+# --- 5. 마지막 알림 뒤 충분히 늘었을 때만 알린다 ---
 state_dir="${TMPDIR:-/tmp}/claude-context-guard"
 state_file="${state_dir}/${session_id}"
-last_stage=0
+last_alert_tokens=0
 
-[[ -f "${state_file}" ]] && last_stage=$(cat "${state_file}" 2>/dev/null)
-[[ "${last_stage}" =~ ^[0-9]+$ ]] || last_stage=0
+[[ -f "${state_file}" ]] && last_alert_tokens=$(cat "${state_file}" 2>/dev/null)
+[[ "${last_alert_tokens}" =~ ^[0-9]+$ ]] || last_alert_tokens=0
 
-(( stage <= last_stage )) && exit 0
+(( last_alert_tokens > 0 && used - last_alert_tokens < REMINDER_INTERVAL_TOKENS )) && exit 0
 
-mkdir -p "${state_dir}" && printf '%s' "${stage}" > "${state_file}"
+mkdir -p "${state_dir}" && printf '%s' "${used}" > "${state_file}"
 
 # --- 6. 진행 문서 작성 지시 주입 ---
 project_dir="${CLAUDE_PROJECT_DIR:-${cwd}}"
 progress_file="${project_dir}/.prompts/PROGRESS-${session_id:0:8}.md"
 
-if (( stage == 2 )); then
+pct=$(( used * 100 / base ))
+
+if (( pct >= 80 )); then
   lead="컨텍스트 사용량이 ${pct}% (${used}/${base} 토큰) 입니다. 곧 자동 compact 됩니다. 진행 문서를 최신 상태로 갱신하세요."
+elif (( last_alert_tokens > 0 )); then
+  lead="컨텍스트 사용량이 ${pct}% (${used}/${base} 토큰) 입니다. 마지막 알림 뒤 작업이 늘었으니 진행 문서를 최신 상태로 갱신하세요."
 else
   lead="컨텍스트 사용량이 ${pct}% (${used}/${base} 토큰) 입니다. 자동 compact 에 대비해 진행 문서를 지금 작성하세요."
 fi

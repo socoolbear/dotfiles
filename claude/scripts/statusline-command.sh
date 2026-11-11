@@ -6,7 +6,7 @@ input=$(cat)
 # 변수 초기화 (set -u 대응)
 model="" used_pct="" vim_mode="" cost_usd="" duration_ms=""
 lines_added="" lines_removed="" total_in="" total_out=""
-cache_read="" input_tokens="" exceeds_200k="" agent_name="" project_dir=""
+cache_read="" input_tokens="" exceeds_200k="" agent_name=""
 
 # 단일 jq 호출로 모든 필드 추출
 eval "$(echo "${input}" | jq -r '
@@ -22,8 +22,7 @@ eval "$(echo "${input}" | jq -r '
   @sh "cache_read=\(.context_window.current_usage.cache_read_input_tokens // empty)",
   @sh "input_tokens=\(.context_window.current_usage.input_tokens // empty)",
   @sh "exceeds_200k=\(.exceeds_200k_tokens // empty)",
-  @sh "agent_name=\(.agent.name // empty)",
-  @sh "project_dir=\(.workspace.project_dir // empty)"
+  @sh "agent_name=\(.agent.name // empty)"
 ')"
 
 # --- ANSI 색상 ---
@@ -211,15 +210,15 @@ if [[ -n "${model}" ]]; then
   parts+=("${YELLOW}${model}${RESET}")
 fi
 
-# 13. Jira 링크 (taskspace 태스크 세션일 때만: 시작 디렉토리가 .../tasks/<KEY>[/...])
-# OSC 8 하이퍼링크 — Cmd+클릭으로 이슈를 연다
-task_dir_pattern='/tasks/([A-Z][A-Z0-9]*-[0-9]+)(/|$)'
+# 13. 세션 링크 (세션을 띄운 쪽이 STATUSLINE_LINK_URL 을 넣었을 때만, 예: jira-task-open 스킬)
+# 표시 문자열은 URL 의 마지막 경로 (…/browse/IMIO-8848 → IMIO-8848). OSC 8 하이퍼링크라 Cmd+클릭으로 연다
+link_url="${STATUSLINE_LINK_URL:-}"
 
-if [[ "${project_dir}" =~ ${task_dir_pattern} ]]; then
-  jira_key="${BASH_REMATCH[1]}"
-  jira_url="https://imweb.atlassian.net/browse/${jira_key}"
+if [[ -n "${link_url}" ]]; then
+  link_label="${link_url%/}"
+  link_label="${link_label##*/}"
 
-  parts+=($'\033]8;;'"${jira_url}"$'\033\\'"${CYAN}${jira_key}${RESET}"$'\033]8;;\033\\')
+  parts+=($'\033]8;;'"${link_url}"$'\033\\'"${CYAN}${link_label}${RESET}"$'\033]8;;\033\\')
 fi
 
 # --- 최종 출력 ---

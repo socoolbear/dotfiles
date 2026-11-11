@@ -245,6 +245,11 @@
   },
   "language": "korean",
   "effortLevel": "high",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
   "autoCompactWindow": 500000,
   "plansDirectory": ".claude/plan",
   "tui": "fullscreen",

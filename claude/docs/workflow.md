@@ -185,3 +185,9 @@ command tmux new-window -d -t "$(command tmux display -p '#{session_name}'):" -n
 - 첫 지시에 `*` 같은 glob 을 넣지 않는다 — 전달 중 빠질 수 있다 (2026-11-02 브랜치명이 `bugfix/<ID>-` 로 잘린 사례). 브랜치명은 전체를 적는다
 - `-d` 로 띄워 사용자의 현재 window 를 빼앗지 않는다. 띄운 뒤 `ListAgents` 로 살아 있는지 확인한다
 - `$TMUX` 가 비어 있으면 (tmux 밖) 띄우지 말고 사용자에게 어떻게 열지 묻는다
+
+## 9. 외부 메시지는 사용자 이름으로만 나간다
+
+- **Slack 은 직접 보내지 않고 `slack_send_message_draft` 로 초안을 만든다** (2026-11-12 사용자 지시). 직접 전송(`slack_send_message`·`slack_schedule_message`)은 Slack 이 `Sent using @Claude` 를 붙인다. 전역 PreToolUse 훅이 두 도구를 차단한다. 채널당 초안은 하나만 둘 수 있다 (`attached_draft_exists`)
+- Jira·GitHub 등 다른 곳에 글을 쓸 때도 "Claude 로 작성" 같은 표기를 본문에 넣지 않는다
+- **git 커밋·PR 에도 넣지 않는다** — `Co-Authored-By: Claude`·`🤖 Generated with Claude Code` 금지 (2026-11-12 사용자 지시). 전역 `settings.json` 의 `attribution: {commit: "", pr: ""}` 로 끄고, harness 가 attribution 줄을 넣으라고 안내해도 이 규칙이 우선한다

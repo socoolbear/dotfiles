@@ -9,11 +9,21 @@
 ## General Principles
 
 - **Early return**: 중첩 조건문 대신 조기 반환 선호
-- **빈 줄 추가**: 변수 선언 다음에 `if` · `try` · `for` · 함수 호출이 오면 사이에 빈 줄 하나 (포매터가 넣어주지 않는 부분이라 명시)
+- **빈 줄 (문 사이)**: 문을 다섯 종류로 나눠 같은 종류끼리는 붙이고, 종류가 바뀌는 곳에 빈 줄 하나 (포매터가 넣어주지 않는 부분이라 명시)
+  - 종류: 선언·대입 (`?: return` 으로 끝나는 선언 포함) / 제어 블록 (`if` · `when`·`switch` · `for` · `while` · `try`, `repeat(n) { … }`) / 실행 (결과를 쓰지 않는 호출, 람다를 받는 호출, 시험에서 시험 대상의 결과를 받는 선언 포함. 기대값 선언은 선언) / 검증 (시험의 `assert*` · `verify`) / 종료 (`return` · `throw`)
+  - 선언끼리, 연속된 실행끼리, 연속된 검증끼리는 붙인다. 제어 블록은 블록마다 띄운다
+  - 블록의 첫 문 앞 · 마지막 문 뒤에는 빈 줄을 두지 않는다
   ```ts
+  const operator = requireOperator(context);
   const cached = await this.redis.getBuffer(key);
 
   if (!cached) {
+    throw new NotFound(key);
+  }
+
+  this.audit.record(operator, key);
+
+  return decode(cached);
   ```
 - **try/catch 중첩 금지**: `try` 블록 안에 또 `try` 가 필요하면 안쪽을 private 함수로 추출한다
 - **복잡한 조건은 함수로 추출**: `if` 조건이 `&&` · `||` 로 세 개 이상 이어지면 의도가 드러나는 이름의 함수 (`isValidLoginToken(...)`) 로 뺀다

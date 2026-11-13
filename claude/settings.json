@@ -19,6 +19,16 @@
         ]
       },
       {
+        "matcher": "Bash|mcp__github__merge_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/enforce-deploy-check.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "AskUserQuestion|ExitPlanMode",
         "hooks": [
           {

@@ -159,6 +159,8 @@ cct() {
 #--------------------------------------------------------------------------
 # export CLAUDE_CODE_EFFORT_LEVEL=max
 # export ANTHROPIC_MODEL="fable"
+# You should know 메모를 다음 프롬프트에 붙여 메인 세션으로 자동 전달 (비공개 옵션, 2.1.323 바이너리에서 확인 — 2026-11-13 사용자 지시)
+export CLAUDE_CODE_YOU_SHOULD_KNOW_AUTO_SEND=1
 
 #--------------------------------------------------------------------------
 # Miscellaneous

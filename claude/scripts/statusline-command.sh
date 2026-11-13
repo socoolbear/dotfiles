@@ -210,7 +210,7 @@ if [[ -n "${model}" ]]; then
   parts+=("${YELLOW}${model}${RESET}")
 fi
 
-# 13. 세션 링크 (세션을 띄운 쪽이 STATUSLINE_LINK_URL 을 넣었을 때만, 예: jira-task-open 스킬)
+# 13. 세션 링크 (세션을 띄운 쪽이 STATUSLINE_LINK_URL 을 넣었을 때만, 예: taskspace task-intake 가 workflow.md §8 명령으로 띄운 태스크 세션)
 # 표시 문자열은 URL 의 마지막 경로 (…/browse/IMIO-8848 → IMIO-8848). OSC 8 하이퍼링크라 Cmd+클릭으로 연다
 link_url="${STATUSLINE_LINK_URL:-}"
 

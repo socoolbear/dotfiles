@@ -9,6 +9,10 @@ MAX_CHARS=8000   # additionalContext 상한 (훅 출력 제한 10000자 안쪽)
 
 input=$(cat)
 
+# agent-bot (Slack 개인 봇) 이 띄운 세션은 진행 문서를 쓸 수 없고 쓸 이유도 없다.
+# 봇이 세션 환경에 AGENT_BOT=1 을 넣는다 (2026-11-14 사용자 결정, eng1 태스크 001)
+[[ "${AGENT_BOT:-}" == "1" ]] && exit 0
+
 # --- 1. 구조적 가드 ---
 IFS='|' read -r agent_id session_id transcript_path cwd < <(
   printf '%s' "${input}" | jq -r '

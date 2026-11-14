@@ -17,6 +17,10 @@ REMINDER_INTERVAL_TOKENS=50000  # 마지막 알림 뒤 이만큼 늘면 갱신�
 
 input=$(cat)
 
+# agent-bot (Slack 개인 봇) 이 띄운 세션은 진행 문서를 쓸 수 없고 쓸 이유도 없다.
+# 봇이 세션 환경에 AGENT_BOT=1 을 넣는다 (2026-11-14 사용자 결정, eng1 태스크 001)
+[[ "${AGENT_BOT:-}" == "1" ]] && exit 0
+
 # --- 1. 구조적 가드 (transcript 를 읽기 전에 끝낸다) ---
 # 구분자로 '|' 를 쓴다: IFS 가 공백문자면 빈 필드가 뭉개져 밀린다.
 IFS='|' read -r agent_id perm_mode session_id transcript_path cwd < <(

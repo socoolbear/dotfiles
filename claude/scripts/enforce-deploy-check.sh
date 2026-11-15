@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
 # Bash · GitHub MCP 머지 PreToolUse 훅
 # 운영 반영일 수 있는 머지·push 직전에 배포 전 점검 (AGENTS.md "운영 배포 전 점검") 을 강제한다.
-# 대상: gh pr merge, main/master 로의 git push, mcp__github__merge_pull_request
+# 대상: gh pr merge, 브랜치를 명시한 main/master push (git push origin main 등), mcp__github__merge_pull_request
 #
 # 한계: 명령 문자열만 보므로 그 머지가 실제로 운영에 나가는지는 모른다.
 # 그래서 대상마다 1회만 차단하고, 운영 반영이 아니면 근거를 적고 다시 실행하게 한다.
 # 같은 명령을 다시 실행하면 통과하므로, 통과했다는 사실이 점검을 했다는 뜻은 아니다.
+# push 감지 조건: git 이 명령 자리 (아래 COMMAND_START, 앞에 env·sudo·time 등 없이) 에 오고, 그 뒤 어딘가에
+# 공백+push 가 있으며 (git 바로 뒤일 필요 없음), main/master 가 공백·:·+ 바로 뒤에 맨 이름 (따옴표·refs/heads/ 없이)
+# 으로 와서 그 뒤가 공백·줄끝일 때만 잡는다. 그래서 git push · git push -u origin HEAD · git push origin main; … ·
+# --all 은 운영 반영이어도 잡히지 않으니 점검을 스스로 한다. 반대로 커밋 메시지·git stash push main 같은 문자열도
+# 이 조건에 맞으면 잡힌다. (훅 동작은 바꾸지 않음 — 2026-11-15 사용자 결정)
 set -euo pipefail
 
 STATE_DIR="${TMPDIR:-/tmp}/claude-deploy-check"
-# 명령 자리 (줄 시작 또는 ; & | ( $( 뒤) 에 나온 경우만 잡는다 — 커밋 메시지·echo 안의 문자열은 제외
+# 명령 자리 (줄 시작 또는 ; & | ( $( 뒤) 에 나온 경우만 잡는다 — 커밋 메시지·echo 안의 문자열을 빼려는 것 (완전하지 않다, 위 「push 감지 조건」)
 COMMAND_START='(^|[;&|(]|\$\()[[:space:]]*(command[[:space:]]+)?'
 
 input=$(cat)

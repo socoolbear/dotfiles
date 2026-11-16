@@ -62,6 +62,8 @@
 | `claude/docs/` | `~/.claude/docs/` |
 | `alfred/workflows/*/` | `~/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/<name>` *(와일드카드 자동 발견, 디렉토리 단위)* |
 
+> `claude/mods/*/` (Claude Code mod) 는 링크하지 않고 `claude/settings.json` 의 `env.CLAUDE_CODE_PLUGIN_DIRS` 가 저장소 경로를 직접 가리킵니다 (tmux 로 바로 띄운 세션처럼 zshrc 를 거치지 않는 세션에도 적용).
+>
 > `alfred/workflows/*/` 는 Makefile 의 `ALFRED_WORKFLOWS` 와일드카드가 자동 발견합니다. Alfred 환경설정 폴더가 없으면 (미설치) 건너뛰고, 새로 만든 링크는 Alfred 가 켜져 있을 때 `reload workflow` 로 즉시 등록합니다.
 
 ## Git 설정과 호스트 로컬 설정

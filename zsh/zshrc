@@ -159,8 +159,8 @@ cct() {
 #--------------------------------------------------------------------------
 # export CLAUDE_CODE_EFFORT_LEVEL=max
 # export ANTHROPIC_MODEL="fable"
-# You should know 메모를 다음 프롬프트에 붙여 메인 세션으로 자동 전달 (비공개 옵션, 2.1.323 바이너리에서 확인 — 2026-11-13 사용자 지시)
-export CLAUDE_CODE_YOU_SHOULD_KNOW_AUTO_SEND=1
+# You should know 메모 자동 전달은 mod (claude/mods/ysk-midturn) 가 맡는다 — claude/settings.json 의 env.CLAUDE_CODE_PLUGIN_DIRS 로 켠다 (2026-11-14 사용자 지시, 시험 사용)
+# 내장 옵션 CLAUDE_CODE_YOU_SHOULD_KNOW_AUTO_SEND=1 은 작업 중에 뜬 메모를 보내지 않고, mod 와 같이 켜면 메모가 두 번 가서 쓰지 않는다
 
 #--------------------------------------------------------------------------
 # Miscellaneous

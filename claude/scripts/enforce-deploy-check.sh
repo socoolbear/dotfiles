@@ -7,9 +7,17 @@
 #   - 미분류: repo 의 배포 workflow 트리거를 확인하게 한다 (조회 실패·cd 뒤 실행처럼 repo 를 확정 못 할 때 포함)
 # 대상: gh pr merge, mcp__github__merge_pull_request, main/master/dev 로 가는 git push, gh workflow run, gh api …/dispatches
 #
-# 한계: 명령 문자열만 보므로 판단은 AGENTS.md 를 따른다. 대상마다 1회만 차단하고, 같은 명령을 다시 실행하면 통과한다.
-# - push 는 git 이 명령 자리 (아래 COMMAND_START, VAR=값 접두 허용) 에 오고 브랜치가 맨 이름으로 올 때만 잡는다.
-#   git push · git push -u origin HEAD · --all 은 잡히지 않고, 커밋 메시지·heredoc 안의 같은 문자열은 잡힐 수 있다
+# 차단 방식 (2026-11-17 사용자 결정 — 운영 배포는 매번 확인):
+#   - 대상마다 첫 실행은 exit 2 로 점검 목록을 준다 (증거를 모아 보고하게)
+#   - 다시 실행하면 dev·미분류는 통과, 운영은 permissionDecision "ask" 로 확인창을 띄운다 (Yes = 사용자 확인).
+#     -p 실행과 coolgom 세션은 답할 사람이 없어 자동 거부된다 (2.1.326 실측)
+#   - AGENT_BOT=1 (coolgom 봇) 은 운영도 다시 실행하면 통과 — Slack 의 사용자 본인 승인을 확인으로 본다
+#   - 야간 모드 (claude-loop 가 일을 맡긴 세션) 는 운영·dev·미분류 모두 처음부터 ask — 밤에는 dev 배포 점검을 할 수 없다
+#
+# 한계: 명령 문자열만 보므로 판단은 AGENTS.md 를 따른다.
+# - push 는 git 이 명령 자리 (아래 COMMAND_START, VAR=값 접두 허용) 에 올 때만 잡는다.
+#   브랜치가 명령에 없거나 HEAD 면 cwd 의 현재 브랜치로 정한다. --all · 셸 래퍼 (bash -c 등) 는 잡히지 않고,
+#   커밋 메시지·heredoc 안의 같은 문자열은 잡힐 수 있다. 야간 모드의 래퍼·우회 경로는 night-guard.sh 가 막는다
 # - workflow 실행은 development · stage · 브랜치 환경 workflow 가 명시되지 않으면 운영으로 본다
 # - ArgoCD Sync 는 브라우저 (aside) 로 해서 잡히지 않는다
 set -euo pipefail
@@ -44,6 +52,50 @@ extract_repo() {
 
 is_cwd_moved() {
   grep -qE "${CWD_MOVED}" <<<"${command}"
+}
+
+# claude-loop 가 일을 맡긴 세션인가 — 판정은 night-guard.sh 와 같다
+# (기존 세션은 상태 파일, 새로 연 세션은 CLAUDE_NIGHT=1 이고 사람이 돌아와 풀지 않았을 때)
+is_night_mode() {
+  local night_dir="${HOME}/.local/state/claude-loop/night"
+
+  [[ -n "${session_id}" ]] || return 1
+  [[ -f "${night_dir}/${session_id}" ]] \
+    || [[ "${CLAUDE_NIGHT:-}" == "1" && -f "${night_dir}/active" && ! -f "${night_dir}/released/${session_id}" ]]
+}
+
+# push 대상 브랜치가 명령에 없거나 HEAD 뿐이면 cwd 의 현재 브랜치를 쓴다 (main·master·dev 일 때만 출력)
+current_branch_if_implicit() {
+  local segment="$1"
+  local token
+  local remote_seen=""
+  local -a tokens
+  local -a refspecs=()
+
+  read -ra tokens <<<"${segment#*push}"
+
+  for token in ${tokens[@]+"${tokens[@]}"}; do
+    [[ "${token}" == -* ]] && continue
+
+    if [[ -z "${remote_seen}" ]]; then
+      remote_seen=1
+      continue
+    fi
+
+    refspecs+=("${token}")
+  done
+
+  if (( ${#refspecs[@]} > 1 )) || [[ ${#refspecs[@]} == 1 && "${refspecs[0]}" != "HEAD" ]]; then
+    return 0
+  fi
+
+  git -C "${cwd:-.}" rev-parse --abbrev-ref HEAD 2>/dev/null | grep -xE 'main|master|dev' || true
+}
+
+emit_ask() {
+  jq -n --arg reason "$1" \
+    '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "ask", permissionDecisionReason: $reason}}'
+  exit 0
 }
 
 # PR 의 repo·대상 브랜치를 조회한다 (실패하면 빈 값 — 미분류로 처리)
@@ -141,6 +193,10 @@ find_target() {
   push_segments=$(grep -oE "${COMMAND_START}git[^;&|]*[[:space:]]push[^;&|]*" <<<"${command}" || true)
   branch=$(tr -d "\"'" <<<"${push_segments}" | grep -oE '[[:space:]:+](refs/heads/)?(main|master|dev)([[:space:]]|$)' | tail -1 | grep -oE 'main|master|dev' || true)
 
+  if [[ -z "${branch}" && -n "${push_segments}" && "$(grep -c . <<<"${push_segments}")" == "1" ]] && ! is_cwd_moved; then
+    branch=$(current_branch_if_implicit "$(tr -d "\"'" <<<"${push_segments}")")
+  fi
+
   if [[ -z "${branch}" ]]; then
     return 0
   fi
@@ -184,11 +240,19 @@ if [[ "${kind}" == "none" ]]; then
   exit 0
 fi
 
-# 무한 차단 방지: 세션 · 대상당 1회만 차단
+if is_night_mode; then
+  emit_ask "[야간 모드 배포 차단] ${label} → ${repo:-?}:${branch:-?} (${kind}). 밤에는 dev·운영 배포를 하지 않는다 — 아침에 사용자가 판단"
+fi
+
+# 대상마다 첫 실행만 점검 목록으로 차단한다. 다시 실행하면 운영은 확인창, 나머지는 통과
 state_key=$(printf '%s %s' "${session_id}" "${label}" | md5 -q)
 state_file="${STATE_DIR}/${state_key}"
 
 if [[ -f "${state_file}" ]]; then
+  if [[ "${kind}" == "prod" && "${AGENT_BOT:-}" != "1" ]]; then
+    emit_ask "[운영 배포] ${repo:-?}:${branch} — ${label}. 점검 결과를 확인했으면 Yes"
+  fi
+
   exit 0
 fi
 
@@ -220,8 +284,8 @@ EOF
 점검 결과 (OK · 이슈 · 미확인) 를 담아 사용자 확인을 받는다:
 - 범위 (함께 실리는 다른 커밋 목록) · CI·리뷰 · 선행 조건 · 호환성 · 검증 근거 · 독립 검증 · 되돌리기 (롤백 기준·관찰 시간)
 
-- 이 세션에서 사용자가 이 대상을 지정해 요청·승인했으면: 결과를 적고 같은 명령을 다시 실행
-- 아니면: 실행하지 말고 점검 결과와 함께 확인을 받는다
+- 결과를 응답에 적고 같은 명령을 다시 실행하면 확인창이 뜬다 (사용자가 Yes 를 눌러야 실행 — 봇 세션은 바로 통과)
+- 사용자가 아직 이 대상을 요청·승인하지 않았으면: 다시 실행하기 전에 점검 결과와 함께 확인을 받는다
 - 승인 뒤: 검토한 해시로 배포, 운영 QA, 롤백 기준에 걸리면 묻지 않고 revert 하고 보고
 EOF
     ;;

@@ -8,6 +8,9 @@ DOTFILES := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 # Homebrew 예약 갱신 작업의 launchd 라벨 (sync / clean / brew-scheduled-update 가 공유)
 BREW_SCHEDULED_UPDATE_LABEL := com.socoolbear.brew-scheduled-update
 
+# AI 야간 루프 launchd 라벨 (sync 가 재등록, clean 이 해제 — scripts/claude-loop.sh)
+CLAUDE_LOOP_LABELS := com.socoolbear.claude-loop-night com.socoolbear.claude-loop-brief
+
 all: sync
 
 #--------------------------------------------------------------------------
@@ -92,7 +95,10 @@ LINKS_SINGLE := \
     scripts/mcp-mysql-reader.sh:.local/bin/mcp-mysql-reader \
     scripts/mcp-pg-reader.sh:.local/bin/mcp-pg-reader \
     scripts/term-session.sh:.local/bin/term-session \
-    launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
+    scripts/claude-loop.sh:.local/bin/claude-loop \
+    launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist \
+    launchd/com.socoolbear.claude-loop-night.plist:Library/LaunchAgents/com.socoolbear.claude-loop-night.plist \
+    launchd/com.socoolbear.claude-loop-brief.plist:Library/LaunchAgents/com.socoolbear.claude-loop-brief.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
 LINKS_DIR := \
@@ -228,6 +234,10 @@ sync: ohmyzsh ohmytmux
 	@# launchd 예약 작업 재등록 (심링크 생성만으로는 등록되지 않음 — bootout 후 bootstrap 으로 멱등)
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(BREW_SCHEDULED_UPDATE_LABEL).plist 2>/dev/null || true
+	@for label in $(CLAUDE_LOOP_LABELS); do \
+	    launchctl bootout gui/$$(id -u)/$$label 2>/dev/null || true; \
+	    launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$$label.plist 2>/dev/null || true; \
+	done
 
 	@# mise config 신뢰 (심링크 직후 mise 가 untrusted 로 보지 않도록)
 	@command -v mise >/dev/null 2>&1 && mise trust $(DOTFILES)/mise/config.toml >/dev/null 2>&1 || true
@@ -238,6 +248,7 @@ sync: ohmyzsh ohmytmux
 
 clean:
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
+	@for label in $(CLAUDE_LOOP_LABELS); do launchctl bootout gui/$$(id -u)/$$label 2>/dev/null || true; done
 	@for entry in $(LINKS_SINGLE); do \
 	    rm -f "$(HOME)/$${entry##*:}"; \
 	done

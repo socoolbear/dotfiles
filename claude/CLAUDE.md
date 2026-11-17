@@ -1,6 +1,6 @@
 # Claude Code Global Settings
 
-> 공용 규칙 (언어·용어·출력 길이·환경·핵심 원칙·운영 배포 전 점검) 은 아래 import 로 들어오는 `AGENTS.md` 에 있다 (Codex 와 공유). 이 파일에는 Claude Code 전용 규칙만 둔다.
+> 공용 규칙 (언어·용어·출력 길이·환경·핵심 원칙·배포 확인 지점) 은 아래 import 로 들어오는 `AGENTS.md` 에 있다 (Codex 와 공유). 이 파일에는 Claude Code 전용 규칙만 둔다.
 
 @AGENTS.md
 

@@ -2,9 +2,10 @@
 # 복사해서 쓴다: cp claude/deploy-targets.example ~/.config/claude/deploy-targets
 # 회사 repo 이름은 공개 저장소에 넣지 않으므로 실제 목록은 저장소 밖 파일에만 둔다.
 # 형식: <prod|dev|none> <owner/repo>:<branch>   — prod 운영 배포 · dev dev 배포 · none 서비스 배포 없음
-# 형식이 어긋난 줄이 하나라도 있으면 훅은 파일 전체를 믿지 않고 main·master·dev push 를 모두 운영으로 본다
+# 형식이 어긋난 줄이 하나라도 있거나 prod 줄이 하나도 없으면 훅은 dev·none·dev-workflow 줄을 쓰지 않고 main·master·dev push 를 모두 운영으로 본다
+# push 는 main·master·dev 로 가는 것만 판정한다 — 다른 브랜치 대상 (예: release) 은 PR 머지에만 적용된다
 prod my-org/web-app:master
 dev my-org/web-app:dev
 none my-org/shared-lib:main
-# dev-workflow <단어> — 이 단어가 든 workflow 실행을 dev 로 본다 (기본: development · stage)
+# dev-workflow <단어> — 이 단어 (단어 단위) 가 든 workflow 실행을 dev 로 본다 (기본: development · stage 문자열)
 dev-workflow preview-env

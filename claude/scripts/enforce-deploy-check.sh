@@ -35,7 +35,9 @@ TARGETS_FILE="${CLAUDE_DEPLOY_TARGETS:-${HOME}/.config/claude/deploy-targets}"
 PROD_TARGETS=" "
 DEV_TARGETS=" "
 NODEPLOY_TARGETS=" "   # 서비스 배포가 없는 대상 (라이브러리 발행 등) — 묻지 않고 진행
-DEV_WORKFLOW_PATTERN="development|stage"   # 이 단어가 든 workflow 실행만 dev — 사내 환경 이름은 비공개 파일의 dev-workflow 줄로 더한다
+DEV_WORKFLOW_DEFAULT="development|stage"   # 이 문자열이 든 workflow 실행만 dev (부분 문자열)
+# 사내 환경 이름은 비공개 파일의 dev-workflow 줄로 더한다 — 단어 단위로만 맞춘다 (예: pr 이 production 에 걸리지 않게)
+DEV_WORKFLOW_PATTERN="${DEV_WORKFLOW_DEFAULT}"
 targets_missing=""
 
 load_targets() {
@@ -43,9 +45,9 @@ load_targets() {
 
   if [[ -r "${TARGETS_FILE}" ]]; then
     while read -r kind target _; do
-      # 형식이 어긋난 줄 (콜론 빠짐·대상 없음·모르는 종류) 이 하나라도 있으면 파일 전체를 믿지 않는다 — 모르면 운영
+      # 형식이 어긋난 줄 (콜론 빠짐·대상 없음·모르는 종류) 은 invalid_line 으로 표시한다 — 아래에서 처리
       if [[ "${kind}" == "dev-workflow" && "${target}" =~ ^[A-Za-z0-9_-]+$ ]]; then
-        DEV_WORKFLOW_PATTERN+="|${target}"
+        DEV_WORKFLOW_PATTERN+="|(^|[^[:alnum:]_])${target}([^[:alnum:]_]|$)"
         continue
       fi
 
@@ -62,9 +64,13 @@ load_targets() {
     done < <(tr -d '\r' <"${TARGETS_FILE}" | grep -vE '^[[:space:]]*(#|$)' || true)
   fi
 
-  # 읽을 수 없거나, 형식이 어긋난 줄이 있거나, 운영 대상을 하나도 읽지 못했으면 파일이 없는 것과 같이 다룬다
+  # 읽을 수 없거나, 형식이 어긋난 줄이 있거나, 운영 줄이 하나도 없으면 dev·none·dev-workflow 를 버리고 main·master·dev push 를 운영으로 본다
+  # (읽은 운영 대상은 남긴다 — 오타 난 운영 줄과 같은 대상이 dev·none 으로 빠지지 않게. 모르면 운영)
   if [[ -n "${invalid_line}" || "${PROD_TARGETS}" == " " ]]; then
     targets_missing=1
+    DEV_TARGETS=" "
+    NODEPLOY_TARGETS=" "
+    DEV_WORKFLOW_PATTERN="${DEV_WORKFLOW_DEFAULT}"
   fi
 }
 
@@ -274,8 +280,8 @@ find_target
 kind=$(classify)
 missing_note=""
 
-if [[ -n "${targets_missing}" && "${repo}" != "workflow" ]]; then
-  missing_note=$'\n'"(대상 파일 ${TARGETS_FILE} 을 읽지 못해 main·master·dev push 를 모두 운영으로 봅니다 — claude/deploy-targets.example 을 복사해 만드세요)"
+if [[ -n "${targets_missing}" ]]; then
+  missing_note=$'\n'"(대상 파일 ${TARGETS_FILE} 을 읽지 못했거나, 형식이 어긋난 줄이 있거나, 운영 (prod) 줄이 없어서 dev·배포 없음 목록과 dev-workflow 단어를 쓰지 않고, main·master·dev push 를 모두 운영으로 봅니다 — 형식은 claude/deploy-targets.example)"
 fi
 
 if [[ "${kind}" == "none" ]]; then

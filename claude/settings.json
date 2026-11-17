@@ -82,7 +82,7 @@
         ]
       },
       {
-        "matcher": "Bash|Edit|Write|NotebookEdit|mcp__.*",
+        "matcher": "Bash|Edit|Write|NotebookEdit|mcp__.*|Agent|Task|TeamCreate",
         "hooks": [
           {
             "type": "command",

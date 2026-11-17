@@ -8,7 +8,8 @@
 #     사람이 돌아와 풀지 않았다 (released/<session_id> 없음)
 #
 # 이벤트
-#   - PreToolUse (Bash · Edit · Write · NotebookEdit · mcp__*): 아래 위험 동작이면 ask
+#   - PreToolUse (Bash · Edit · Write · NotebookEdit · mcp__* · Agent · TeamCreate): 아래 위험 동작이면 ask.
+#     팀메이트·새 세션·새 tmux window 도 막는다 — 세션 ID 가 달라 야간 모드 표시가 따라가지 않기 때문이다
 #   - UserPromptSubmit: "[야간 루프" 로 시작하지 않는 입력 = 사람이 돌아옴 → 야간 모드를 푼다
 #
 # 서브에이전트 · 팀메이트 (agent_id 있음) 도 같은 세션으로 보고 막는다 — 다른 훅과 달리 agent_id 로 건너뛰지 않는다.
@@ -96,6 +97,12 @@ check_bash() {
     fi
   fi
 
+  # 새 세션·window 는 세션 ID 가 달라 야간 모드 표시가 따라가지 않는다
+  if grep -qE 'tmux[^;&|]*[[:space:]](new-window|neww|split-window|splitw|new-session|new|send-keys|send)([[:space:]]|$)' <<<"${command}" \
+    || grep -qE '(^|[;&|(]|[[:space:]])claude[[:space:]]+(-n|--name|--bg|--background|-p|--print|-r|--resume|-c|--continue)([[:space:]=]|$)' <<<"${command}"; then
+    emit_ask "새 Claude 세션·tmux window 열기 (야간 가드가 따라가지 않음)"
+  fi
+
   if grep -qE 'gpgsign[[:space:]=]+false|--no-gpg-sign|insteadOf|credential\.helper|core\.sshCommand|GIT_SSH' <<<"${command}"; then
     emit_ask "커밋 서명·인증 방식 우회"
   fi
@@ -144,8 +151,22 @@ check_mcp() {
   fi
 }
 
+# --- 팀메이트: tmux 분할 창 팀메이트는 별도 프로세스라 세션 ID 가 달라 야간 가드 밖에서 돈다.
+#     이름 없는 서브에이전트는 부모와 같은 session_id 로 들어와 가드가 걸린다 (2.1.326 실측) ---
+check_agent() {
+  local named
+
+  named=$(jq -r '[.tool_input.name // "", .tool_input.team_name // ""] | join("")' <<<"${input}")
+
+  if [[ "${tool_name}" == "TeamCreate" || -n "${named}" ]] \
+    || [[ "$(jq -r '.tool_input.isolation // ""' <<<"${input}")" == "remote" ]]; then
+    emit_ask "팀메이트·원격 에이전트 띄우기 (야간 가드가 따라가지 않음 — 밤에는 이름 없는 서브에이전트만)"
+  fi
+}
+
 case "${tool_name}" in
   Bash) check_bash ;;
+  Agent | Task | TeamCreate) check_agent ;;
   Edit | Write | NotebookEdit) check_file ;;
   mcp__*) check_mcp ;;
 esac

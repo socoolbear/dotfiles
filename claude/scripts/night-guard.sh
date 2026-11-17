@@ -66,6 +66,11 @@ check_bash() {
 
   command=$(jq -r '.tool_input.command // ""' <<<"${input}")
 
+  # macOS 는 실행 파일 이름의 대소문자를 가리지 않는다 (GIT·TEE 도 실행된다). 하위 명령·옵션은 구분하므로
+  # 줄 처음 · 공백 · ; & | ( $( · `-c "`·`-lc "`·`eval "` 뒤의 이름만 소문자로 바꿔 판정한다 (env·sudo·timeout 같은 래퍼 뒤도). 따옴표 바로 뒤는 두어
+  # 문자열 안 단어 오탐을 줄인다 — 커밋 메시지의 AWS·Helm 같은 단어는 밤에 멈출 수 있다 (막히면 멈추는 쪽). 경로·git 설정 키는 아래에서 대소문자 무시
+  command=$(perl -pe 's/((?:^|[;&|(`\s]|\$\(|-[A-Za-z]*c\s*["'"'"']|eval\s+["'"'"'])\s*)(git|gh|curl|tee|mv|cp|rm|ln|sed|perl|tmux|claude|aws|kubectl|terraform|atlantis|helm|argocd|mysql|psql)(?=\s|$)/$1\L$2/gi' <<<"${command}" 2>/dev/null || printf '%s\n' "${command}")
+
   if grep -qE 'gh[[:space:]]+pr[[:space:]]+(merge|edit|comment|review|close|reopen|ready|lock)' <<<"${command}"; then
     emit_ask "PR 머지·수정·댓글·리뷰 (gh pr …)"
   fi
@@ -103,7 +108,7 @@ check_bash() {
     emit_ask "새 Claude 세션·tmux window 열기 (야간 가드가 따라가지 않음)"
   fi
 
-  if grep -qE 'gpgsign[[:space:]=]+false|--no-gpg-sign|insteadOf|credential\.helper|core\.sshCommand|GIT_SSH' <<<"${command}"; then
+  if grep -qiE 'gpgsign[[:space:]=]+false|--no-gpg-sign|insteadOf|credential\.helper|core\.sshCommand|GIT_SSH' <<<"${command}"; then
     emit_ask "커밋 서명·인증 방식 우회"
   fi
 
@@ -115,8 +120,8 @@ check_bash() {
     emit_ask "외부로 보내는 HTTP 요청 (curl 쓰기)"
   fi
 
-  if grep -qE '\.github/|CLAUDE\.md|AGENTS\.(override\.)?md|\.dotfiles|/\.claude/|\.config/claude([^-[:alnum:]_]|$)|deploy-targets|claude-loop' <<<"${command}" \
-    && grep -qE '>|tee[[:space:]]|sed[[:space:]]+-i|perl[[:space:]]+-[a-z]*i|(^|[[:space:];&|])(mv|cp|rm|ln)[[:space:]]' <<<"${command}"; then
+  if grep -qiE '\.github/|CLAUDE\.md|AGENTS\.(override\.)?md|\.dotfiles|/\.claude/|\.config/claude([^-[:alnum:]_]|$)|deploy-targets|claude-loop' <<<"${command}" \
+    && grep -qE '>|tee[[:space:]]|sed([[:space:]]+-[[:alnum:]-]+)*[[:space:]]+(-[[:alnum:]]*[iI]|--in-place)|perl[^;&|]*[[:space:]]-[a-z]*i|(^|[[:space:];&|])(mv|cp|rm|ln)[[:space:]]' <<<"${command}"; then
     emit_ask "에이전트 지시·워크플로·hook 파일 수정 (셸)"
   fi
 }
@@ -130,14 +135,20 @@ check_file() {
   [[ -n "${path}" ]] || return 0
 
   case "${path}" in
+    */../*) ;;   # memory/../../ 로 제외를 빠져나가지 못하게
     "${HOME}"/.claude/projects/*/memory/*) return 0 ;;
   esac
+
+  # macOS 파일시스템은 대소문자를 가리지 않는다 — ~/.config/Claude 로 써도 같은 파일
+  shopt -s nocasematch
 
   case "${path}" in
     */.github/* | */CLAUDE.md | */AGENTS.md | */.claude/* | "${HOME}"/.dotfiles/* | "${HOME}"/.claude/* | "${HOME}"/.config/claude-loop/* | "${HOME}"/.config/claude/* | */AGENTS.override.md)
       emit_ask "에이전트 지시·워크플로·설정 파일 수정 (${path})"
       ;;
   esac
+
+  shopt -u nocasematch
 }
 
 # --- MCP: 이름에 쓰기 동사가 있는 도구 · 쓰기 DB · 브라우저 ---

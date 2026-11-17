@@ -18,7 +18,7 @@
 # - push 는 git 이 명령 자리 (아래 COMMAND_START, VAR=값 접두 허용) 에 올 때만 잡는다.
 #   브랜치가 명령에 없거나 HEAD 면 cwd 의 현재 브랜치로 정한다. --all · 셸 래퍼 (bash -c 등) 는 잡히지 않고,
 #   커밋 메시지·heredoc 안의 같은 문자열은 잡힐 수 있다. 야간 모드의 래퍼·우회 경로는 night-guard.sh 가 막는다
-# - workflow 실행은 development · stage · 브랜치 환경 workflow 가 명시되지 않으면 운영으로 본다
+# - workflow 실행은 입력값이 production·prod 면 운영, 아니면 development · stage · 비공개 dev-workflow 단어가 명시된 것만 dev, 나머지는 운영으로 본다
 # - ArgoCD Sync 는 브라우저 (aside) 로 해서 잡히지 않는다
 set -euo pipefail
 
@@ -30,7 +30,7 @@ CWD_MOVED='(^|[;&|(])[[:space:]]*(cd|pushd)[[:space:]]|git[[:space:]]+-C[[:space
 
 # repo:브랜치 → 그 브랜치에 들어가면 일어나는 배포. 회사 repo 이름은 사내 보안 정책상 공개 저장소에 두지 않고
 # 저장소 밖 비공개 파일에서 읽는다 (2026-11-17 사용자 결정 — 형식은 claude/deploy-targets.example, 표는 deploy-targets.md 와 맞춘다)
-# 파일이 없으면 main·master·dev push 를 모두 운영으로 본다 — 모르면 운영 배포로 본다 (AGENTS.md)
+# 파일이 없거나 깨졌으면 main·master·dev 는 운영, 표에 없는 다른 브랜치는 미분류로 본다 — 모르면 운영 배포로 본다 (AGENTS.md)
 TARGETS_FILE="${CLAUDE_DEPLOY_TARGETS:-${HOME}/.config/claude/deploy-targets}"
 PROD_TARGETS=" "
 DEV_TARGETS=" "
@@ -41,12 +41,12 @@ DEV_WORKFLOW_PATTERN="${DEV_WORKFLOW_DEFAULT}"
 targets_missing=""
 
 load_targets() {
-  local kind target invalid_line=""
+  local kind target extra invalid_line=""
 
   if [[ -r "${TARGETS_FILE}" ]]; then
-    while read -r kind target _; do
-      # 형식이 어긋난 줄 (콜론 빠짐·대상 없음·모르는 종류) 은 invalid_line 으로 표시한다 — 아래에서 처리
-      if [[ "${kind}" == "dev-workflow" && "${target}" =~ ^[A-Za-z0-9_-]+$ ]]; then
+    while read -r kind target extra; do
+      # 형식이 어긋난 줄 (콜론 빠짐·대상 없음·모르는 종류·칸이 더 있음) 은 invalid_line 으로 표시한다 — 아래에서 처리
+      if [[ "${kind}" == "dev-workflow" && "${target}" =~ ^[A-Za-z0-9_-]+$ && -z "${extra}" ]]; then
         DEV_WORKFLOW_PATTERN+="|(^|[^[:alnum:]_])${target}([^[:alnum:]_]|$)"
         continue
       fi
@@ -56,6 +56,9 @@ load_targets() {
         continue
       fi
 
+      # 칸이 더 있으면 (줄 끝 주석 등) 파일은 깨진 것으로 보되 첫 대상은 쓴다 — 운영 줄이 미분류로 빠지지 않게
+      [[ -z "${extra}" ]] || invalid_line=1
+
       case "${kind}" in
         prod) PROD_TARGETS+="${target} " ;;
         dev) DEV_TARGETS+="${target} " ;;
@@ -64,12 +67,10 @@ load_targets() {
     done < <(tr -d '\r' <"${TARGETS_FILE}" | grep -vE '^[[:space:]]*(#|$)' || true)
   fi
 
-  # 읽을 수 없거나, 형식이 어긋난 줄이 있거나, 운영 줄이 하나도 없으면 dev·none·dev-workflow 를 버리고 main·master·dev push 를 운영으로 본다
-  # (읽은 운영 대상은 남긴다 — 오타 난 운영 줄과 같은 대상이 dev·none 으로 빠지지 않게. 모르면 운영)
+  # 읽을 수 없거나, 형식이 어긋난 줄이 있거나, 운영 줄이 하나도 없으면 dev-workflow 단어를 버리고 main·master·dev 는 dev·none 줄보다 앞서 운영으로 본다 (classify)
+  # — 오타 난 운영 줄과 같은 대상이 dev·none 으로 빠지지 않게. 다른 브랜치는 dev·none 줄대로, 표에 없으면 미분류로 본다. 모르면 운영
   if [[ -n "${invalid_line}" || "${PROD_TARGETS}" == " " ]]; then
     targets_missing=1
-    DEV_TARGETS=" "
-    NODEPLOY_TARGETS=" "
     DEV_WORKFLOW_PATTERN="${DEV_WORKFLOW_DEFAULT}"
   fi
 }
@@ -220,8 +221,10 @@ find_target() {
     label="workflow-run ${cwd} ${command}"
     repo="workflow"
 
-    # dev 로 명시된 것만 dev, 나머지 (production·파일 입력·workflow ID 등) 는 운영으로 본다
-    if grep -qiE "${DEV_WORKFLOW_PATTERN}" <<<"${command}"; then
+    # 입력값이 production·prod (environment=production 등) 면 dev 단어가 함께 있어도 운영. dev 로 명시된 것만 dev, 나머지 (파일 입력·workflow ID 등) 는 운영으로 본다
+    if grep -qiE "[=:][[:space:]]*\\\\?[\"']?(production|prod)([^[:alnum:]_-]|\$)" <<<"${command}"; then
+      branch="prod"
+    elif grep -qiE "${DEV_WORKFLOW_PATTERN}" <<<"${command}"; then
       branch="dev"
     else
       branch="prod"
@@ -258,17 +261,17 @@ classify() {
     echo none
   elif [[ "${repo}" == "workflow" ]]; then
     echo "${branch}"
-  elif [[ "${NODEPLOY_TARGETS}" == *" ${repo}:${branch} "* ]]; then
-    echo none
-  elif [[ "${PROD_TARGETS}" == *" ${repo}:${branch} "* ]]; then
-    echo prod
-  elif [[ "${DEV_TARGETS}" == *" ${repo}:${branch} "* ]]; then
-    echo dev
   elif [[ -n "${targets_missing}" && "${branch}" =~ ^(main|master|dev)$ ]]; then
     echo prod
+  elif [[ "${PROD_TARGETS}" == *" ${repo}:${branch} "* ]]; then
+    echo prod   # 같은 대상이 prod·none 에 모두 있으면 운영 (모르면 운영)
+  elif [[ "${NODEPLOY_TARGETS}" == *" ${repo}:${branch} "* ]]; then
+    echo none
+  elif [[ "${DEV_TARGETS}" == *" ${repo}:${branch} "* ]]; then
+    echo dev
   elif [[ -z "${repo}" ]]; then
     echo unknown
-  elif [[ -n "${branch}" && "${branch}" != "main" && "${branch}" != "master" ]]; then
+  elif [[ -n "${branch}" && "${branch}" != "main" && "${branch}" != "master" && -z "${targets_missing}" ]]; then
     echo none
   else
     echo unknown
@@ -281,7 +284,7 @@ kind=$(classify)
 missing_note=""
 
 if [[ -n "${targets_missing}" ]]; then
-  missing_note=$'\n'"(대상 파일 ${TARGETS_FILE} 을 읽지 못했거나, 형식이 어긋난 줄이 있거나, 운영 (prod) 줄이 없어서 dev·배포 없음 목록과 dev-workflow 단어를 쓰지 않고, main·master·dev push 를 모두 운영으로 봅니다 — 형식은 claude/deploy-targets.example)"
+  missing_note=$'\n'"(대상 파일 ${TARGETS_FILE} 을 읽지 못했거나, 형식이 어긋난 줄이 있거나, 운영 (prod) 줄이 없어서 dev-workflow 단어를 쓰지 않고, main·master·dev 는 dev·배포 없음 줄과 상관없이 운영, 표에 없는 다른 브랜치는 미분류로 봅니다 — 고칠 곳은 표가 아니라 이 파일의 깨진 줄일 수 있습니다. 형식은 claude/deploy-targets.example)"
 fi
 
 if [[ "${kind}" == "none" ]]; then
@@ -310,7 +313,7 @@ touch "${state_file}"
 case "${kind}" in
   dev)
     cat >&2 <<EOF
-[dev 배포 점검] ${label} → ${repo:-?}:${branch} 는 dev 배포입니다. 사용자 확인 없이 진행합니다.
+[dev 배포 점검] ${label} → ${repo:-?}:${branch} 는 dev 배포입니다. 사용자 확인 없이 진행합니다.${missing_note}
 기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점" + 비공개 분류 표 ~/.config/claude/deploy-targets.md
 
 실행 전 (결과를 응답에 적고 같은 명령을 다시 실행):
@@ -339,7 +342,7 @@ EOF
     ;;
   unknown)
     cat >&2 <<EOF
-[배포 점검] ${label} (${repo:-repo 미확인}:${branch:-?}) 은 배포 분류 표에 없는 대상입니다.
+[배포 점검] ${label} (${repo:-repo 미확인}:${branch:-?}) 은 배포 분류 표에 없는 대상입니다.${missing_note}
 기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점" + 비공개 분류 표 ~/.config/claude/deploy-targets.md
 
 - repo 의 배포 workflow 트리거 (on:) 를 열어 이 동작이 운영 배포인지 확인한다. 모르면 운영 배포로 본다

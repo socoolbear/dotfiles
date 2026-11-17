@@ -49,6 +49,7 @@
 | imwebme/oms-api | PR, dev 브랜치 병합 (dev 배포), dev QA | main 머지 (push 시 운영 6개 앱 자동 배포) |
 | imwebme/msa | main 머지 (dev 자동 배포), dev QA | `environment=production` 인 workflow_dispatch 전부 (「02 빌드 및 배포」·「etc. ArgoCD 배포 요청」·최초 배포 설정·내부 도메인 등록·시크릿 마이그레이션 등), ArgoCD Sync |
 | imwebme/billing-api | dev 브랜치 병합 (dev 배포), dev QA | main 머지 (push 시 운영 배포) |
+| imwebme/packages-jvm | PR, main 머지 (push 시 `release.yml` 이 GitHub Packages 에 라이브러리 발행 — 서비스 배포 없음), Release PR 병합 | 없음 — 운영 반영은 그 라이브러리를 쓰는 앱의 배포 단계에서 확인 (2026-11-17 사용자) |
 
 표에 없는 repo 는 처음 다룰 때 workflow 를 확인해 이 표에 넣는다.
 

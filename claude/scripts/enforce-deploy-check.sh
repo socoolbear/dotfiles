@@ -23,6 +23,8 @@ CWD_MOVED='(^|[;&|(])[[:space:]]*(cd|pushd)[[:space:]]|git[[:space:]]+-C[[:space
 # repo:브랜치 → 그 브랜치에 들어가면 일어나는 배포 (AGENTS.md "배포 확인 지점" 표와 맞춘다)
 PROD_TARGETS=" imwebme/imweb:master imwebme/oms-api:main imwebme/billing-api:main "
 DEV_TARGETS=" imwebme/msa:main imwebme/billing-api:dev imwebme/oms-api:dev "
+# 서비스 배포가 없는 대상 (라이브러리 발행 등) — 묻지 않고 진행
+NODEPLOY_TARGETS=" imwebme/packages-jvm:main "
 
 input=$(cat)
 
@@ -160,6 +162,8 @@ classify() {
     echo none
   elif [[ "${repo}" == "workflow" ]]; then
     echo "${branch}"
+  elif [[ "${NODEPLOY_TARGETS}" == *" ${repo}:${branch} "* ]]; then
+    echo none
   elif [[ "${PROD_TARGETS}" == *" ${repo}:${branch} "* ]]; then
     echo prod
   elif [[ "${DEV_TARGETS}" == *" ${repo}:${branch} "* ]]; then

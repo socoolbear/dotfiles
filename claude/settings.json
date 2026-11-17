@@ -260,6 +260,7 @@
     }
   },
   "language": "korean",
+  "model": "claude-fable-5-2",
   "effortLevel": "high",
   "modelSettings": {
     "claude-opus-5-5": {

@@ -4,6 +4,10 @@
     "CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE": "1",
     "CLAUDE_CODE_PLUGIN_DIRS": "~/.dotfiles/claude/mods/ysk-midturn"
   },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "defaultMode": "auto"
   },
@@ -229,7 +233,8 @@
     "taskspace@socoolbear-cc-marketplace": true,
     "cc-plugin-you-should-know@builtin": true,
     "clangd-lsp@claude-plugins-official": true,
-    "programming@socoolbear-cc-marketplace": true
+    "programming@socoolbear-cc-marketplace": true,
+    "sessions@socoolbear-cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -271,9 +276,5 @@
   "switchModelsOnFlag": false,
   "teammateMode": "auto",
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  }
+  "skipAutoPermissionPrompt": true
 }

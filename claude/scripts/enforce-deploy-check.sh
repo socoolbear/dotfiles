@@ -28,11 +28,45 @@ COMMAND_START='(^|[;&|(]|\$\()[[:space:]]*(command[[:space:]]+)?([A-Za-z_][A-Za-
 # 명령 안에서 작업 폴더를 옮기면 훅의 cwd 로 repo 를 정할 수 없다
 CWD_MOVED='(^|[;&|(])[[:space:]]*(cd|pushd)[[:space:]]|git[[:space:]]+-C[[:space:]]'
 
-# repo:브랜치 → 그 브랜치에 들어가면 일어나는 배포 (AGENTS.md "배포 확인 지점" 표와 맞춘다)
-PROD_TARGETS=" imwebme/imweb:master imwebme/oms-api:main imwebme/billing-api:main "
-DEV_TARGETS=" imwebme/msa:main imwebme/billing-api:dev imwebme/oms-api:dev "
-# 서비스 배포가 없는 대상 (라이브러리 발행 등) — 묻지 않고 진행
-NODEPLOY_TARGETS=" imwebme/packages-jvm:main "
+# repo:브랜치 → 그 브랜치에 들어가면 일어나는 배포. 회사 repo 이름은 사내 보안 정책상 공개 저장소에 두지 않고
+# 저장소 밖 비공개 파일에서 읽는다 (2026-11-17 사용자 결정 — 형식은 claude/deploy-targets.example, 표는 deploy-targets.md 와 맞춘다)
+# 파일이 없으면 main·master·dev push 를 모두 운영으로 본다 — 모르면 운영 배포로 본다 (AGENTS.md)
+TARGETS_FILE="${CLAUDE_DEPLOY_TARGETS:-${HOME}/.config/claude/deploy-targets}"
+PROD_TARGETS=" "
+DEV_TARGETS=" "
+NODEPLOY_TARGETS=" "   # 서비스 배포가 없는 대상 (라이브러리 발행 등) — 묻지 않고 진행
+DEV_WORKFLOW_PATTERN="development|stage"   # 이 단어가 든 workflow 실행만 dev — 사내 환경 이름은 비공개 파일의 dev-workflow 줄로 더한다
+targets_missing=""
+
+load_targets() {
+  local kind target invalid_line=""
+
+  if [[ -r "${TARGETS_FILE}" ]]; then
+    while read -r kind target _; do
+      # 형식이 어긋난 줄 (콜론 빠짐·대상 없음·모르는 종류) 이 하나라도 있으면 파일 전체를 믿지 않는다 — 모르면 운영
+      if [[ "${kind}" == "dev-workflow" && "${target}" =~ ^[A-Za-z0-9_-]+$ ]]; then
+        DEV_WORKFLOW_PATTERN+="|${target}"
+        continue
+      fi
+
+      if [[ ! "${kind}" =~ ^(prod|dev|none)$ || ! "${target}" =~ ^[^/[:space:]]+/[^:[:space:]]+:[^[:space:]]+$ ]]; then
+        invalid_line=1
+        continue
+      fi
+
+      case "${kind}" in
+        prod) PROD_TARGETS+="${target} " ;;
+        dev) DEV_TARGETS+="${target} " ;;
+        none) NODEPLOY_TARGETS+="${target} " ;;
+      esac
+    done < <(tr -d '\r' <"${TARGETS_FILE}" | grep -vE '^[[:space:]]*(#|$)' || true)
+  fi
+
+  # 읽을 수 없거나, 형식이 어긋난 줄이 있거나, 운영 대상을 하나도 읽지 못했으면 파일이 없는 것과 같이 다룬다
+  if [[ -n "${invalid_line}" || "${PROD_TARGETS}" == " " ]]; then
+    targets_missing=1
+  fi
+}
 
 input=$(cat)
 
@@ -181,7 +215,7 @@ find_target() {
     repo="workflow"
 
     # dev 로 명시된 것만 dev, 나머지 (production·파일 입력·workflow ID 등) 는 운영으로 본다
-    if grep -qiE 'development|stage|branch-application' <<<"${command}"; then
+    if grep -qiE "${DEV_WORKFLOW_PATTERN}" <<<"${command}"; then
       branch="dev"
     else
       branch="prod"
@@ -224,6 +258,8 @@ classify() {
     echo prod
   elif [[ "${DEV_TARGETS}" == *" ${repo}:${branch} "* ]]; then
     echo dev
+  elif [[ -n "${targets_missing}" && "${branch}" =~ ^(main|master|dev)$ ]]; then
+    echo prod
   elif [[ -z "${repo}" ]]; then
     echo unknown
   elif [[ -n "${branch}" && "${branch}" != "main" && "${branch}" != "master" ]]; then
@@ -233,8 +269,14 @@ classify() {
   fi
 }
 
+load_targets
 find_target
 kind=$(classify)
+missing_note=""
+
+if [[ -n "${targets_missing}" && "${repo}" != "workflow" ]]; then
+  missing_note=$'\n'"(대상 파일 ${TARGETS_FILE} 을 읽지 못해 main·master·dev push 를 모두 운영으로 봅니다 — claude/deploy-targets.example 을 복사해 만드세요)"
+fi
 
 if [[ "${kind}" == "none" ]]; then
   exit 0
@@ -263,13 +305,13 @@ case "${kind}" in
   dev)
     cat >&2 <<EOF
 [dev 배포 점검] ${label} → ${repo:-?}:${branch} 는 dev 배포입니다. 사용자 확인 없이 진행합니다.
-기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점"
+기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점" + 비공개 분류 표 ~/.config/claude/deploy-targets.md
 
 실행 전 (결과를 응답에 적고 같은 명령을 다시 실행):
 - 범위: diff 가 의도한 변경만 담는가
 - repo 필수 체크·CI 통과, 봇 리뷰 지적 처리
 - 독립 검증: 맥락을 물려받지 않은 에이전트가 diff 를 검토했는가
-- 공용 main (msa): 운영 선행 조건이 준비됐거나 지금 운영에 나가도 문제없는 코드인가. 아니면 브랜치 환경으로
+- dev 자동 배포되는 공용 main (비공개 표 참고): 운영 선행 조건이 준비됐거나 지금 운영에 나가도 문제없는 코드인가. 아니면 브랜치 환경으로
 
 실행 후:
 - dev 에 뜬 것이 이 커밋 빌드인지, 기동 로그로 외부 의존 연결 확인
@@ -278,25 +320,25 @@ EOF
     ;;
   prod)
     cat >&2 <<EOF
-[운영 배포 점검] ${label} → ${repo:-?}:${branch} 는 운영 배포입니다.
-기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점"
+[운영 배포 점검] ${label} → ${repo:-?}:${branch} 는 운영 배포입니다.${missing_note}
+기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점" + 비공개 분류 표 ~/.config/claude/deploy-targets.md
 
 점검 결과 (OK · 이슈 · 미확인) 를 담아 사용자 확인을 받는다:
 - 범위 (함께 실리는 다른 커밋 목록) · CI·리뷰 · 선행 조건 · 호환성 · 검증 근거 · 독립 검증 · 되돌리기 (롤백 기준·관찰 시간)
 
 - 결과를 응답에 적고 같은 명령을 다시 실행하면 확인창이 뜬다 (사용자가 Yes 를 눌러야 실행 — 봇 세션은 바로 통과)
 - 사용자가 아직 이 대상을 요청·승인하지 않았으면: 다시 실행하기 전에 점검 결과와 함께 확인을 받는다
-- 승인 뒤: 검토한 해시로 배포, 운영 QA, 롤백 기준에 걸리면 묻지 않고 revert 하고 보고
+- 승인 뒤: 검토한 해시로 배포, 운영 QA, 롤백 기준에 걸리면 따로 묻지 않고 revert 하고 보고 (revert 도 이 확인창에서 Yes 가 필요하다)
 EOF
     ;;
   unknown)
     cat >&2 <<EOF
 [배포 점검] ${label} (${repo:-repo 미확인}:${branch:-?}) 은 배포 분류 표에 없는 대상입니다.
-기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점"
+기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점" + 비공개 분류 표 ~/.config/claude/deploy-targets.md
 
 - repo 의 배포 workflow 트리거 (on:) 를 열어 이 동작이 운영 배포인지 확인한다. 모르면 운영 배포로 본다
 - 운영 배포면: 점검 결과를 담아 사용자 확인 (요청·승인을 이미 받았으면 결과를 적고 다시 실행)
-- 운영 배포가 아니면: 근거를 한 줄 적고 다시 실행. 자주 쓰는 repo 면 AGENTS.md 표와 이 훅의 TARGETS 에 추가한다
+- 운영 배포가 아니면: 근거를 한 줄 적고 다시 실행. 자주 쓰는 repo 면 비공개 표 ~/.config/claude/deploy-targets.md 와 훅 대상 파일 ${TARGETS_FILE} 에 추가한다
 EOF
     ;;
 esac

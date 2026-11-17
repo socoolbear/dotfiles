@@ -115,7 +115,7 @@ check_bash() {
     emit_ask "외부로 보내는 HTTP 요청 (curl 쓰기)"
   fi
 
-  if grep -qE '\.github/|CLAUDE\.md|AGENTS\.md|\.dotfiles|/\.claude/|claude-loop' <<<"${command}" \
+  if grep -qE '\.github/|CLAUDE\.md|AGENTS\.(override\.)?md|\.dotfiles|/\.claude/|\.config/claude(/|[[:space:]]|$)|deploy-targets|claude-loop' <<<"${command}" \
     && grep -qE '>|tee[[:space:]]|sed[[:space:]]+-i|perl[[:space:]]+-[a-z]*i|(^|[[:space:];&|])(mv|cp|rm|ln)[[:space:]]' <<<"${command}"; then
     emit_ask "에이전트 지시·워크플로·hook 파일 수정 (셸)"
   fi
@@ -134,7 +134,7 @@ check_file() {
   esac
 
   case "${path}" in
-    */.github/* | */CLAUDE.md | */AGENTS.md | */.claude/* | "${HOME}"/.dotfiles/* | "${HOME}"/.claude/* | "${HOME}"/.config/claude-loop/*)
+    */.github/* | */CLAUDE.md | */AGENTS.md | */.claude/* | "${HOME}"/.dotfiles/* | "${HOME}"/.claude/* | "${HOME}"/.config/claude-loop/* | "${HOME}"/.config/claude/* | */AGENTS.override.md)
       emit_ask "에이전트 지시·워크플로·설정 파일 수정 (${path})"
       ;;
   esac

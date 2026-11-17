@@ -11,6 +11,9 @@ BREW_SCHEDULED_UPDATE_LABEL := com.socoolbear.brew-scheduled-update
 # AI 야간 루프 launchd 라벨 (sync 가 재등록, clean 이 해제 — scripts/claude-loop.sh)
 CLAUDE_LOOP_LABELS := com.socoolbear.claude-loop-night com.socoolbear.claude-loop-brief
 
+# sync 가 만든 ~/.codex/AGENTS.override.md 표시 (clean 과 sync 가 이 표시가 있는 파일만 지운다)
+CODEX_OVERRIDE_MARK := <!-- make sync 가 claude/AGENTS.md + ~/.config/claude/deploy-targets.md 로 만든 파일 -->
+
 all: sync
 
 #--------------------------------------------------------------------------
@@ -172,6 +175,19 @@ sync: ohmyzsh ohmytmux
 		echo "==> ~/.codex/AGENTS.md 실파일을 AGENTS.md.bak 으로 백업 (claude/AGENTS.md 심링크로 교체)"; \
 	fi
 
+	@# Codex 는 @import 를 못 읽어 비공개 배포 표 (~/.config/claude/deploy-targets.md) 를 AGENTS.override.md 로 합쳐 준다
+	@# (Codex 는 이 파일이 있으면 AGENTS.md 대신 읽는다 — 복사본이라 AGENTS.md·표를 고치면 make sync 를 다시 돌린다)
+	@if [ -f $(HOME)/.config/claude/deploy-targets.md ]; then \
+	    mkdir -p $(HOME)/.codex; \
+	    if [ -f $(HOME)/.codex/AGENTS.override.md ] && ! grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md; then \
+	        mv $(HOME)/.codex/AGENTS.override.md $(HOME)/.codex/AGENTS.override.md.bak; \
+	        echo "==> 손으로 만든 ~/.codex/AGENTS.override.md 를 .bak 으로 백업"; \
+	    fi; \
+	    { echo "$(CODEX_OVERRIDE_MARK)"; cat $(DOTFILES)/claude/AGENTS.md; echo; cat $(HOME)/.config/claude/deploy-targets.md; } > $(HOME)/.codex/AGENTS.override.md; \
+	elif grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md 2>/dev/null; then \
+	    rm -f $(HOME)/.codex/AGENTS.override.md; \
+	fi
+
 	@# 단일 파일 심링크
 	@for entry in $(LINKS_SINGLE); do \
 	    src=$${entry%%:*}; dst=$${entry##*:}; \
@@ -249,6 +265,7 @@ sync: ohmyzsh ohmytmux
 clean:
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
 	@for label in $(CLAUDE_LOOP_LABELS); do launchctl bootout gui/$$(id -u)/$$label 2>/dev/null || true; done
+	@grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md 2>/dev/null && rm -f $(HOME)/.codex/AGENTS.override.md || true
 	@for entry in $(LINKS_SINGLE); do \
 	    rm -f "$(HOME)/$${entry##*:}"; \
 	done
@@ -332,6 +349,8 @@ backup:
 	-cp -i $(HOME)/.private-exports $(HOME)/backup_dotfiles/private-exports
 	-cp -i $(HOME)/.config/claude-notify/config.json $(HOME)/backup_dotfiles/claude-notify-config.json
 	-cp -i $(HOME)/.config/dotfiles/sensitive-words $(HOME)/backup_dotfiles/sensitive-words
+	-cp -i $(HOME)/.config/claude/deploy-targets $(HOME)/backup_dotfiles/deploy-targets
+	-cp -i $(HOME)/.config/claude/deploy-targets.md $(HOME)/backup_dotfiles/deploy-targets.md
 	# dotfiles 심링크의 실제 내용 (참고용 — 원본은 repo)
 	-cp -L -i $(HOME)/.zshrc $(HOME)/backup_dotfiles/zshrc
 	-cp -L -i $(HOME)/.vimrc $(HOME)/backup_dotfiles/vimrc

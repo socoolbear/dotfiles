@@ -1,0 +1,9 @@
+## 배포 분류 표 (비공개 — `~/.config/claude/deploy-targets.md`)
+
+> 복사해서 쓴다: `cp claude/deploy-targets.md.example ~/.config/claude/deploy-targets.md`
+> 공개 `AGENTS.md` 「배포 확인 지점」 의 repo 별 표. 훅 대상은 같은 폴더의 `deploy-targets` 와 맞춘다.
+
+| repo | 묻지 않고 진행 | 확인받는 동작 (= 운영 배포) |
+|---|---|---|
+| my-org/web-app | PR, dev 브랜치 병합 (dev 배포), dev QA | master 머지 (push 시 운영 배포) |
+| my-org/shared-lib | PR, main 머지 (라이브러리 발행 — 서비스 배포 없음) | 없음 |

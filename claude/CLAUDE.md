@@ -1,8 +1,9 @@
 # Claude Code Global Settings
 
-> 공용 규칙 (언어·용어·출력 길이·환경·핵심 원칙·배포 확인 지점) 은 아래 import 로 들어오는 `AGENTS.md` 에 있다 (Codex 와 공유). 이 파일에는 Claude Code 전용 규칙만 둔다.
+> 공용 규칙 (언어·용어·출력 길이·환경·핵심 원칙·배포 확인 지점) 은 아래 import 로 들어오는 `AGENTS.md` 에 있다 (Codex 와 공유). 둘째 import 는 저장소 밖 비공개 배포 분류 표다. 이 파일에는 Claude Code 전용 규칙만 둔다.
 
 @AGENTS.md
+@~/.config/claude/deploy-targets.md
 
 ## 도구 기본값
 - 파일 읽기는 Read, 검색은 Bash 의 `rg` · `grep` · `find` (2.1.326 기준 Grep · Glob 도구는 없고 셸 명령이 그 역할을 한다).

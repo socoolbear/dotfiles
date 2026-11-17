@@ -14,11 +14,11 @@
   "autoMode": {
     "environment": [
       "$defaults",
-      "Source control: github.com/imwebme (the employer's GitHub org) and all repos under it — the user's work repos live there and are checked out as worktrees under the task workspace"
+      "Source control: the employer's GitHub org (name kept out of this public file) and all repos under it — the user's work repos live there and are checked out as worktrees under the task workspace"
     ],
     "soft_deny": [
       "$defaults",
-      "Production Deploy (user-defined targets): merging or pushing to imwebme/imweb master, imwebme/oms-api main, or imwebme/billing-api main; any GitHub workflow_dispatch with environment=production; ArgoCD Sync of a production app"
+      "Production Deploy: any GitHub workflow_dispatch with environment=production; ArgoCD Sync of a production app"
     ]
   },
   "hooks": {

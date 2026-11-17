@@ -11,6 +11,8 @@
 # 으로 와서 그 뒤가 공백·줄끝일 때만 잡는다. 그래서 git push · git push -u origin HEAD · git push origin main; … ·
 # --all 은 운영 반영이어도 잡히지 않으니 점검을 스스로 한다. 반대로 커밋 메시지·git stash push main 같은 문자열도
 # 이 조건에 맞으면 잡힌다. (훅 동작은 바꾸지 않음 — 2026-11-15 사용자 결정)
+# 2026-11-17 「운영 반영 자율 진행」 이 권하는 git push origin <hash>:refs/heads/main 형식, msa prod 배포 (gh workflow run ·
+# ArgoCD Sync) 도 잡히지 않는다. AGENT_BOT=1 세션도 같은 명령을 다시 실행하면 통과한다 — 감지는 보조이고 판단은 AGENTS.md 를 따른다.
 set -euo pipefail
 
 STATE_DIR="${TMPDIR:-/tmp}/claude-deploy-check"
@@ -79,10 +81,13 @@ cat >&2 <<EOF
 - 검증 근거: dev·QA 에서 이 커밋으로 확인했는가 (못 본 항목은 미확인)
 - 되돌리기: 롤백 방법·데이터 영향, 배포 후 볼 로그·지표
 
-- 사용자가 배포를 요청했고 이슈가 없으면: 결과를 적은 뒤 같은 명령을 다시 실행
 - 이슈나 미확인 항목이 있으면: 실행하지 말고 사용자에게 보고
-- 사용자가 요청하지 않은 운영 반영이면: 결과와 함께 확인을 받는다
 - 운영 반영이 아니면 (dev values·문서 등): 근거를 한 줄 적고 다시 실행
+- 사용자가 배포를 요청했으면: 결과를 적은 뒤 같은 명령을 다시 실행
+- 그 밖에는 AGENTS.md "운영 반영 자율 진행" 등급을 따른다
+  - 게이트 후 자율: 게이트 (점검 6항목 · 사람 승인 · CI · 독립 검증 · 롤백 기준 등록 · 검토한 해시) 결과를 적고 다시 실행.
+    배포 뒤 관찰 시간 동안 확인하고 ~/code/workspace/autonomous-deploys.md 에 기록
+  - 사전 확인 등급이거나 봇 세션 (AGENT_BOT=1) · Codex 면: 결과와 함께 사용자 확인을 받는다
 EOF
 
 exit 2

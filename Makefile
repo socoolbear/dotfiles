@@ -351,6 +351,7 @@ backup:
 	-cp -i $(HOME)/.config/dotfiles/sensitive-words $(HOME)/backup_dotfiles/sensitive-words
 	-cp -i $(HOME)/.config/claude/deploy-targets $(HOME)/backup_dotfiles/deploy-targets
 	-cp -i $(HOME)/.config/claude/deploy-targets.md $(HOME)/backup_dotfiles/deploy-targets.md
+	-cp -i $(HOME)/.config/claude/deploy-qa-patterns $(HOME)/backup_dotfiles/deploy-qa-patterns
 	# dotfiles 심링크의 실제 내용 (참고용 — 원본은 repo)
 	-cp -L -i $(HOME)/.zshrc $(HOME)/backup_dotfiles/zshrc
 	-cp -L -i $(HOME)/.vimrc $(HOME)/backup_dotfiles/vimrc

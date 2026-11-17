@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Bash · GitHub MCP 머지 PreToolUse 훅
-# 배포를 일으키는 머지·push·workflow 실행 직전에 AGENTS.md "배포 확인 지점" 의 점검을 강제한다.
+# 배포를 일으키는 머지·push·workflow 실행 직전에 docs/deploy.md 의 점검을 강제한다.
 # repo 와 대상 브랜치로 dev 배포 / 운영 배포 / 미분류를 나눠 안내한다 (2026-11-17 사용자 결정).
 #   - dev 배포: 사용자 확인 없이 진행하되, 실행 전 점검과 실행 후 dev 확인·QA 를 하게 한다
 #   - 운영 배포: 점검 결과를 담아 사용자 확인을 받게 한다
@@ -314,7 +314,7 @@ case "${kind}" in
   dev)
     cat >&2 <<EOF
 [dev 배포 점검] ${label} → ${repo:-?}:${branch} 는 dev 배포입니다. 사용자 확인 없이 진행합니다.${missing_note}
-기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점" + 비공개 분류 표 ~/.config/claude/deploy-targets.md
+기준: ~/.dotfiles/claude/docs/deploy.md + 비공개 분류 표 ~/.config/claude/deploy-targets.md
 
 실행 전 (결과를 응답에 적고 같은 명령을 다시 실행):
 - 범위: diff 가 의도한 변경만 담는가
@@ -330,7 +330,7 @@ EOF
   prod)
     cat >&2 <<EOF
 [운영 배포 점검] ${label} → ${repo:-?}:${branch} 는 운영 배포입니다.${missing_note}
-기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점" + 비공개 분류 표 ~/.config/claude/deploy-targets.md
+기준: ~/.dotfiles/claude/docs/deploy.md + 비공개 분류 표 ~/.config/claude/deploy-targets.md
 
 점검 결과 (OK · 이슈 · 미확인) 를 담아 사용자 확인을 받는다:
 - 범위 (함께 실리는 다른 커밋 목록) · CI·리뷰 · 선행 조건 · 호환성 · 검증 근거 · 독립 검증 · 되돌리기 (롤백 기준·관찰 시간)
@@ -343,7 +343,7 @@ EOF
   unknown)
     cat >&2 <<EOF
 [배포 점검] ${label} (${repo:-repo 미확인}:${branch:-?}) 은 배포 분류 표에 없는 대상입니다.${missing_note}
-기준: ~/.dotfiles/claude/AGENTS.md "배포 확인 지점" + 비공개 분류 표 ~/.config/claude/deploy-targets.md
+기준: ~/.dotfiles/claude/docs/deploy.md + 비공개 분류 표 ~/.config/claude/deploy-targets.md
 
 - repo 의 배포 workflow 트리거 (on:) 를 열어 이 동작이 운영 배포인지 확인한다. 모르면 운영 배포로 본다
 - 운영 배포면: 점검 결과를 담아 사용자 확인 (요청·승인을 이미 받았으면 결과를 적고 다시 실행)

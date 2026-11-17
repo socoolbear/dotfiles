@@ -53,7 +53,7 @@ mkdir -p ~/code ~/.local/bin
 ### Shell
 
 - 시크릿 환경 변수: `cp zsh/private.export.example ~/.private-exports` 후 토큰 입력 (NTFY/EXA/GitHub 등). zshrc 가 자동 로드합니다.
-- 배포 분류 (비공개): 기존 장비의 `~/.config/claude/deploy-targets` (배포 점검 훅 대상) 와 `deploy-targets.md` (Claude·Codex 가 읽는 repo 별 표) 를 옮긴 뒤 `make sync` 를 다시 돌립니다. 처음이면 `claude/deploy-targets*.example` 을 복사해 씁니다. 회사 repo 이름은 사내 보안 정책상 공개 저장소에 넣지 않습니다. 파일이 없으면 훅이 main·master·dev push 를 모두 운영 배포로 보고 확인창을 띄우고, 다른 브랜치로 가는 PR 머지는 미분류로 한 번 멈춥니다.
+- 배포 분류 (비공개): 기존 장비의 `~/.config/claude/deploy-targets` (배포 점검 훅 대상) 와 `deploy-targets.md` (Claude·Codex 가 읽는 repo 별 표) 를 옮긴 뒤 `make sync` 를 다시 돌립니다. 처음이면 `claude/deploy-targets*.example` 을 복사해 씁니다. 회사 repo 이름은 사내 보안 정책상 공개 저장소에 넣지 않습니다. 파일이 없으면 훅이 main·master·dev push 를 모두 운영 배포로 보고 확인창을 띄우고, 다른 브랜치로 가는 PR 머지는 미분류로 한 번 멈춥니다. repo 별 배포 스크립트 (FTP 업로드 등) 뒤에도 직접 QA 알림을 받으려면 `~/.config/claude/deploy-qa-patterns` 도 옮깁니다 (형식은 `claude/deploy-qa-patterns.example`).
 - doctor 금지어 목록: 기존 장비의 `~/.config/dotfiles/sensitive-words` (공개 저장소에 들어가면 안 되는 회사·사람 이름, 한 줄에 정규식 하나) 를 옮겨 둡니다. 저장소에 적으면 그 자체로 노출이라 저장소 밖에 둡니다.
 - `~/.zsh_history` 마이그레이션은 [migration.md 의 zsh history 섹션](migration.md#zsh-history-동기화-옵션-비교) 참조 (atuin 권장).
 - **atuin login** (sync 사용 시): `atuin login -u <username>` → 비밀번호 + sync key 입력. 이어서 `atuin sync` 로 기존 히스토리 가져오기. sync key 는 기존 머신에서 `atuin key` 로 확인.

@@ -49,7 +49,7 @@ launchd 는 예약 시각에 맥이 잠들어 있었으면 **깨어난 직후** 
 - `claude/AGENTS.md` — 공용 글로벌 인스트럭션 (언어·용어·출력 길이·환경·핵심 원칙·운영 배포 전 점검). Claude Code 와 Codex (`~/.codex/AGENTS.md` 심링크) 가 함께 읽는다
 - `claude/CLAUDE.md` — Claude Code 전용 인스트럭션 (도구·워크플로우). 맨 위에서 `@AGENTS.md` 를 import. `~/.claude/AGENTS.md` 로 심링크하지 않는다 — 홈 하위 세션에서 프로젝트 지시로 한 번 더 로드된다
 - `claude/rules/` — 자동 로드되는 규칙 모음 (예: `coding-style.md`)
-- `claude/scripts/` — Hook 등에서 호출하는 유틸 스크립트 (`statusline-command.sh`, `enforce-plan-review.sh`, `enforce-deploy-check.sh`, `team-cleanup-check.sh`, `context-guard.sh`, `compact-restore.sh`, `tmux-claude-state.sh` — tmux 창 목록의 작업 상태 표시)
+- `claude/scripts/` — Hook 등에서 호출하는 유틸 스크립트 (`statusline-command.sh`, `enforce-plan-review.sh`, `enforce-deploy-check.sh`, `remind-deploy-qa.sh`, `team-cleanup-check.sh`, `context-guard.sh`, `compact-restore.sh`, `tmux-claude-state.sh` — tmux 창 목록의 작업 상태 표시)
 - `claude/docs/` — `claude/CLAUDE.md` 가 `@docs/...` 로 참조하는 상세 가이드 (워크플로우, 피드백 라우팅 등)
 - `claude/commands/` — 슬래시 명령어 정의 (`*.md` 와일드카드 자동 발견)
 - `claude/skills/` — Claude Code skill 정의 (`*/` 디렉토리 단위 자동 발견, 머신별 실디렉토리는 보존)
@@ -57,6 +57,6 @@ launchd 는 예약 시각에 맥이 잠들어 있었으면 **깨어난 직후** 
 
 ## `make backup` 의 한계
 
-`make backup` 은 호스트 로컬 데이터 (`~/.gitconfig_local`, `~/.private-exports`, doctor 금지어 목록 `~/.config/dotfiles/sensitive-words`, 비공개 배포 분류 `~/.config/claude/deploy-targets{,.md}`) 와 zsh, vim, idea, tmux, git, ghostty, karabiner, mise, claude-notify 설정만 백업합니다. 다음은 백업 대상이 아니므로 필요시 직접 처리:
+`make backup` 은 호스트 로컬 데이터 (`~/.gitconfig_local`, `~/.private-exports`, doctor 금지어 목록 `~/.config/dotfiles/sensitive-words`, 비공개 배포 분류 `~/.config/claude/deploy-targets{,.md}` · 배포 QA 알림 패턴 `~/.config/claude/deploy-qa-patterns`) 와 zsh, vim, idea, tmux, git, ghostty, karabiner, mise, claude-notify 설정만 백업합니다. 다음은 백업 대상이 아니므로 필요시 직접 처리:
 
 - `~/.claude/` (settings.json 등)

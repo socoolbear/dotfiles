@@ -106,7 +106,7 @@ inspect_pr_merge() {
 }
 
 find_target() {
-  local pr push_segment
+  local pr push_segments
 
   if [[ "${tool_name}" == "mcp__github__merge_pull_request" ]]; then
     pr=$(jq -r '.tool_input.pull_number // .tool_input.pullNumber' <<<"${input}")
@@ -136,17 +136,18 @@ find_target() {
     return 0
   fi
 
-  push_segment=$(grep -oE "${COMMAND_START}git[^;&|]*[[:space:]]push[^;&|]*" <<<"${command}" | head -1 || true)
-  branch=$(tr -d "\"'" <<<"${push_segment}" | grep -oE '[[:space:]:+](refs/heads/)?(main|master|dev)([[:space:]]|$)' | tail -1 | grep -oE 'main|master|dev' || true)
+  push_segments=$(grep -oE "${COMMAND_START}git[^;&|]*[[:space:]]push[^;&|]*" <<<"${command}" || true)
+  branch=$(tr -d "\"'" <<<"${push_segments}" | grep -oE '[[:space:]:+](refs/heads/)?(main|master|dev)([[:space:]]|$)' | tail -1 | grep -oE 'main|master|dev' || true)
 
   if [[ -z "${branch}" ]]; then
     return 0
   fi
 
   # 키에 refspec (해시) 까지 넣어 다른 커밋의 push 는 다시 점검하게 한다
-  label="push ${cwd} ${push_segment}"
+  label="push ${cwd} ${push_segments//$'\n'/ | }"
 
-  if ! is_cwd_moved; then
+  # push 가 여러 개거나 폴더를 옮겼으면 repo 를 하나로 정할 수 없어 미분류로 둔다
+  if [[ "$(grep -c . <<<"${push_segments}")" == "1" ]] && ! is_cwd_moved; then
     repo=$(extract_repo "$(git -C "${cwd:-.}" remote get-url origin 2>/dev/null || true)")
   fi
 

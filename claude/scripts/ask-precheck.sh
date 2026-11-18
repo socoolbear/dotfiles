@@ -4,12 +4,18 @@
 # 기준은 ~/.dotfiles/claude/docs/workflow.md §7.
 #
 #   - 낮: 세션의 첫 질문만 1회 차단하고 점검 목록을 보여준다. 걸러낸 뒤 다시 부르면 통과
+#   - 실행 승인 질문 (커밋·push·PR·dev 배포 낱말이 있고 운영 낱말이 없는 질문) 은 매번 차단 — 세션당 1회 점검만으로는
+#     며칠 가는 세션에서 "커밋할까요?" 가 다시 나갔다 (2026-11-18 집계)
 #   - 야간 모드 (claude-loop 가 일을 맡긴 세션): 매번 차단 — 밤에는 묻지 않고 질문 대기열에 남긴다
 #   - AGENT_BOT=1 (Slack 봇 세션): 건너뛴다
 set -uo pipefail
 
 NIGHT_DIR="${HOME}/.local/state/claude-loop/night"
 STATE_DIR="${TMPDIR:-/tmp}/claude-ask-precheck"
+EXECUTION_WORDS='커밋|commit|푸시|push|PR ?[을를]? ?(올|만들|생성)|dev ?(에 )?배포'
+PRODUCTION_WORDS='운영|prod|master|main|재시작|[Ss]ync|롤백|force|삭제'
+
+export LC_ALL=en_US.UTF-8
 
 [[ "${AGENT_BOT:-}" == "1" ]] && exit 0
 
@@ -24,6 +30,18 @@ if [[ -f "${NIGHT_DIR}/${session_id}" ]] \
 [야간 질문 금지] 밤에는 사용자에게 묻지 않는다.
 - 태스크 notes.md 의 「질문 대기열」 에 질문 / 추천안 / 근거 / 상태(대기) 로 남기고, 그 질문과 무관한 일을 계속한다
 - 더 할 일이 없으면 진행 문서의 「야간 결과」 에 멈춘 이유를 적고 끝낸다
+EOF
+  exit 2
+fi
+
+question_text=$(jq -r '[.tool_input.questions[]? | (.header // ""), (.question // "")] | join(" ")' <<<"${input}" 2>/dev/null) || question_text=""
+
+if [[ "${question_text}" =~ ${EXECUTION_WORDS} && ! "${question_text}" =~ ${PRODUCTION_WORDS} ]]; then
+  cat >&2 <<'EOF'
+[실행 승인 질문 금지] 커밋·push·PR·dev 배포·운영이 아닌 병합은 묻지 않고 진행한다 (~/.claude/docs/workflow.md §7, AGENTS.md 「배포 확인 지점」).
+- 이 질문을 빼고 진행한 뒤, 한 일을 보고에 적는다
+- 운영에 닿는 동작이면 질문에 '운영' 과 대상을 분명히 적어 다시 묻는다
+- 실행 여부가 아니라 다른 결정을 묻는 것이면, 「꼭 묻는 목록」 에 드는지 먼저 따지고 헤더와 질문을 그 결정으로 바꿔 쓴다
 EOF
   exit 2
 fi

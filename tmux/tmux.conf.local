@@ -38,6 +38,9 @@ unbind -T prefix m #!important
 unbind r
 bind r source-file ~/.config/tmux/tmux.conf \; display-message 'tmux.conf reloaded' #!important
 
+# prefix + B — Claude 세션 상황판 (세션마다 지금 / 사용자 몫 / 다음). 세션을 깨우지 않고 파일만 읽는다 (scripts/claude-loop.sh board)
+bind B display-popup -E -w 90% -h 85% "$HOME/.local/bin/claude-loop board | less -R"
+
 # -- Claude Code 작업 상태 표시 (창 목록) --
 # claude/scripts/tmux-claude-state.sh 가 Claude 훅에서 pane 옵션(@claude_state = 메인 상태, @claude_agents = 일하는 서브에이전트·팀메이트 ID 목록, @claude_bg = 백그라운드 셸 수)을 기록하고,
 # 아래 포맷이 창 안의 모든 pane(메인 · 팀 에이전트 pane)을 모아 창 이름 앞에 표시한다.

@@ -12,7 +12,9 @@
 #   에이전트가 notes.md 를 고쳐 바뀐 명령은 승인될 때까지 그 세션을 건너뛴다 (밤에 임의 명령이 실행되는 경로 차단).
 #
 # 사용법
-#   claude-loop night | brief | end | list | approve <세션>
+#   claude-loop night | brief | end | list | approve <세션> | board
+#   board: 열려 있는 세션마다 상태와 상태 꼬리표 (지금 / 사용자 몫 / 다음) 를 한 화면에 보여준다 (상황판).
+#          꼬리표는 Stop 훅 claude/scripts/stop-gate.sh 가 세션의 마지막 답변에서 복사해 둔 파일이다. 세션을 깨우지 않는다
 #   CLAUDE_LOOP_DRY=1    판정만 출력 (상태 파일·메시지·새 세션 없음)
 #   CLAUDE_LOOP_FORCE=1  실행 허용 구간 무시
 #   끄기: touch ~/.local/state/claude-loop/disabled
@@ -31,6 +33,7 @@ readonly WORKSPACE="${CLAUDE_LOOP_WORKSPACE:-${HOME}/code/workspace}"
 readonly STATE_DIR="${HOME}/.local/state/claude-loop"
 readonly NIGHT_DIR="${STATE_DIR}/night"
 readonly APPROVED="${STATE_DIR}/approved.json"
+readonly BOARD_DIR="${STATE_DIR}/board"
 readonly LOG_DIR="${HOME}/Library/Logs/claude-loop"
 readonly NIGHT_PROMPT="${DOTFILES}/claude/loop/night.md"
 readonly BRIEF_PROMPT="${DOTFILES}/claude/loop/brief.md"
@@ -371,6 +374,42 @@ runApprove() {
   echo "승인: ${target} — 검증: ${verify:-(없음)}"
 }
 
+# 상황판 — 열려 있는 대화 세션을 사용자 몫이 있는 것부터 보여준다
+runBoard() {
+  local name status sessionId cwd file age waiting
+  local separator=$'\x1f'
+  local now
+
+  now=$(date +%s)
+
+  claude agents --json 2>/dev/null \
+    | jq -r '.[] | select(.kind == "interactive") | [(.name // ""), .status, .sessionId, .cwd] | join("\u001f")' \
+    | while IFS="${separator}" read -r name status sessionId cwd; do
+        file="${BOARD_DIR}/${sessionId}.md"
+        waiting=1
+
+        # 사용자 몫이 "없음" 이 아닌 세션을 위로 올린다 (정렬 키 0)
+        if [[ -f "${file}" ]] && grep -q '^\*\*사용자 몫\*\*' "${file}" && ! grep -qE '^\*\*사용자 몫\*\*[^가-힣A-Za-z0-9]*없음' "${file}"; then
+          waiting=0
+        fi
+
+        printf '%s%s%s%s%s%s%s%s%s\n' "${waiting}" "${separator}" "${name:-${cwd##*/}}" "${separator}" "${status}" "${separator}" "${sessionId}" "${separator}" "${cwd}"
+      done \
+    | sort -t "${separator}" -k1,1 -k2,2 \
+    | while IFS="${separator}" read -r waiting name status sessionId cwd; do
+        file="${BOARD_DIR}/${sessionId}.md"
+
+        if [[ ! -f "${file}" ]]; then
+          printf '\n■ %s [%s] — 꼬리표 없음 (%s)\n' "${name}" "${status}" "${cwd/#${HOME}/~}"
+          continue
+        fi
+
+        age=$(( (now - $(stat -f %m "${file}")) / 60 ))
+        printf '\n■ %s [%s] — %s분 전%s\n' "${name}" "${status}" "${age}" "$([[ "${waiting}" == "0" ]] && echo ' 🔔 사용자 몫')"
+        sed 's/^/  /' "${file}"
+      done
+}
+
 main() {
   case "${MODE}" in
     night | brief)
@@ -391,8 +430,9 @@ main() {
     end) runEnd ;;
     list) runList ;;
     approve) runApprove "${2:?세션 이름}" ;;
+    board) runBoard ;;
     *)
-      echo "사용법: claude-loop night | brief | end | list | approve <세션>" >&2
+      echo "사용법: claude-loop night | brief | end | list | approve <세션> | board" >&2
       exit 1
       ;;
   esac

@@ -5,7 +5,8 @@
 #   - dev 배포: 사용자 확인 없이 진행하되, 실행 전 점검과 실행 후 dev 확인·QA 를 하게 한다
 #   - 운영 배포: 점검 결과를 담아 사용자 확인을 받게 한다
 #   - 미분류: repo 의 배포 workflow 트리거를 확인하게 한다 (조회 실패·cd 뒤 실행처럼 repo 를 확정 못 할 때 포함)
-# 대상: gh pr merge, mcp__github__merge_pull_request, main/master/dev 로 가는 git push, gh workflow run, gh api …/dispatches
+# 대상: gh pr merge, mcp__github__merge_pull_request, main/master/dev 로 가는 git push, gh workflow run, gh api …/dispatches,
+#       비공개 파일의 prod-command 줄에 걸린 명령 (git 을 거치지 않는 운영 배포 — FTP 업로드 스크립트 등)
 #
 # 차단 방식 (2026-11-17 사용자 결정 — 운영 배포는 매번 확인):
 #   - 대상마다 첫 실행은 exit 2 로 점검 목록을 준다 (증거를 모아 보고하게)
@@ -13,6 +14,8 @@
 #     -p 실행과 coolgom 세션은 답할 사람이 없어 자동 거부된다 (2.1.326 실측)
 #   - AGENT_BOT=1 (coolgom 봇) 은 운영도 다시 실행하면 통과 — Slack 의 사용자 본인 승인을 확인으로 본다
 #   - 야간 모드 (claude-loop 가 일을 맡긴 세션) 는 운영·dev·미분류 모두 처음부터 ask — 밤에는 dev 배포 점검을 할 수 없다
+#   - prod-command 에 걸린 명령은 점검 목록 없이 처음부터 ask (2026-11-18 사용자 결정) — 변경 내용 보고는 그 repo 의 배포 절차가 맡는다.
+#     봇 세션도 예외 없이 ask 라 자동 거부된다 — 자리에 사람이 없을 때 git 밖 운영 배포가 나가지 않게
 #
 # 한계: 명령 문자열만 보므로 판단은 AGENTS.md 를 따른다.
 # - push 는 git 이 명령 자리 (아래 COMMAND_START, VAR=값 접두 허용) 에 올 때만 잡는다.
@@ -35,19 +38,43 @@ TARGETS_FILE="${CLAUDE_DEPLOY_TARGETS:-${HOME}/.config/claude/deploy-targets}"
 PROD_TARGETS=" "
 DEV_TARGETS=" "
 NODEPLOY_TARGETS=" "   # 서비스 배포가 없는 대상 (라이브러리 발행 등) — 묻지 않고 진행
+PROD_COMMANDS=()       # prod-command 줄의 정규식 — 명령 문자열에 맞으면 운영 배포
 DEV_WORKFLOW_DEFAULT="development|stage"   # 이 문자열이 든 workflow 실행만 dev (부분 문자열)
 # 사내 환경 이름은 비공개 파일의 dev-workflow 줄로 더한다 — 단어 단위로만 맞춘다 (예: pr 이 production 에 걸리지 않게)
 DEV_WORKFLOW_PATTERN="${DEV_WORKFLOW_DEFAULT}"
 targets_missing=""
 
+# prod-command 정규식으로 쓸 수 있는가. 아래는 줄이 있어도 아무것도 못 잡거나 모든 명령을 잡으므로 형식 오류로 본다
+# — 깨진 정규식 ([[ =~ ]] 가 2), 빈 문자열에 맞는 것 (모든 명령이 걸린다), \s·\d·\w·\b (bash ERE 에 없다), 따옴표로 시작하는 것 (따옴표째 맞춘다)
+is_usable_command_regex() {
+  local status=0
+
+  [[ "$1" =~ \\[sdwbSDWB] || "$1" == [\"\']* ]] && return 1
+  [[ "" =~ $1 ]] || status=$?
+
+  [[ "${status}" == "1" ]]
+}
+
 load_targets() {
-  local kind target extra invalid_line="" no_prod_declared=""
+  local kind target extra invalid_line="" no_prod_declared="" has_prod=""
 
   if [[ -r "${TARGETS_FILE}" ]]; then
     while read -r kind target extra; do
       # 형식이 어긋난 줄 (콜론 빠짐·대상 없음·모르는 종류·칸이 더 있음) 은 invalid_line 으로 표시한다 — 아래에서 처리
       if [[ "${kind}" == "dev-workflow" && "${target}" =~ ^[A-Za-z0-9_-]+$ && -z "${extra}" ]]; then
         DEV_WORKFLOW_PATTERN+="|(^|[^[:alnum:]_])${target}([^[:alnum:]_]|$)"
+        continue
+      fi
+
+      # prod-command <정규식> — 공백 없는 ERE 하나. 칸이 더 있으면 (줄 끝 주석 등) 파일은 깨진 것으로 보되 첫 칸 정규식은 쓴다
+      if [[ "${kind}" == "prod-command" ]]; then
+        if [[ -n "${target}" ]] && is_usable_command_regex "${target}"; then
+          PROD_COMMANDS+=("${target}")
+        else
+          invalid_line=1
+        fi
+
+        [[ -z "${extra}" ]] || invalid_line=1
         continue
       fi
 
@@ -73,10 +100,12 @@ load_targets() {
     done < <(tr -d '\r' <"${TARGETS_FILE}" | grep -vE '^[[:space:]]*(#|$)' || true)
   fi
 
-  # 읽을 수 없거나, 형식이 어긋난 줄이 있거나, 운영 줄이 하나도 없는데 no-prod 줄도 없으면 dev-workflow 단어를 버리고 main·master·dev 는 dev·none 줄보다 앞서 운영으로 본다 (classify)
+  [[ "${PROD_TARGETS}" != " " || ${#PROD_COMMANDS[@]} -gt 0 ]] && has_prod=1
+
+  # 읽을 수 없거나, 형식이 어긋난 줄이 있거나, 운영 줄 (prod · prod-command) 이 하나도 없는데 no-prod 줄도 없으면 dev-workflow 단어를 버리고 main·master·dev 는 dev·none 줄보다 앞서 운영으로 본다 (classify)
   # — 오타 난 운영 줄과 같은 대상이 dev·none 으로 빠지지 않게. 다른 브랜치는 dev·none 줄대로, 표에 없으면 미분류로 본다. 모르면 운영
-  # no-prod 줄과 prod 줄이 함께 있으면 서로 어긋나므로 깨진 파일로 본다
-  if [[ "${PROD_TARGETS}" == " " && -z "${no_prod_declared}" ]] || [[ "${PROD_TARGETS}" != " " && -n "${no_prod_declared}" ]]; then
+  # no-prod 줄과 운영 줄이 함께 있으면 서로 어긋나므로 깨진 파일로 본다
+  if [[ -z "${has_prod}" && -z "${no_prod_declared}" ]] || [[ -n "${has_prod}" && -n "${no_prod_declared}" ]]; then
     invalid_line=1
   fi
 
@@ -212,6 +241,19 @@ inspect_pr_merge() {
   fi
 }
 
+# Bash 명령이 비공개 파일의 prod-command 정규식에 맞는가
+is_prod_command() {
+  local prod_command
+
+  [[ "${tool_name}" == "Bash" ]] || return 1
+
+  for prod_command in ${PROD_COMMANDS[@]+"${PROD_COMMANDS[@]}"}; do
+    [[ "${command}" =~ ${prod_command} ]] && return 0
+  done
+
+  return 1
+}
+
 find_target() {
   local pr push_segments
 
@@ -296,15 +338,23 @@ kind=$(classify)
 missing_note=""
 
 if [[ -n "${targets_missing}" ]]; then
-  missing_note=$'\n'"(대상 파일 ${TARGETS_FILE} 을 읽지 못했거나, 형식이 어긋난 줄이 있거나, 운영 (prod) 줄도 no-prod 줄도 없어서 dev-workflow 단어를 쓰지 않고, main·master·dev 는 dev·배포 없음 줄과 상관없이 운영, 표에 없는 다른 브랜치는 미분류로 봅니다 — 고칠 곳은 표가 아니라 이 파일의 깨진 줄일 수 있습니다. 형식은 claude/deploy-targets.example)"
+  missing_note=$'\n'"(대상 파일 ${TARGETS_FILE} 을 읽지 못했거나, 형식이 어긋난 줄이 있거나, 운영 (prod · prod-command) 줄도 no-prod 줄도 없어서 dev-workflow 단어를 쓰지 않고, main·master·dev 는 dev·배포 없음 줄과 상관없이 운영, 표에 없는 다른 브랜치는 미분류로 봅니다 — 고칠 곳은 표가 아니라 이 파일의 깨진 줄일 수 있습니다. 형식은 claude/deploy-targets.example)"
 fi
 
-if [[ "${kind}" == "none" ]]; then
+prod_command_hit=""
+is_prod_command && prod_command_hit=1
+
+if [[ "${kind}" == "none" && -z "${prod_command_hit}" ]]; then
   exit 0
 fi
 
 if is_night_mode; then
-  emit_ask "[야간 모드 배포 차단] ${label} → ${repo:-?}:${branch:-?} (${kind}). 밤에는 dev·운영 배포를 하지 않는다 — 아침에 사용자가 판단"
+  emit_ask "[야간 모드 배포 차단] ${label:-prod-command} → ${repo:-?}:${branch:-?} (${kind}). 밤에는 dev·운영 배포를 하지 않는다 — 아침에 사용자가 판단"
+fi
+
+# prod-command 만 걸렸으면 점검 목록 없이 바로 확인창. 같은 명령에 git 운영 배포도 있으면 아래 운영 흐름 (첫 실행 점검 목록) 을 탄다
+if [[ -n "${prod_command_hit}" && "${kind}" != "prod" ]]; then
+  emit_ask "[운영 배포] 비공개 표의 prod-command 에 걸린 명령입니다${label:+ (함께 실행: ${label})}. 변경 내용 (diff) 을 확인했으면 Yes"
 fi
 
 # 대상마다 첫 실행만 점검 목록으로 차단한다. 다시 실행하면 운영은 확인창, 나머지는 통과
@@ -312,8 +362,9 @@ state_key=$(printf '%s %s' "${session_id}" "${label}" | md5 -q)
 state_file="${STATE_DIR}/${state_key}"
 
 if [[ -f "${state_file}" ]]; then
-  if [[ "${kind}" == "prod" && "${AGENT_BOT:-}" != "1" ]]; then
-    emit_ask "[운영 배포] ${repo:-?}:${branch} — ${label}. 점검 결과를 확인했으면 Yes"
+  # 봇 세션은 다시 실행하면 통과 — prod-command 가 함께 걸린 명령은 봇 세션도 확인창
+  if [[ "${kind}" == "prod" ]] && [[ "${AGENT_BOT:-}" != "1" || -n "${prod_command_hit}" ]]; then
+    emit_ask "[운영 배포] ${repo:-?}:${branch} — ${label}${prod_command_hit:+ + prod-command 에 걸린 명령}. 점검 결과를 확인했으면 Yes"
   fi
 
   exit 0

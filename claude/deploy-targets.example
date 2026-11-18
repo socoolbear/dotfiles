@@ -10,3 +10,8 @@ dev my-org/web-app:dev
 none my-org/shared-lib:main
 # dev-workflow <단어> — 이 단어 (단어 단위, 한 줄에 하나) 가 든 workflow 실행을 dev 로 본다 (기본: development · stage 문자열). 입력값이 production·prod 면 운영
 dev-workflow preview-env
+# prod-command <정규식> — git 을 거치지 않는 운영 배포 명령 (업로드 스크립트 등). 공백 없는 bash 확장 정규식 (ERE) 하나를 명령 문자열 전체에 맞춰 본다
+# 정규식은 [[:space:]] 같은 POSIX 표기로 쓴다 — \s·\d·\w·\b, 따옴표로 감싼 것, 빈 문자열에 맞는 것 (x* 등) 은 형식 오류 줄로 본다
+# 명령 문자열만 보므로 스크립트 경로를 변수에 담거나 묶음 스크립트 파일로 감싼 실행은 잡지 못한다
+# 걸리면 점검 목록 없이 바로 확인창을 띄운다 (봇 세션·-p 실행은 답할 사람이 없어 자동 거부). 운영 줄로 세므로 no-prod 와 함께 둘 수 없다
+prod-command my-upload\.sh[[:space:]]+prod[[:space:]][^;&|]*--apply

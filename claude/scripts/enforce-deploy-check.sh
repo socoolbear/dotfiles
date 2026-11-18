@@ -41,13 +41,19 @@ DEV_WORKFLOW_PATTERN="${DEV_WORKFLOW_DEFAULT}"
 targets_missing=""
 
 load_targets() {
-  local kind target extra invalid_line=""
+  local kind target extra invalid_line="" no_prod_declared=""
 
   if [[ -r "${TARGETS_FILE}" ]]; then
     while read -r kind target extra; do
       # 형식이 어긋난 줄 (콜론 빠짐·대상 없음·모르는 종류·칸이 더 있음) 은 invalid_line 으로 표시한다 — 아래에서 처리
       if [[ "${kind}" == "dev-workflow" && "${target}" =~ ^[A-Za-z0-9_-]+$ && -z "${extra}" ]]; then
         DEV_WORKFLOW_PATTERN+="|(^|[^[:alnum:]_])${target}([^[:alnum:]_]|$)"
+        continue
+      fi
+
+      # no-prod — 이 장비에는 운영 배포 대상이 없다고 밝히는 줄. 이 줄이 있어야 prod 줄 없는 파일을 정상으로 본다 (2026-11-18 사용자 결정)
+      if [[ "${kind}" == "no-prod" && -z "${target}" ]]; then
+        no_prod_declared=1
         continue
       fi
 
@@ -67,9 +73,14 @@ load_targets() {
     done < <(tr -d '\r' <"${TARGETS_FILE}" | grep -vE '^[[:space:]]*(#|$)' || true)
   fi
 
-  # 읽을 수 없거나, 형식이 어긋난 줄이 있거나, 운영 줄이 하나도 없으면 dev-workflow 단어를 버리고 main·master·dev 는 dev·none 줄보다 앞서 운영으로 본다 (classify)
+  # 읽을 수 없거나, 형식이 어긋난 줄이 있거나, 운영 줄이 하나도 없는데 no-prod 줄도 없으면 dev-workflow 단어를 버리고 main·master·dev 는 dev·none 줄보다 앞서 운영으로 본다 (classify)
   # — 오타 난 운영 줄과 같은 대상이 dev·none 으로 빠지지 않게. 다른 브랜치는 dev·none 줄대로, 표에 없으면 미분류로 본다. 모르면 운영
-  if [[ -n "${invalid_line}" || "${PROD_TARGETS}" == " " ]]; then
+  # no-prod 줄과 prod 줄이 함께 있으면 서로 어긋나므로 깨진 파일로 본다
+  if [[ "${PROD_TARGETS}" == " " && -z "${no_prod_declared}" ]] || [[ "${PROD_TARGETS}" != " " && -n "${no_prod_declared}" ]]; then
+    invalid_line=1
+  fi
+
+  if [[ -n "${invalid_line}" ]]; then
     targets_missing=1
     DEV_WORKFLOW_PATTERN="${DEV_WORKFLOW_DEFAULT}"
   fi
@@ -86,9 +97,10 @@ repo=""
 branch=""
 label=""
 
-# owner/repo 를 git 원격 URL 이나 PR URL 에서 뽑는다
+# owner/repo 를 git 원격 URL 이나 PR URL 에서 뽑는다. SSH 는 github 로 시작하는 호스트 (계정 분리용 별칭 git@github-side:… 포함) 의
+# owner/repo 두 단 경로만 받는다 — 다른 호스트나 하위 그룹 경로가 표의 대상과 같게 읽히면 안 된다 (그대로 두면 미분류)
 extract_repo() {
-  sed -E 's#^(git@github\.com:|https://github\.com/)##; s#\.git$##' <<<"$1" | cut -d/ -f1-2
+  sed -E 's#\.git$##; s#^git@github[^:/]*:([^/]+/[^/]+)$#\1#; s#^https://github\.com/##' <<<"$1" | cut -d/ -f1-2
 }
 
 is_cwd_moved() {
@@ -284,7 +296,7 @@ kind=$(classify)
 missing_note=""
 
 if [[ -n "${targets_missing}" ]]; then
-  missing_note=$'\n'"(대상 파일 ${TARGETS_FILE} 을 읽지 못했거나, 형식이 어긋난 줄이 있거나, 운영 (prod) 줄이 없어서 dev-workflow 단어를 쓰지 않고, main·master·dev 는 dev·배포 없음 줄과 상관없이 운영, 표에 없는 다른 브랜치는 미분류로 봅니다 — 고칠 곳은 표가 아니라 이 파일의 깨진 줄일 수 있습니다. 형식은 claude/deploy-targets.example)"
+  missing_note=$'\n'"(대상 파일 ${TARGETS_FILE} 을 읽지 못했거나, 형식이 어긋난 줄이 있거나, 운영 (prod) 줄도 no-prod 줄도 없어서 dev-workflow 단어를 쓰지 않고, main·master·dev 는 dev·배포 없음 줄과 상관없이 운영, 표에 없는 다른 브랜치는 미분류로 봅니다 — 고칠 곳은 표가 아니라 이 파일의 깨진 줄일 수 있습니다. 형식은 claude/deploy-targets.example)"
 fi
 
 if [[ "${kind}" == "none" ]]; then

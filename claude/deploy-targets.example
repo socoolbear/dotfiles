@@ -2,7 +2,8 @@
 # 복사해서 쓴다: cp claude/deploy-targets.example ~/.config/claude/deploy-targets
 # 회사 repo 이름은 공개 저장소에 넣지 않으므로 실제 목록은 저장소 밖 파일에만 둔다.
 # 형식: <prod|dev|none> <owner/repo>:<branch>   — prod 운영 배포 · dev dev 배포 · none 서비스 배포 없음 (한 줄에 대상 하나, 줄 끝 주석 없이)
-# 형식이 어긋난 줄이 하나라도 있거나 prod 줄이 하나도 없으면 훅은 dev-workflow 줄을 쓰지 않고, main·master·dev 는 dev·none 줄과 상관없이 운영, 표에 없는 다른 브랜치는 미분류로 본다
+# 운영 배포 대상이 하나도 없는 장비는 prod 줄 대신 no-prod 한 줄을 둔다 (prod 줄과 함께 두면 깨진 파일로 본다)
+# 형식이 어긋난 줄이 하나라도 있거나 prod 줄도 no-prod 줄도 없으면 훅은 dev-workflow 줄을 쓰지 않고, main·master·dev 는 dev·none 줄과 상관없이 운영, 표에 없는 다른 브랜치는 미분류로 본다
 # push 는 main·master·dev 로 가는 것만 판정한다 — 다른 브랜치 대상 (예: release) 은 PR 머지에만 적용된다
 prod my-org/web-app:master
 dev my-org/web-app:dev

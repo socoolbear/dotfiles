@@ -199,3 +199,5 @@ brew "poppler"
 cask "codex"
 # Anthropic's official CLI for Claude (@latest: 자동 업데이트 채널. 무접미사 cask 와 같은 claude 바이너리를 설치하므로 둘 중 하나만)
 cask "claude-code@latest"
+# Agent multiplexer that lives in your terminal
+brew "herdr"

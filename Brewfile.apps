@@ -45,6 +45,8 @@ cask "figma"
 cask "claude"
 cask "chatgpt"
 cask "codex-app"
+# Desktop app for terminals and coding agents
+cask "herdr-app"
 
 #--------------------------------------------------------------------------
 # 유틸리티 (선택)

@@ -17,7 +17,8 @@
 #          꼬리표는 Stop 훅 claude/scripts/stop-gate.sh 가 세션의 마지막 답변에서 복사해 둔 파일이다. 세션을 깨우지 않는다
 #   CLAUDE_LOOP_DRY=1    판정만 출력 (상태 파일·메시지·새 세션 없음)
 #   CLAUDE_LOOP_FORCE=1  실행 허용 구간 무시
-#   끄기: touch ~/.local/state/claude-loop/disabled
+#   끄기: touch ~/.local/state/claude-loop/disabled          (night · brief · 멈춤 점검 훅 전부)
+#         touch ~/.local/state/claude-loop/night.disabled    (night 만 — 아침 요약과 멈춤 점검은 계속)
 #
 # 야간 모드 상태 (hook 4개 — night-guard · enforce-deploy-check · loop-verify-gate · ask-precheck — 가 같은 경로를 본다)
 #   ~/.local/state/claude-loop/night/<session_id>  기존 세션에 보낸 기록 (JSON: name·verify·task_dir)
@@ -426,6 +427,7 @@ main() {
   case "${MODE}" in
     night | brief)
       [[ -f "${STATE_DIR}/disabled" ]] && { echo "claude-loop 꺼짐 (${STATE_DIR}/disabled)"; exit 0; }
+      [[ "${MODE}" == "night" && -f "${STATE_DIR}/night.disabled" ]] && { echo "야간 루프 꺼짐 (${STATE_DIR}/night.disabled)"; exit 0; }
       mkdir -p "${LOG_DIR}"
       LOG="${LOG_DIR}/$(date '+%F')-${MODE}.md"
       acquireLock

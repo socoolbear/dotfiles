@@ -34,7 +34,7 @@ cask "zoom"
 #--------------------------------------------------------------------------
 
 cask "jetbrains-toolbox"
-cask "docker"
+cask "docker-desktop"
 cask "postman"
 cask "figma"
 

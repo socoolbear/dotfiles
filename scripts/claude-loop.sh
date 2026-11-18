@@ -303,8 +303,20 @@ collectBriefInput() {
       done || echo "(PR 조회 실패 — gh 인증 확인)"
 
   echo
+  echo "# 상황판 (열린 세션의 상태 꼬리표)"
+  runBoard 2>/dev/null || echo "(상황판 조회 실패)"
+
+  echo
   echo "# 질문 지표"
   bash "${METRICS}" 1 2>/dev/null || echo "(지표 계산 실패)"
+
+  echo
+  echo "# 멈춤 점검 기록 (최근 24시간, 모드: $(cat "${STATE_DIR}/stop-gate/mode" 2>/dev/null || echo record))"
+  jq -rs --arg since "$(date -v-1d '+%FT%T')" '
+    map(select(.at >= $since and (.reentry | not)))
+    | "끝난 턴 \(length)건 · 글 질문 \(map(select(.asks)) | length)건 · 꼬리표 있음 \(map(select(.footer)) | length)건",
+      "글 질문 표본 (끝 80자):",
+      (map(select(.asks)) | .[-8:][] | "- \(.tail[-80:])")' "${STATE_DIR}/stop-gate/log.jsonl" 2>/dev/null || echo "(기록 없음)"
 }
 
 runBrief() {

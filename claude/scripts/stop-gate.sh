@@ -48,7 +48,9 @@ message=$(jq -r '.last_assistant_message // ""' <<<"${input}" 2>/dev/null) || ex
 [[ -n "${message}" ]] || exit 0
 
 # --- 1. 판정 ---
-tail_text=$(tr '\n\t' '  ' <<<"${message}")
+# 꼬리표의 「사용자 몫」 은 원래 부탁하는 말투라, 글 질문 판정은 꼬리표 앞의 본문 끝으로 한다
+body=$(awk '/^\*\*지금\*\*/ { start = NR } { lines[NR] = $0 } END { last = (start ? start - 1 : NR); for (i = 1; i <= last; i++) print lines[i] }' <<<"${message}")
+tail_text=$(tr '\n\t' '  ' <<<"${body}")
 (( ${#tail_text} > TAIL_CHARS )) && tail_text="${tail_text: -${TAIL_CHARS}}"   # 짧은 글에 음수 오프셋을 쓰면 빈 문자열이 된다
 asks=false
 has_footer=false

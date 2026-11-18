@@ -10,6 +10,8 @@
 #      1번 판정이 꼬리표를 빼고 보자 질문이 「사용자 몫」 줄로 옮겨 갔다 (2026-11-18 사용자 지적 —
 #      찾아볼 수 있는 확인 수단, 선택지 묶음, 직접 할 수 있는 QA, 제안을 사용자 몫에 적고 멈춤).
 #      이 점검은 아래 동작 모드와 무관하게 막는다.
+#   4. 사용자에게 그대로 나가는 질문 (막지 않고 통과시키는 글 질문 · 「사용자 몫」) 을 ask-classify.sh 에 넘겨
+#      Jev 분류와 함께 기록한다. 기록만 하고 판정에는 쓰지 않는다 (2026-11-18 사용자 결정 — 맞는지 먼저 본다).
 #
 # 동작 모드 — ~/.local/state/claude-loop/stop-gate/mode 파일의 내용
 #   (없음) · record  막지 않고 기록만 한다 (기본). 오탐률을 실제 세션에서 먼저 본다
@@ -27,10 +29,18 @@ STATE_DIR="${HOME}/.local/state/claude-loop"
 GATE_DIR="${STATE_DIR}/stop-gate"
 BOARD_DIR="${STATE_DIR}/board"
 TAIL_CHARS=260
+CLASSIFY_CHARS=600
 FOOTER_MAX_LINES=12
 OWED_NONE='^\*\*사용자 몫\*\*[^가-힣A-Za-z0-9]*없음'
 OWED_TAGS='\[(운영|복구불가|외부글|본인|구조|정책|예외)\]'   # workflow.md §7 「꼭 묻는 목록」 1~7번과 같은 순서
 ASK_TAIL='할까요|될까요|드릴까요|볼까요|을까요|까요[?]|[?][[:space:]]*$|알려 ?주세요|말씀해 ?주|정해 ?주세요|골라 ?주세요|원하시면|필요하시면|괜찮으시면'
+
+# 통과시키는 질문을 뒤에서 분류·기록한다. 훅은 기다리지 않는다 (출력을 끊어야 훅 실행기가 붙잡히지 않는다).
+recordAsk() {
+  [[ "${asks}" == "true" || "${owes}" == "true" ]] || return 0
+
+  (bash "${HOME}/.claude/scripts/ask-classify.sh" record text "${session_id}" "${ask_text} ${owed}" </dev/null >/dev/null 2>&1 &)
+}
 
 [[ "${AGENT_BOT:-}" == "1" ]] && exit 0
 [[ -f "${STATE_DIR}/disabled" ]] && exit 0
@@ -57,8 +67,10 @@ message=$(jq -r '.last_assistant_message // ""' <<<"${input}" 2>/dev/null) || ex
 # --- 1. 판정 ---
 # 꼬리표의 「사용자 몫」 은 원래 부탁하는 말투라, 글 질문 판정은 꼬리표 앞의 본문 끝으로 한다
 body=$(awk '/^\*\*지금\*\*/ { start = NR } { lines[NR] = $0 } END { last = (start ? start - 1 : NR); for (i = 1; i <= last; i++) print lines[i] }' <<<"${message}")
-tail_text=$(tr '\n\t' '  ' <<<"${body}")
+ask_text=$(tr '\n\t' '  ' <<<"${body}")
+tail_text="${ask_text}"
 (( ${#tail_text} > TAIL_CHARS )) && tail_text="${tail_text: -${TAIL_CHARS}}"   # 짧은 글에 음수 오프셋을 쓰면 빈 문자열이 된다
+(( ${#ask_text} > CLASSIFY_CHARS )) && ask_text="${ask_text: -${CLASSIFY_CHARS}}"
 footer=$(awk '/^\*\*지금\*\*/ { start = NR } { lines[NR] = $0 } END { if (start) for (i = start; i <= NR; i++) print lines[i] }' <<<"${message}")
 owed=$(awk '/^\*\*사용자 몫\*\*/ { inside = 1 } /^\*\*다음\*\*/ { inside = 0 } inside' <<<"${footer}")
 asks=false
@@ -86,7 +98,10 @@ mkdir -p "${GATE_DIR}" \
        >>"${GATE_DIR}/log.jsonl" 2>/dev/null
 
 # --- 4. 차단 ---
-[[ "${stop_active}" == "true" ]] && exit 0   # 재진입 — 한 번 막은 뒤에는 통과시킨다 (무한 차단 방지)
+if [[ "${stop_active}" == "true" ]]; then   # 재진입 — 한 번 막은 뒤에는 통과시킨다 (무한 차단 방지)
+  recordAsk
+  exit 0
+fi
 
 owed_mode=$(cat "${GATE_DIR}/owed-mode" 2>/dev/null || echo block)
 
@@ -100,8 +115,10 @@ fi
 
 mode=$(cat "${GATE_DIR}/mode" 2>/dev/null || echo record)
 
-[[ "${mode}" == "block" ]] || exit 0
-[[ "${asks}" == "true" ]]  || exit 0
+if [[ "${mode}" != "block" || "${asks}" != "true" ]]; then
+  recordAsk
+  exit 0
+fi
 
 jq -n '{
   decision: "block",

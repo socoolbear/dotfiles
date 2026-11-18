@@ -8,6 +8,7 @@
 #     며칠 가는 세션에서 "커밋할까요?" 가 다시 나갔다 (2026-11-18 집계)
 #   - 야간 모드 (claude-loop 가 일을 맡긴 세션): 매번 차단 — 밤에는 묻지 않고 질문 대기열에 남긴다
 #   - AGENT_BOT=1 (Slack 봇 세션): 건너뛴다
+#   - 통과시키는 질문은 ask-classify.sh 에 넘겨 Jev 분류와 함께 기록한다 (기록만, 2026-11-18 사용자 결정)
 set -uo pipefail
 
 NIGHT_DIR="${HOME}/.local/state/claude-loop/night"
@@ -48,7 +49,12 @@ fi
 
 state_file="${STATE_DIR}/${session_id}"
 
-[[ -f "${state_file}" ]] && exit 0
+if [[ -f "${state_file}" ]]; then
+  classify_text=$(jq -r '[.tool_input.questions[]? | "[\(.header // "")] \(.question // "") 선택지: \([.options[]?.label] | join(" / "))"] | join(" ")' <<<"${input}" 2>/dev/null) || classify_text="${question_text}"
+
+  (bash "${HOME}/.claude/scripts/ask-classify.sh" record window "${session_id}" "${classify_text}" </dev/null >/dev/null 2>&1 &)   # 출력을 끊어 훅이 기다리지 않게 한다
+  exit 0
+fi
 
 mkdir -p "${STATE_DIR}" && touch "${state_file}"
 

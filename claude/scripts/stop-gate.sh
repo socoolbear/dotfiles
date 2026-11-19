@@ -13,7 +13,10 @@
 #   4. 꼬리표의 「다음」 이 `없음` 도 `[대기]` 도 아니면 한 번 막는다. 지금 할 수 있는 일을 「다음」 에 적고
 #      멈춘 것이다 (2026-11-19 사용자 지적 — "다음 작업이 있다면 기다리지 말고 바로 수행").
 #      이 점검도 아래 동작 모드와 무관하게 막는다.
-#   5. 사용자에게 그대로 나가는 질문 (막지 않고 통과시키는 글 질문 · 「사용자 몫」) 을 ask-classify.sh 에 넘겨
+#   5. 꼬리표를 뺀 본문이 BODY_MAX_LINES 줄 (빈 줄 제외) 을 넘으면 한 번 막는다. 문구만으로는 길이가 줄지 않았다
+#      (2026-11-19 사용자 지적 — "아직도 응답이 너무 길어". Slack 쓰레드 실측: 세션 글 평균 14줄 · 909자).
+#      이 점검도 아래 동작 모드와 무관하게 막는다.
+#   6. 사용자에게 그대로 나가는 질문 (막지 않고 통과시키는 글 질문 · 「사용자 몫」) 을 ask-classify.sh 에 넘겨
 #      Jev 분류와 함께 기록한다. 기록만 하고 판정에는 쓰지 않는다 (2026-11-18 사용자 결정 — 맞는지 먼저 본다).
 #
 # 동작 모드 — ~/.local/state/claude-loop/stop-gate/mode 파일의 내용
@@ -21,6 +24,7 @@
 #   block            글 질문이면 한 번 막고 「꼭 묻는 목록」 (workflow.md §7) 에 드는지 판정하게 한다
 # 「사용자 몫」 점검만 기록으로 돌리기: echo record > ~/.local/state/claude-loop/stop-gate/owed-mode
 # 「다음」 점검만 기록으로 돌리기:      echo record > ~/.local/state/claude-loop/stop-gate/next-mode
+# 본문 길이 점검만 기록으로 돌리기:    echo record > ~/.local/state/claude-loop/stop-gate/length-mode
 # 기록: ~/.local/state/claude-loop/stop-gate/log.jsonl (턴마다 한 줄)
 # 끄기: touch ~/.local/state/claude-loop/disabled (claude-loop 와 같은 스위치)
 #
@@ -35,6 +39,7 @@ BOARD_DIR="${STATE_DIR}/board"
 TAIL_CHARS=260
 CLASSIFY_CHARS=600
 FOOTER_MAX_LINES=12
+BODY_MAX_LINES=15   # 꼬리표를 뺀 본문의 빈 줄 아닌 줄 수 (AGENTS.md 「출력 길이」)
 OWED_NONE='^\*\*사용자 몫:?\*\*[^가-힣A-Za-z0-9]*없음'
 NEXT_IDLE='^[^가-힣A-Za-z[]*(없음|\[대기\])'   # 「다음」 줄 머리를 뗀 나머지가 `없음` 이나 `[대기]` 로 시작한다 (목록 번호는 건너뛴다)
 OWED_TAGS='\[(운영|복구불가|외부글|본인|구조|정책|예외)\]'   # workflow.md §7 「꼭 묻는 목록」 1~7번과 같은 순서
@@ -72,6 +77,7 @@ message=$(jq -r '.last_assistant_message // ""' <<<"${input}" 2>/dev/null) || ex
 # --- 1. 판정 ---
 # 꼬리표의 「사용자 몫」 은 원래 부탁하는 말투라, 글 질문 판정은 꼬리표 앞의 본문 끝으로 한다
 body=$(awk '/^\*\*지금:?\*\*/ { start = NR } { lines[NR] = $0 } END { last = (start ? start - 1 : NR); for (i = 1; i <= last; i++) print lines[i] }' <<<"${message}")
+body_lines=$(grep -c '[^[:space:]]' <<<"${body}" || true)
 ask_text=$(tr '\n\t' '  ' <<<"${body}")
 tail_text="${ask_text}"
 (( ${#tail_text} > TAIL_CHARS )) && tail_text="${tail_text: -${TAIL_CHARS}}"   # 짧은 글에 음수 오프셋을 쓰면 빈 문자열이 된다
@@ -106,8 +112,8 @@ fi
 mkdir -p "${GATE_DIR}" \
   && jq -nc --arg at "$(date '+%FT%T')" --arg session "${session_id}" --arg cwd "${cwd}" --arg tail "${tail_text}" \
        --argjson asks "${asks}" --argjson footer "${has_footer}" --argjson reentry "${stop_active}" \
-       --argjson owes "${owes}" --argjson tagged "${tagged}" --arg owed "${owed}" --arg next "${next_state}" \
-       '{at: $at, session: $session, cwd: $cwd, asks: $asks, footer: $footer, owes: $owes, tagged: $tagged, next: $next, reentry: $reentry, tail: $tail}
+       --argjson owes "${owes}" --argjson tagged "${tagged}" --arg owed "${owed}" --arg next "${next_state}" --argjson lines "${body_lines:-0}" \
+       '{at: $at, session: $session, cwd: $cwd, asks: $asks, footer: $footer, owes: $owes, tagged: $tagged, next: $next, lines: $lines, reentry: $reentry, tail: $tail}
         + (if $owes then {owed: $owed} else {} end)' \
        >>"${GATE_DIR}/log.jsonl" 2>/dev/null
 
@@ -133,6 +139,16 @@ if [[ "${next_state}" == "todo" && "${next_mode}" != "record" ]]; then
   jq -n '{
     decision: "block",
     reason: "[다음 점검] 꼬리표의 「다음」 에 지금 할 수 있는 일이 남았는데 멈췄다. 다음 일이 있으면 기다리지 않고 바로 한다 (기준: ~/.claude/docs/workflow.md §7 「다음을 남기고 멈추지 않는다」).\n1. 사용자 답 없이 할 수 있는 일인가 (구현 · 검토 · 커밋 · push · PR · 초안 · 조사 · dev 확인)? → 지금 끝까지 한다. 사용자 몫이 있어도 그와 무관한 일은 먼저 한다\n2. 빌드 · 배포 · CI · 시각처럼 바깥 일이 끝나야 하는가? → 멈추지 말고 백그라운드 대기 (조건이 될 때까지 도는 명령 · Monitor) 를 걸어 끝나면 이 세션이 다시 깨어나게 한 뒤, 그동안 다른 일을 한다\n3. 정말 기다릴 수밖에 없는가 (자식 세션 · 팀메이트의 보고, 걸어 둔 백그라운드 작업의 알림, 사용자 몫)? → `**다음**: [대기] 무엇이 끝나야 하는지 — 그 뒤 할 일` 로 쓴다. 이 세션을 깨워 줄 것이 없는 기다림은 [대기] 가 아니다\n4. 할 일이 없는가? → `**다음**: 없음`\n사용자가 이번 턴에 보고만 하라고 했으면 (`/now report`) 그대로 다시 끝낸다."
+  }'
+  exit 0
+fi
+
+length_mode=$(cat "${GATE_DIR}/length-mode" 2>/dev/null || echo block)
+
+if (( ${body_lines:-0} > BODY_MAX_LINES )) && [[ "${length_mode}" != "record" ]]; then
+  jq -n --arg lines "${body_lines}" --arg max "${BODY_MAX_LINES}" '{
+    decision: "block",
+    reason: "[길이 점검] 본문이 \($lines)줄이다 (꼬리표 제외 \($max)줄 초과). 줄여서 다시 끝내라 (기준: ~/.claude/AGENTS.md 「출력 길이」).\n1. 대화가 이어지는 중의 답인가? → 앞 글을 읽은 사람에게 쓴다. 새로 안 것 · 바뀐 것만 다섯 줄 안에 쓰고, 앞에서 말한 내용 · 소제목 묶음 (확인한 것 / 안 한 것 / 알아 둘 것) · 표 · 방법 설명을 뺀다\n2. 점검 · QA · 조사 내역인가? → 내역은 태스크 notes.md (없으면 진행 문서) 에 쓰고, 답에는 결론 한 줄과 결정을 바꿀 이슈 · 미확인만 남긴다\n3. 승인 · 결정을 받을 대상 (초안 전문 · 바뀌는 것) 은 빼지 않는다 — 그 글만 보고 답할 수 있어야 한다\n4. 일 한 덩어리가 끝난 마무리 보고이거나 사용자가 긴 글 (문서 · 초안 · 목록 전문 · 설명) 을 요청했는가? → 그대로 다시 끝낸다 (두 번째는 통과한다)\n줄인 글에도 상태 꼬리표 (**지금**: / **사용자 몫**: / **다음**:) 는 붙인다."
   }'
   exit 0
 fi

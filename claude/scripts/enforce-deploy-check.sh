@@ -4,13 +4,14 @@
 # repo 와 대상 브랜치로 dev 배포 / 운영 배포 / 미분류를 나눠 안내한다 (2026-11-17 사용자 결정).
 #   - dev 배포: 사용자 확인 없이 진행하되, 실행 전 점검과 실행 후 dev 확인·QA 를 하게 한다
 #   - 운영 배포: 점검 결과를 담아 사용자 확인을 받게 한다
-#   - 미분류: repo 의 배포 workflow 트리거를 확인하게 한다 (조회 실패·cd 뒤 실행처럼 repo 를 확정 못 할 때 포함)
+#   - 미분류: repo 의 배포 workflow 트리거를 확인하게 한다 (조회 실패·읽지 못한 폴더 이동처럼 repo 를 확정 못 할 때 포함)
 # 대상: gh pr merge, mcp__github__merge_pull_request, main/master/dev 로 가는 git push, gh workflow run, gh api …/dispatches,
 #       비공개 파일의 prod-command 줄에 걸린 명령 (git 을 거치지 않는 운영 배포 — FTP 업로드 스크립트 등)
 #
 # 차단 방식 (2026-11-17 사용자 결정 — 운영 배포는 매번 확인):
 #   - 대상마다 첫 실행은 exit 2 로 점검 목록을 준다 (증거를 모아 보고하게)
-#   - 다시 실행하면 dev·미분류는 통과, 운영은 permissionDecision "ask" 로 확인창을 띄운다 (Yes = 사용자 확인).
+#   - 다시 실행하면 dev·미분류는 통과, 운영과 repo 를 확정 못 한 미분류는 permissionDecision "ask" 로 확인창을 띄운다 (Yes = 사용자 확인).
+#     repo 미확인을 통과시키면 폴더를 옮긴 뒤 실행한 운영 머지·push 가 확인창 없이 나간다 (2026-11-19 사용자 결정 — 모르면 운영)
 #     확인은 이 확인창 한 번이다 — 에이전트는 점검 결과를 적고 대화로 따로 묻지 않는다 (2026-11-19 사용자 결정)
 #     -p 실행과 coolgom 세션은 답할 사람이 없어 자동 거부된다 (2.1.326 실측)
 #   - AGENT_BOT=1 (coolgom 봇) 은 운영도 다시 실행하면 통과 — Slack 의 사용자 본인 승인을 확인으로 본다
@@ -29,8 +30,10 @@ set -euo pipefail
 STATE_DIR="${TMPDIR:-/tmp}/claude-deploy-check"
 # 명령 자리 (줄 시작 또는 ; & | ( $( 뒤) 에 나온 경우만 잡는다 — 커밋 메시지·echo 안의 문자열을 빼려는 것 (완전하지 않다)
 COMMAND_START='(^|[;&|(]|\$\()[[:space:]]*(command[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*'
-# 명령 안에서 작업 폴더를 옮기면 훅의 cwd 로 repo 를 정할 수 없다
-CWD_MOVED='(^|[;&|(])[[:space:]]*(cd|pushd)[[:space:]]|git[[:space:]]+-C[[:space:]]'
+# 명령 안에서 작업 폴더를 옮기면 훅의 cwd 로 repo 를 정할 수 없다. 맨 앞의 `cd <경로> &&` 하나와 push 의 `git -C <경로>` 하나만 읽는다
+# (태스크 루트에서 여는 세션이 쓰는 꼴). 그 밖의 이동 (cd 여러 번 · 서브셸 안 · pushd/popd · 변수·공백이 든 경로) 은 읽지 않고 repo 미확인으로 둔다
+DIR_MOVE='(^|[;&|(])[[:space:]]*(cd|pushd|popd)([[:space:]]|$)'
+LEADING_CD='^[[:space:]]*cd[[:space:]]+([^;&|[:space:]]+)[[:space:]]*&&'
 
 # repo:브랜치 → 그 브랜치에 들어가면 일어나는 배포. 회사 repo 이름은 사내 보안 정책상 공개 저장소에 두지 않고
 # 저장소 밖 비공개 파일에서 읽는다 (2026-11-17 사용자 결정 — 형식은 claude/deploy-targets.example, 표는 deploy-targets.md 와 맞춘다)
@@ -133,8 +136,52 @@ extract_repo() {
   sed -E 's#\.git$##; s#^git@github[^:/]*:([^/]+/[^/]+)$#\1#; s#^https://github\.com/##' <<<"$1" | cut -d/ -f1-2
 }
 
-is_cwd_moved() {
-  grep -qE "${CWD_MOVED}" <<<"${command}"
+# 경로 (따옴표·~ 허용) 를 기준 폴더에서 풀어 실제 폴더면 절대 경로로 출력한다. 아니면 빈 값
+resolve_dir() {
+  local path="$1"
+  local base="$2"
+
+  path="${path%[\"\']}"
+  path="${path#[\"\']}"
+  path="${path/#\~/${HOME}}"
+  (cd "${base}" 2>/dev/null && cd "${path}" 2>/dev/null && pwd) || true
+}
+
+# 명령이 실제로 도는 폴더. 읽지 못한 폴더 이동이 있으면 빈 값 (repo 미확인)
+work_dir=""
+
+resolve_work_dir() {
+  local move_count
+
+  work_dir="${cwd:-.}"
+  move_count=$(grep -oE "${DIR_MOVE}" <<<"${command}" | grep -c . || true)
+
+  if [[ "${move_count}" == "0" ]]; then
+    return 0
+  fi
+
+  if [[ "${move_count}" == "1" && "${command}" =~ ${LEADING_CD} ]]; then
+    work_dir=$(resolve_dir "${BASH_REMATCH[1]}" "${work_dir}")
+    return 0
+  fi
+
+  work_dir=""
+}
+
+# push 한 줄이 도는 폴더 — `git -C <경로>` 가 하나 있으면 work_dir 에서 그 경로로, 여러 개면 빈 값
+resolve_push_dir() {
+  local segment="$1"
+  local dir_args
+
+  dir_args=$(grep -oE '[[:space:]]-C[[:space:]]+[^[:space:]]+' <<<"${segment}" | awk '{print $2}' || true)
+
+  if [[ -z "${dir_args}" || -z "${work_dir}" ]]; then
+    echo "${work_dir}"
+  elif [[ "$(grep -c . <<<"${dir_args}")" == "1" ]]; then
+    resolve_dir "${dir_args}" "${work_dir}"
+  fi
+
+  return 0
 }
 
 # claude-loop 가 일을 맡긴 세션인가 — 판정은 night-guard.sh 와 같다
@@ -147,9 +194,10 @@ is_night_mode() {
     || [[ "${CLAUDE_NIGHT:-}" == "1" && -f "${night_dir}/active" && ! -f "${night_dir}/released/${session_id}" ]]
 }
 
-# push 대상 브랜치가 명령에 없거나 HEAD 뿐이면 cwd 의 현재 브랜치를 쓴다 (main·master·dev 일 때만 출력)
+# push 대상 브랜치가 명령에 없거나 HEAD 뿐이면 push 가 도는 폴더의 현재 브랜치를 쓴다 (main·master·dev 일 때만 출력)
 current_branch_if_implicit() {
   local segment="$1"
+  local push_dir="$2"
   local token
   local remote_seen=""
   local -a tokens
@@ -172,7 +220,7 @@ current_branch_if_implicit() {
     return 0
   fi
 
-  git -C "${cwd:-.}" rev-parse --abbrev-ref HEAD 2>/dev/null | grep -xE 'main|master|dev' || true
+  git -C "${push_dir}" rev-parse --abbrev-ref HEAD 2>/dev/null | grep -xE 'main|master|dev' || true
 }
 
 emit_ask() {
@@ -186,7 +234,7 @@ lookup_pr() {
   local -a args=("$@")
   local pr_json
 
-  pr_json=$(cd "${cwd:-.}" && gh pr view ${args[@]+"${args[@]}"} --json url,baseRefName 2>/dev/null || true)
+  pr_json=$(cd "${work_dir:-${cwd:-.}}" && gh pr view ${args[@]+"${args[@]}"} --json url,baseRefName 2>/dev/null || true)
 
   if [[ -z "${pr_json}" ]]; then
     return 0
@@ -237,7 +285,7 @@ inspect_pr_merge() {
     lookup_pr "${pr_ref}"
   elif [[ -n "${repo_arg}" ]]; then
     lookup_pr ${pr_ref:+"${pr_ref}"} -R "${repo_arg}"
-  elif ! is_cwd_moved; then
+  elif [[ -n "${work_dir}" ]]; then
     lookup_pr ${pr_ref:+"${pr_ref}"}
   fi
 }
@@ -257,6 +305,9 @@ is_prod_command() {
 
 find_target() {
   local pr push_segments
+  local push_dir=""
+
+  resolve_work_dir
 
   if [[ "${tool_name}" == "mcp__github__merge_pull_request" ]]; then
     pr=$(jq -r '.tool_input.pull_number // .tool_input.pullNumber' <<<"${input}")
@@ -291,8 +342,12 @@ find_target() {
   push_segments=$(grep -oE "${COMMAND_START}git[^;&|]*[[:space:]]push[^;&|]*" <<<"${command}" || true)
   branch=$(tr -d "\"'" <<<"${push_segments}" | grep -oE '[[:space:]:+](refs/heads/)?(main|master|dev)([[:space:]]|$)' | tail -1 | grep -oE 'main|master|dev' || true)
 
-  if [[ -z "${branch}" && -n "${push_segments}" && "$(grep -c . <<<"${push_segments}")" == "1" ]] && ! is_cwd_moved; then
-    branch=$(current_branch_if_implicit "$(tr -d "\"'" <<<"${push_segments}")")
+  if [[ -n "${push_segments}" && "$(grep -c . <<<"${push_segments}")" == "1" ]]; then
+    push_dir=$(resolve_push_dir "$(tr -d "\"'" <<<"${push_segments}")")
+  fi
+
+  if [[ -z "${branch}" && -n "${push_dir}" ]]; then
+    branch=$(current_branch_if_implicit "$(tr -d "\"'" <<<"${push_segments}")" "${push_dir}")
   fi
 
   if [[ -z "${branch}" ]]; then
@@ -302,9 +357,9 @@ find_target() {
   # 키에 refspec (해시) 까지 넣어 다른 커밋의 push 는 다시 점검하게 한다
   label="push ${cwd} ${push_segments//$'\n'/ | }"
 
-  # push 가 여러 개거나 폴더를 옮겼으면 repo 를 하나로 정할 수 없어 미분류로 둔다
-  if [[ "$(grep -c . <<<"${push_segments}")" == "1" ]] && ! is_cwd_moved; then
-    repo=$(extract_repo "$(git -C "${cwd:-.}" remote get-url origin 2>/dev/null || true)")
+  # push 가 여러 개거나 도는 폴더를 읽지 못했으면 repo 를 하나로 정할 수 없어 미분류로 둔다
+  if [[ -n "${push_dir}" ]]; then
+    repo=$(extract_repo "$(git -C "${push_dir}" remote get-url origin 2>/dev/null || true)")
   fi
 
   return 0
@@ -358,7 +413,7 @@ if [[ -n "${prod_command_hit}" && "${kind}" != "prod" ]]; then
   emit_ask "[운영 배포] 비공개 표의 prod-command 에 걸린 명령입니다${label:+ (함께 실행: ${label})}. 변경 내용 (diff) 을 확인했으면 Yes"
 fi
 
-# 대상마다 첫 실행만 점검 목록으로 차단한다. 다시 실행하면 운영은 확인창, 나머지는 통과
+# 대상마다 첫 실행만 점검 목록으로 차단한다. 다시 실행하면 운영과 repo 미확인은 확인창, 나머지는 통과
 state_key=$(printf '%s %s' "${session_id}" "${label}" | md5 -q)
 state_file="${STATE_DIR}/${state_key}"
 
@@ -366,6 +421,11 @@ if [[ -f "${state_file}" ]]; then
   # 봇 세션은 다시 실행하면 통과 — prod-command 가 함께 걸린 명령은 봇 세션도 확인창
   if [[ "${kind}" == "prod" ]] && [[ "${AGENT_BOT:-}" != "1" || -n "${prod_command_hit}" ]]; then
     emit_ask "[운영 배포] ${repo:-?}:${branch} — ${label}${prod_command_hit:+ + prod-command 에 걸린 명령}. 점검 결과를 확인했으면 Yes"
+  fi
+
+  # repo 를 확정 못 한 대상은 운영일 수 있다 — 모르면 운영. 봇 세션은 답할 사람이 없어 지금처럼 통과한다
+  if [[ "${kind}" == "unknown" && -z "${repo}" && "${AGENT_BOT:-}" != "1" ]]; then
+    emit_ask "[배포 대상 미확인] ${label} — 대상 repo 를 확정하지 못했습니다 (운영 배포일 수 있음). 운영이 아니거나 점검 결과를 확인했으면 Yes"
   fi
 
   exit 0
@@ -396,7 +456,7 @@ EOF
 [운영 배포 점검] ${label} → ${repo:-?}:${branch} 는 운영 배포입니다.${missing_note}
 기준: ~/.dotfiles/claude/docs/deploy.md + 비공개 분류 표 ~/.config/claude/deploy-targets.md
 
-점검 결과 (OK · 이슈 · 미확인) 를 응답에 적는다 — 이슈·미확인부터:
+아래를 점검해 내역은 태스크 notes.md (없으면 진행 문서) 에 쓰고, 응답에는 결론 한 줄과 결정을 바꿀 이슈·미확인만 적는다:
 - 범위 (함께 실리는 다른 커밋 목록) · CI·리뷰 · 선행 조건 · 호환성 · 검증 근거 · 독립 검증 · 되돌리기 (롤백 기준·관찰 시간)
 
 - 적은 뒤 대화로 따로 묻거나 턴을 끝내지 않고 같은 명령을 바로 다시 실행한다. 확인창이 뜨고, 사용자가 누르는 Yes 가 확인이다 (2026-11-19 사용자 결정 — 확인은 한 번)
@@ -411,6 +471,7 @@ EOF
 
 - repo 의 배포 workflow 트리거 (on:) 를 열어 이 동작이 운영 배포인지 확인한다. 모르면 운영 배포로 본다
 - 운영 배포면: 점검 결과를 담아 사용자 확인 (요청·승인을 이미 받았으면 결과를 적고 다시 실행)
+- repo 미확인이면 다시 실행할 때 확인창이 뜬다. 폴더 이동을 명령 맨 앞의 cd 한 번으로 쓰거나 머지에 -R <owner/repo> 를 붙이면 repo 를 읽어 제대로 분류한다
 - 운영 배포가 아니면: 근거를 한 줄 적고 다시 실행. 자주 쓰는 repo 면 비공개 표 ~/.config/claude/deploy-targets.md 와 훅 대상 파일 ${TARGETS_FILE} 에 추가한다
 EOF
     ;;

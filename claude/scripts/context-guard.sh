@@ -117,7 +117,7 @@ message="[컨텍스트 가드] ${lead}
 - 항목: 목표 / 완료 / 진행 중 (현재 단계·막힌 점) / 다음 단계 / 결정 로그 (사용자 답·[위임] 결정과 이유) / 핵심 파일
 - 짧게 쓰고, 기존 내용은 통째로 덮어쓴다. 결정 로그는 지우지 않고 이어 쓴다 (같은 질문을 다시 하지 않게).
 - 하던 작업 흐름은 유지하되, 다음 도구 호출 전에 직접 처리한다. 서브에이전트에 위임하지 않는다.
-- 남은 작업에 독립 흐름 (다른 repo, 사용자 결정이 따로 필요한 흐름) 이 있으면 자식 세션으로 떼어낼지 검토한다 (~/.dotfiles/claude/docs/team-mode.md §1-1)."
+- 남은 작업에 독립 흐름 (다른 repo, 사용자 결정이 따로 필요한 흐름) 이 있으면 자식 세션으로 떼어낼지 검토한다 (~/.dotfiles/claude/docs/work-split.md §1-1)."
 
 jq -n --arg msg "${message}" \
   '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $msg}}' 2>/dev/null

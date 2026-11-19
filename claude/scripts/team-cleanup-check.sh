@@ -78,7 +78,7 @@ message=$(
   echo "이미 사라진 이름이면 그냥 넘어가세요."
   echo
   echo "아직 결과를 기다리는 중이거나 계획 승인 대기 중이라면, 이 메시지를 무시하고 하던 일을 계속하세요."
-  echo "편성/해산 기준: ~/.claude/docs/team-mode.md"
+  echo "편성/해산 기준: ~/.claude/docs/work-split.md"
 )
 
 jq -n --arg context "${message}" \

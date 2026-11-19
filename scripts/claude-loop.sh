@@ -315,7 +315,7 @@ collectBriefInput() {
   echo "# 멈춤 점검 기록 (최근 24시간, 모드: $(cat "${STATE_DIR}/stop-gate/mode" 2>/dev/null || echo record))"
   jq -rs --arg since "$(date -v-1d '+%FT%T')" '
     map(select(.at >= $since and (.reentry | not)))
-    | "끝난 턴 \(length)건 · 글 질문 \(map(select(.asks)) | length)건 · 꼬리표 있음 \(map(select(.footer)) | length)건 · 사용자 몫 있음 \(map(select(.owes)) | length)건 (분류 없어 막힘 \(map(select(.owes and (.tagged | not))) | length)건)",
+    | "끝난 턴 \(length)건 · 글 질문 \(map(select(.asks)) | length)건 · 꼬리표 있음 \(map(select(.footer)) | length)건 · 사용자 몫 있음 \(map(select(.owes)) | length)건 (분류 없어 막힘 \(map(select(.owes and (.tagged | not))) | length)건) · 다음 일을 남기고 멈춤 \(map(select(.next == "todo")) | length)건",
       "글 질문 표본 (끝 80자):",
       (map(select(.asks)) | .[-8:][] | "- \(.tail[-80:])")' "${STATE_DIR}/stop-gate/log.jsonl" 2>/dev/null || echo "(기록 없음)"
 }
@@ -402,7 +402,7 @@ runBoard() {
         waiting=1
 
         # 사용자 몫이 "없음" 이 아닌 세션을 위로 올린다 (정렬 키 0)
-        if [[ -f "${file}" ]] && grep -q '^\*\*사용자 몫\*\*' "${file}" && ! grep -qE '^\*\*사용자 몫\*\*[^가-힣A-Za-z0-9]*없음' "${file}"; then
+        if [[ -f "${file}" ]] && grep -qE '^\*\*사용자 몫:?\*\*' "${file}" && ! grep -qE '^\*\*사용자 몫:?\*\*[^가-힣A-Za-z0-9]*없음' "${file}"; then
           waiting=0
         fi
 

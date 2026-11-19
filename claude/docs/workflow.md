@@ -251,7 +251,7 @@ command tmux new-window -d -t "$(command tmux display -p '#{session_name}'):" -n
 - `-d` 로 띄워 사용자의 현재 window 를 빼앗지 않는다. 띄운 뒤 `ListAgents` 로 살아 있는지 확인한다
 - `$TMUX` 가 비어 있으면 (tmux 밖) 띄우지 말고 사용자에게 어떻게 열지 묻는다
 - 한 태스크를 여러 세션으로 나눠 띄우기 (부모/자식) 전에는 팀으로 충분한지 `@docs/work-split.md` §1-1 기준으로 먼저 정하고, 나누면 같은 절의 운영 규칙을 따른다
-- **하위 세션 (자식 세션·분기 세션) 은 부모 window 의 pane 이 기본이다** (2026-11-19 사용자 요청). 부모 window 에 하위 pane 이 이미 3개면 그다음부터는 새 window 로 연다 (pane 이 더 늘면 폭이 좁아 diff·표가 깨진다). 동시 5개 한도는 그대로다. 태스크 세션 자체는 위대로 window 로 연다. 띄우는 명령은 `sessions:child-session` · `sessions:side-task` 스킬이 맡는다
+- **하위 세션 (자식 세션·분기 세션) 은 부모 window 의 pane 이 기본이다** (2026-11-19 사용자 요청). 부모 window 에 부모 말고 다른 pane 이 이미 3개면 그다음부터는 새 window 로 연다 (pane 이 더 늘면 폭이 좁아 diff·표가 깨진다 — 폭이 이유라 사용자가 연 셸 pane 도 센다). 동시 5개 한도는 그대로다. 태스크 세션 자체는 위대로 window 로 연다. 띄우는 명령은 `sessions:child-session` · `sessions:side-task` 스킬이 맡는다
 
 ## 9. 외부 메시지는 사용자 이름으로만 나간다
 

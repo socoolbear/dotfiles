@@ -97,6 +97,7 @@ LINKS_SINGLE := \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
     scripts/mcp-mysql-reader.sh:.local/bin/mcp-mysql-reader \
     scripts/mcp-pg-reader.sh:.local/bin/mcp-pg-reader \
+    scripts/mcp-lazy.mjs:.local/bin/mcp-lazy \
     scripts/term-session.sh:.local/bin/term-session \
     scripts/claude-loop.sh:.local/bin/claude-loop \
     launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist \

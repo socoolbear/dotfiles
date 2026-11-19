@@ -44,6 +44,7 @@
 | `scripts/sleepguard-toggle.sh` | `~/.local/bin/sleepguard` |
 | `scripts/mcp-mysql-reader.sh` | `~/.local/bin/mcp-mysql-reader` |
 | `scripts/mcp-pg-reader.sh` | `~/.local/bin/mcp-pg-reader` |
+| `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 위 두 실행기가 거친다)* |
 | `scripts/term-session.sh` | `~/.local/bin/term-session` |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 

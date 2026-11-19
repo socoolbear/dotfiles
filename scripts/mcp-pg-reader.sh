@@ -6,6 +6,11 @@ set -euo pipefail
 
 secretRef="${1:?op:// 참조 또는 키체인 항목명이 필요합니다}"
 
+# op:// 참조는 지연 시작 프록시를 거친다 — 세션이 뜰 때가 아니라 첫 쿼리 때 1Password 를 부른다 (2026-11-19 사용자 결정)
+if [[ "${secretRef}" == op://* && -z "${MCP_LAZY_CHILD:-}" ]]; then
+  exec "${HOME}/.local/bin/mcp-lazy" "${0##*/} ${secretRef} ${PG_HOST:-} ${PG_DB:-}" -- "${0}" "$@"
+fi
+
 readSecret() {
   if [[ "${1}" == op://* ]]; then
     op read "${1}"

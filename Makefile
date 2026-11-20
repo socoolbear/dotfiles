@@ -100,7 +100,6 @@ LINKS_SINGLE := \
     scripts/mcp-pg-reader.sh:.local/bin/mcp-pg-reader \
     scripts/mcp-lazy.mjs:.local/bin/mcp-lazy \
     scripts/term-session.sh:.local/bin/term-session \
-    claude/scripts/loop-metrics.sh:.local/bin/loop-metrics \
     launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
@@ -110,7 +109,9 @@ LINKS_DIR := \
     swiftbar:.swiftbar-plugins \
     claude/rules:.claude/rules \
     claude/scripts:.claude/scripts \
-    claude/docs:.claude/docs
+    claude/docs:.claude/docs \
+    claude/docs:.claude/workstyle/docs \
+    claude/AGENTS.md:.claude/workstyle/AGENTS.md
 
 # claude/commands/*.md — 와일드카드 자동 발견 (파일 추가 시 Makefile 수정 불필요)
 COMMANDS := $(notdir $(wildcard $(DOTFILES)/claude/commands/*.md))

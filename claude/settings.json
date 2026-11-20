@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/enforce-plan-review.sh",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle enforce-plan-review.sh",
             "timeout": 5
           }
         ]
@@ -76,7 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/ask-precheck.sh",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle ask-precheck.sh",
             "timeout": 5
           }
         ]
@@ -97,7 +97,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/context-guard.sh",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle context-guard.sh",
             "timeout": 5
           }
         ]
@@ -128,7 +128,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/compact-restore.sh",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle compact-restore.sh",
             "timeout": 10
           }
         ]
@@ -159,7 +159,7 @@
           },
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/team-cleanup-check.sh",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle team-cleanup-check.sh",
             "timeout": 5
           },
           {
@@ -169,7 +169,7 @@
           },
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/stop-gate.sh",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle stop-gate.sh",
             "timeout": 5
           }
         ]
@@ -291,7 +291,8 @@
     "programming@socoolbear-cc-marketplace": true,
     "sessions@socoolbear-cc-marketplace": true,
     "night-loop@socoolbear-cc-marketplace": true,
-    "deploy-guard@socoolbear-cc-marketplace": true
+    "deploy-guard@socoolbear-cc-marketplace": true,
+    "workstyle@socoolbear-cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {

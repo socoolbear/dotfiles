@@ -91,6 +91,23 @@ registerNightLoop() {
   "${runner}" install >/dev/null || echo "==> 야간 루프 등록 실패 — 직접 실행해 확인: ${runner} install"
 }
 
+# workstyle: ~/.local/bin/workstyle · loop-metrics 실행 파일 (설치본을 찾아 부르는 작은 스크립트)
+registerWorkstyle() {
+  local root runner
+
+  root=$(installedPath workstyle)
+  runner="${root}/bin/workstyle"
+
+  [[ -n "${root}" && -x "${runner}" ]] || return 0
+
+  if [[ -n "${DRY}" ]]; then
+    echo "[dry] ${runner} install"
+    return 0
+  fi
+
+  "${runner}" install >/dev/null || echo "==> workstyle 실행 파일 등록 실패 — 직접 실행해 확인: ${runner} install"
+}
+
 main() {
   if ! command -v claude >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1; then
     echo "==> claude 또는 jq 가 없어 Claude 플러그인 맞추기를 건너뜁니다 — 설치 뒤 make sync 를 다시 실행하세요"
@@ -103,6 +120,7 @@ main() {
 
   installMissingPlugins
   registerNightLoop
+  registerWorkstyle
 }
 
 main "$@"

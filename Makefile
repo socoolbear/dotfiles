@@ -105,17 +105,6 @@ LINKS_DIR := \
     claude/scripts:.claude/scripts \
     claude/docs:.claude/docs
 
-# claude/commands/*.md — 와일드카드 자동 발견 (파일 추가 시 Makefile 수정 불필요)
-COMMANDS := $(notdir $(wildcard $(DOTFILES)/claude/commands/*.md))
-
-# claude/skills/*/ — 와일드카드 자동 발견 (skill 추가 시 Makefile 수정 불필요)
-# 디렉토리 단위 심링크. [ -L ] 는 이미 링크면 건너뛸 뿐이고, dotfiles 에 없는 머신별 실디렉토리는 루프 대상이 아니라서 보존된다
-SKILLS := $(notdir $(wildcard $(DOTFILES)/claude/skills/*))
-
-# claude/agents/*.md — 와일드카드 자동 발견 (agent 추가 시 Makefile 수정 불필요)
-# 파일 단위 심링크로 머신별 실파일 (dotfiles 에 없는 로컬 에이전트) 보존
-AGENT_DEFS := $(notdir $(wildcard $(DOTFILES)/claude/agents/*.md))
-
 # alfred/workflows/*/ — 와일드카드 자동 발견 (워크플로우 추가 시 Makefile 수정 불필요)
 # 대상 경로에 공백이 있어 LINKS_DIR 루프와 분리. 디렉토리 단위 심링크 (Alfred 는 심링크 폴더도 워크플로우로 인식)
 ALFRED_WORKFLOWS_DIR := $(HOME)/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows
@@ -159,8 +148,7 @@ sync: ohmyzsh ohmytmux
 
 	@# 디렉토리 생성
 	@mkdir -p $(HOME)/.local/bin $(HOME)/.config $(HOME)/.config/mise \
-	          $(HOME)/.claude $(HOME)/.claude/commands $(HOME)/.claude/skills \
-	          $(HOME)/.claude/agents
+	          $(HOME)/.claude
 
 	@# ~/.codex/AGENTS.md 가 실파일이면 백업 (아래 ln -sf 가 덮어쓰므로 — 이전엔 Codex 가 손으로 만든 실파일이었다)
 	@if [ -e $(HOME)/.codex/AGENTS.md ] && [ ! -L $(HOME)/.codex/AGENTS.md ]; then \
@@ -176,8 +164,6 @@ sync: ohmyzsh ohmytmux
 	else \
 		echo "==> ~/.claude/workstyle/AGENTS.md 가 없어 ~/.codex/AGENTS.md 를 걸지 못했습니다 — workstyle 플러그인 설치 뒤 세션에서 /workstyle:setup"; \
 	fi
-	@# 예전 ~/.claude/rules 링크 정리 — 코딩 스타일은 전역 CLAUDE.md 가 ~/.claude/workstyle/coding-style.md 를 불러온다 (남아 있으면 두 번 실린다)
-	@[ ! -L $(HOME)/.claude/rules ] || rm $(HOME)/.claude/rules
 
 	@# Codex 는 @import 를 못 읽어 취향 규칙 (AGENTS.md) + 비공개 배포 표 + 장비 규칙 (local-rules.md) 을 AGENTS.override.md 로 합쳐 준다
 	@# (Codex 는 이 파일이 있으면 AGENTS.md 대신 읽는다 — 복사본이라 AGENTS.md·표를 고치면 make sync 를 다시 돌린다)
@@ -206,24 +192,6 @@ sync: ohmyzsh ohmytmux
 
 	@# ~/.claude/AGENTS.md 잔재 정리 (있으면 홈 하위 세션에서 전역 지시가 프로젝트 지시로 한 번 더 로드됨 — 전역 지시는 claude/CLAUDE.md 가 ~/.claude/workstyle/ 에서 불러온다)
 	@[ ! -L $(HOME)/.claude/AGENTS.md ] || rm $(HOME)/.claude/AGENTS.md
-
-	@# claude/commands/*.md 자동 발견 후 심링크
-	@for cmd in $(COMMANDS); do \
-	    target="$(HOME)/.claude/commands/$$cmd"; \
-	    [ -L "$$target" ] || ln -sf "$(DOTFILES)/claude/commands/$$cmd" "$$target"; \
-	done
-
-	@# claude/skills/* 자동 발견 후 심링크 (이미 링크면 건너뜀)
-	@for skill in $(SKILLS); do \
-	    target="$(HOME)/.claude/skills/$$skill"; \
-	    [ -L "$$target" ] || ln -sf "$(DOTFILES)/claude/skills/$$skill" "$$target"; \
-	done
-
-	@# claude/agents/*.md 자동 발견 후 심링크 (이미 링크면 건너뜀 — 같은 이름의 실파일은 덮어쓴다)
-	@for agent in $(AGENT_DEFS); do \
-	    target="$(HOME)/.claude/agents/$$agent"; \
-	    [ -L "$$target" ] || ln -sf "$(DOTFILES)/claude/agents/$$agent" "$$target"; \
-	done
 
 	@# 디렉토리 심링크 (rm -rf 후 재링크)
 	@for entry in $(LINKS_DIR); do \
@@ -274,15 +242,6 @@ clean:
 	done
 	@for entry in $(LINKS_DIR); do \
 	    rm -rf "$(HOME)/$${entry##*:}"; \
-	done
-	@for cmd in $(COMMANDS); do \
-	    rm -f "$(HOME)/.claude/commands/$$cmd"; \
-	done
-	@for skill in $(SKILLS); do \
-	    rm -f "$(HOME)/.claude/skills/$$skill"; \
-	done
-	@for agent in $(AGENT_DEFS); do \
-	    rm -f "$(HOME)/.claude/agents/$$agent"; \
 	done
 	@for wf in $(ALFRED_WORKFLOWS); do \
 	    rm -f "$(ALFRED_WORKFLOWS_DIR)/$$wf"; \

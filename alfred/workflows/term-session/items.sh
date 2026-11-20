@@ -12,7 +12,7 @@ query=$(printf '%s' "${1:-}" | iconv -f UTF-8-MAC -t UTF-8)
 
 jq -n --arg status "${status}" --arg query "${query}" '{items: ([
   {uid: "save", title: "저장", subtitle: "지금 상태 저장 · 마지막: \($status)", arg: "save", match: "저장 save"},
-  {uid: "save-handoff", title: "저장 (handoff 포함)", subtitle: "idle 인 claude 마다 /handoff 문서를 쓰게 한 뒤 저장 (claude 마다 시간·토큰이 듦)", arg: "save-handoff", match: "저장 save handoff"},
+  {uid: "save-handoff", title: "저장 (handoff 포함)", subtitle: "idle 인 claude 마다 /workstyle:handoff 문서를 쓰게 한 뒤 저장 (claude 마다 시간·토큰이 듦)", arg: "save-handoff", match: "저장 save handoff"},
   {uid: "close", title: "작업 정리 (handoff 후 모두 닫기)", subtitle: "handoff → 저장 → claude·tmux 정리 → Ghostty 종료 (handoff 를 못 하면 멈춤)", arg: "close", match: "정리 close 종료 handoff"},
   {uid: "restore", title: "복원", subtitle: "사라진 층만 되살림 — claude 는 같은 대화로 resume", arg: "restore", match: "복원 restore"},
   {uid: "restore-handoff", title: "복원 (handoff 로 새 세션)", subtitle: "claude 가 꺼져 있을 때 (정리·재부팅 뒤) 새 세션을 handoff 문서 (없으면 /catchup) 로 시작", arg: "restore-handoff", match: "복원 restore handoff catchup"},

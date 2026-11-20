@@ -24,7 +24,7 @@
 # claude 안의 백그라운드 명령·cron·/loop 는 resume 해도 돌아오지 않으므로 save 때와 restore 뒤에 목록으로 알린다.
 #
 # 사용법:
-#   term-session save    [-o <file>] [--handoff]     # 끄기 전에 (claude 가 살아 있을 때). --handoff: idle claude 마다 /handoff <이름>
+#   term-session save    [-o <file>] [--handoff]     # 끄기 전에 (claude 가 살아 있을 때). --handoff: idle claude 마다 /workstyle:handoff <이름>
 #   term-session restore [<file>] [--mode resume|handoff] [--no-enter] [--dry-run]
 #                                                    # 재부팅·Ghostty 재시작 뒤. resume (기본) = 같은 대화로,
 #                                                    # handoff = 새 세션이 handoff 문서 (없으면 /catchup <ID>) 로 시작
@@ -194,14 +194,14 @@ listScheduledWork() {
     ' "${transcript}"
 }
 
-# /handoff 에 넘길 이름. 공백·경로 구분자·따옴표처럼 파일명이나 셸에서 곤란한 글자만 - 로 바꾼다 (한글은 그대로).
+# /workstyle:handoff 에 넘길 이름. 공백·경로 구분자·따옴표처럼 파일명이나 셸에서 곤란한 글자만 - 로 바꾼다 (한글은 그대로).
 handoffSlug() {
     local name=$1
 
     tr " /:*?\"<>|\\\$\`'" '-' <<<"${name}"
 }
 
-# /handoff <이름> 이 쓰는 파일
+# /workstyle:handoff <이름> 이 쓰는 파일
 handoffPath() {
     local cwd=$1
     local name=$2
@@ -687,7 +687,7 @@ isClaudeInputEmpty() {
     [[ -z "$(LC_ALL=C sed $'s/\e\\[[0-9;]*m//g' <<<"${line}" | tr -d ' ')" ]]
 }
 
-# idle 인 claude 마다 /handoff <이름> 을 보내고, 일을 마치고 idle 로 돌아올 때까지 기다린다.
+# idle 인 claude 마다 /workstyle:handoff <이름> 을 보내고, 일을 마치고 idle 로 돌아올 때까지 기다린다.
 # 작업 중인 claude 는 하던 일을 방해하지 않도록 건너뛴다.
 # status "shell" 은 입력 대기 중이지만 백그라운드 Bash (run_in_background 등) 가 남아 있는 상태라 idle 과 같게 본다.
 requestHandoffs() {
@@ -721,7 +721,7 @@ requestHandoffs() {
         if tm capture-pane -p -t "${paneId}" | grep -q -- '-- NORMAL --'; then
             tm send-keys -t "${paneId}" i
         fi
-        tm send-keys -t "${paneId}" -l "/handoff $(handoffSlug "${name}")"
+        tm send-keys -t "${paneId}" -l "/workstyle:handoff $(handoffSlug "${name}")"
         tm send-keys -t "${paneId}" Enter
 
         echo "handoff 요청 — ${name} (pane ${paneId})" >&2

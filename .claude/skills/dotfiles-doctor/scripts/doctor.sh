@@ -130,7 +130,7 @@ while IFS= read -r def; do
   front=$(awk 'NR == 1 { next } /^---$/ { exit } { print }' "${def}")
   grep -qE '^description:[[:space:]]*[^[:space:]]' <<< "${front}" || fail "description 없음 또는 빈 값: ${def}"
   [[ "${def}" == */commands/* ]] || grep -q '^name:' <<< "${front}" || fail "name 없음: ${def}"
-done < <(git ls-files --cached --others --exclude-standard '.claude/skills/*/SKILL.md' 'claude/skills/*/SKILL.md' 'claude/agents/*.md' 'claude/commands/*.md')
+done < <(git ls-files --cached --others --exclude-standard '.claude/skills/*/SKILL.md')
 
 # --- 6. 판단 재료: 현재 Claude Code 버전과 문서가 기준으로 삼은 버전 ---
 echo "## 6. 버전 기준"

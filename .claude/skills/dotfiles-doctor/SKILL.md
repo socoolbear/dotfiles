@@ -1,6 +1,6 @@
 ---
 name: dotfiles-doctor
-description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·Makefile 매핑·문법·새 디렉토리 감지·민감 정보 (비밀키·개인정보·회사/사람 이름) 같은 기계적 점검, 모든 디렉토리의 공통 점검, 그리고 claude/ 하네스 (전역 CLAUDE.md·AGENTS.md · docs · settings · 훅 · 에이전트) 를 현재 Claude Code 버전에 맞게 진화시키는 점검. 추천안을 스스로 골라 적대적 검증 루프를 거친 뒤 중단 없이 적용·검증·커밋·push 까지 진행한다. "dotfiles 점검", "doctor", "하네스 점검/정리/최신화", "claude 설정 모순 찾아줘", "낡은 설정 정리" 같은 요청에 사용한다. 설치·동기화 실행 (make fresh/update, brew) 은 이 스킬이 아니라 setup-env 다.
+description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·Makefile 매핑·문법·새 디렉토리 감지·민감 정보 (비밀키·개인정보·회사/사람 이름) 같은 기계적 점검, 모든 디렉토리의 공통 점검, 그리고 claude/ 의 장비 접착 (settings · 전역 CLAUDE.md 불러오기 줄 · statusline · tmux 상태 · 켜 둔 플러그인) 을 현재 Claude Code 버전에 맞추는 점검 (workstyle 규칙·훅·에이전트의 진화는 cc-marketplace 저장소의 evolve 스킬). 추천안을 스스로 골라 적대적 검증 루프를 거친 뒤 중단 없이 적용·검증·커밋·push 까지 진행한다. "dotfiles 점검", "doctor", "하네스 점검/정리/최신화", "claude 설정 모순 찾아줘", "낡은 설정 정리" 같은 요청에 사용한다. 설치·동기화 실행 (make fresh/update, brew) 은 이 스킬이 아니라 setup-env 다.
 ---
 
 # dotfiles doctor
@@ -31,30 +31,25 @@ description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·
 - 시작 시점의 `git status --porcelain` 과 `git rev-list --count @{u}..HEAD` (upstream 보다 앞선 커밋 수) 를 기록한다. **미커밋 변경이 있거나 앞선 커밋이 있으면 이번 실행은 자동 커밋·push 하지 않는다** (6단계) — 검증한 작업 트리와 커밋 내용이 달라지거나, 리뷰하지 않은 커밋이 같이 push 되므로. upstream 이 없으면 앞선 커밋은 보지 않고, 6단계에서 커밋만 하고 push 하지 않는다
 - `claude/` 아래 파일 **전부** 읽기, 다른 디렉토리는 아래 공통 점검 기준에 필요한 파일 읽기 (Read 병렬)
 - `doctor.sh` 「저장소 구성」 결과로 범위를 정한다: 마지막 doctor 실행 이후 바뀐 최상위 항목을 먼저·깊게 보고, 나머지도 빠뜨리지 않는다
-- 동작 설명이 사실인지 실제로 띄워 봐야 알 수 있으면 시험용 서브에이전트를 병렬로 띄워 확인한다. 팀 동작 자체를 시험할 때만 팀메이트 (`name`) 를 쓰고, 그때는 `~/.claude/docs/work-split.md` 를 먼저 읽고 확인 즉시 `TaskStop` 으로 해산한다
+- 동작 설명이 사실인지 실제로 띄워 봐야 알 수 있으면 시험용 서브에이전트를 병렬로 띄워 확인한다. 팀 동작 자체를 시험할 때만 팀메이트 (`name`) 를 쓰고, 그때는 `~/.claude/workstyle/docs/work-split.md` 를 먼저 읽고 확인 즉시 `TaskStop` 으로 해산한다
 
 ### 민감 정보 (`doctor.sh` 「8. 민감 정보」)
 
 공개 저장소이므로 작업 트리에서 걸린 것은 `자동 적용` 으로 지운다 — 값을 자리표시자 (`xxx`, 일반 이름) 로 바꾸고, 비밀키라면 무효화가 필요하다고 보고에 남긴다. 이력에만 남은 것은 위 「마지막에 질문」 이다. 금지어 목록 (`~/.config/dotfiles/sensitive-words`) 이 없다는 INFO 가 나오면 보고에 적는다. 오탐인 금지어는 목록을 고치라고 보고한다 (목록은 저장소 밖이라 doctor 가 고치지 않는다). gitleaks 기본 규칙이 모르는 비밀 형식 (주소 자체가 비밀인 토픽·웹훅 등) 을 찾으면 `scripts/gitleaks.toml` 에 규칙을 더하는 항목을 `자동 적용` 으로 만든다. 새 규칙이 저장소 이력에 걸리면 오탐인지 판정한다 — 오탐이면 규칙을 좁히고, 실제 유출이면 규칙은 그대로 두고 위 「마지막에 질문」 으로 넘긴다.
 
-### claude/ 하네스 점검 기준
+### claude/ 점검 기준 (장비 접착)
+
+dotfiles 의 `claude/` 에는 장비 접착 (`settings.json` · 전역 `CLAUDE.md` 의 불러오기 줄 · `scripts/` 의 statusline · tmux 상태 · `docs/lessons.md` · `mods/`) 만 남아 있다. 취향 규칙과 작업 장치 (workstyle 의 규칙 글 · 훅 · 에이전트 · 명령, deploy-guard) 는 cc-marketplace 저장소에 있고, 그 진화 점검은 그 저장소의 `evolve` 스킬이 맡는다 — 이 스킬에 있던 규칙·위임·지시 점검 기준은 그 저장소의 workstyle 진화 기록 (docs/evolution/workstyle.md) 「점검 기준 (dotfiles-doctor 에서 옮김)」 으로 옮겼다. 거기서 고칠 것을 찾으면 처방서에 항목으로 만들지 말고 보고에 "cc-marketplace evolve 대상" 으로 적는다.
 
 | 점검 | 대조 대상 |
 |---|---|
 | 문서가 쓰라는 도구·파라미터가 실제로 있는가 | 현재 세션의 도구 목록·스키마, `claude --version` |
-| 규칙끼리, 규칙과 실제 설정이 맞는가 | `settings.json`, `zsh/zshrc` alias, `Makefile`, 훅 스크립트 |
-| 요약 숫자·참조가 실제와 맞는가 | 단계 수, 규칙 번호, `§N` 참조, 파일 목록 |
-| 지킬 수 없거나 다른 규칙과 부딪히는 지시 | 특히 「출력 길이」「핵심 원칙」 |
+| dotfiles 문서·설정과 실제가 맞는가 | `settings.json`, `zsh/zshrc` alias, `Makefile`, `claude/scripts/` |
+| 요약 숫자·참조가 실제와 맞는가 | 파일 목록, 문서가 가리키는 경로 |
 | 동작 설명이 사실인가 | 직접 확인 (필요하면 시험용 에이전트). 끝내 확인 못 하면 "미확인" 으로 보고하고 고치지 않는다 |
-| 비어 있거나 쓰지 않는 파일·설정, 발동하지 않는 훅 | `enabledPlugins`, 빈 설정 파일, 끝난 이관 메모, 훅이 판정에 쓰는 필드가 실제로 기록되는지 |
-| 최신 모델에 과한 지시 | 기계적 게이트, 시키지 않아도 하는 일을 시키는 지시 |
-| 서브에이전트 위임이 새 컨텍스트가 필요한 경우 (병렬 독립 작업 · 대량 반복 · 긴 출력 · 넓은 조사 · 별도 시점 검증 · 권한 분리) 로 한정됐는가. 아니면 메인 루프로 접을 후보 | `~/.claude/workstyle/workflow-table.md` 규칙 3, `~/.claude/workstyle/docs/workflow.md` §3, `claude/agents/*.md` 의 `description`, 실제 사용량: `find ~/.claude/projects -maxdepth 2 -name '*.jsonl' -mtime -21 -size +20k \| xargs grep -ho '"subagent_type":"[^"]*"' \| sort \| uniq -c \| sort -rn` |
-| 함께 불리거나 서로의 출력에 의존하는 에이전트 · 프롬프트만 있는 에이전트 — 합치거나 스킬로 바꿀 후보 | `claude/agents/*.md`, 프로젝트 에이전트와 겹치는지 |
-| 덧붙이기로 불어난 지시 — 날짜 단서·예외가 계속 붙어 규칙끼리 부딪히거나 톤이 갈리는 곳 | `~/.claude/workstyle/AGENTS.md`, `claude/CLAUDE.md`, `~/.claude/workstyle/docs/*.md` |
-| 매 세션 로드되는 지시가 요약·포인터만 담는가 (상세는 필요할 때 읽게), 같은 지시가 두 번 로드되지 않는가 | `claude -p` 새 세션으로 로드된 지시 파일 목록 확인 — 로딩은 세션을 연 위치에 따라 다르므로 **홈 하위 (`~/code`) 와 홈 밖 (스크래치 디렉토리) 두 곳** |
-| 켜 둔 스킬·플러그인·MCP 가 겹치거나 쓰이지 않는가 (도구 정의가 많을수록 선택 정확도가 떨어진다) | `enabledPlugins`, `claude/skills/`, `claude mcp list` |
-
-> 서브에이전트·지시 관련 행의 출처: Anthropic 「Building agents: when to fold subagents into your main agent loop」 (claude.com/resources/articles). 단일 루프 + 점진적 공개가 기본이고, 서브에이전트는 컨텍스트 과다 · 병렬 · 검증 · 권한 분리가 필요할 때만 남긴다는 기준이다.
+| 비어 있거나 쓰지 않는 파일·설정, 발동하지 않는 훅 | `enabledPlugins`, 빈 설정 파일, 끝난 이관 메모, `settings.json` 의 훅이 부르는 스크립트가 실재하는지 |
+| `claude/CLAUDE.md` 의 불러오기 줄이 모두 실재 파일을 가리키고, 같은 지시가 두 번 실리지 않는가 (없는 파일 import 는 경고 없이 넘어간다) | `claude -p` 새 세션으로 로드된 지시 파일 목록 확인 — 로딩은 세션을 연 위치에 따라 다르므로 **홈 하위 (`~/code`) 와 홈 밖 (스크래치 디렉토리) 두 곳** |
+| 켜 둔 플러그인·MCP 가 겹치거나 쓰이지 않는가 (도구 정의가 많을수록 선택 정확도가 떨어진다) | `enabledPlugins`, `claude mcp list` |
 
 ### 모든 디렉토리 공통 점검 기준
 

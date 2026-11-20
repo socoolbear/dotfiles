@@ -1,6 +1,6 @@
 # 교훈 (전역)
 
-> 도구·워크플로우 전반에 걸친 교훈을 쌓는 곳. 라우팅 기준은 `@docs/feedback-loop.md` 참조.
+> 도구·워크플로우 전반에 걸친 교훈을 쌓는 곳. 라우팅 기준은 `~/.claude/workstyle/docs/feedback-loop.md` 참조.
 > 특정 프로젝트에만 해당하는 교훈은 여기가 아니라 그 프로젝트의 `docs/lessons.md` 에 쓴다.
 
 ## 쓰는 법

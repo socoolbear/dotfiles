@@ -35,10 +35,7 @@
 | `tmux/tmux.conf.local` | `~/.config/tmux/tmux.conf.local` |
 | `claude/settings.json` | `~/.claude/settings.json` |
 | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
-| (workstyle 플러그인) `~/.claude/workstyle/AGENTS.md` | `~/.codex/AGENTS.md` — 취향 규칙은 workstyle 플러그인이 `~/.claude/workstyle/` 에 내놓고 (`claude/CLAUDE.md` 가 홈 기준 경로로 import), Codex 링크는 그 폴더의 `AGENTS.md` 를 가리킨다. 비공개 배포 표 `~/.config/claude/deploy-targets.md` 와 장비 규칙 `~/.config/claude/local-rules.md` (원본은 워크스페이스 repo 의 `policy/`) 는 `make sync` 가 `~/.codex/AGENTS.override.md` 로 합친다. dotfiles 의 `claude/AGENTS.md` 는 옮겨졌다는 안내만 남았다 |
-| `claude/commands/*.md` | `~/.claude/commands/<name>.md` *(와일드카드 자동 발견)* |
-| `claude/skills/*/` | `~/.claude/skills/<name>/` *(와일드카드 자동 발견, 디렉토리 단위)* |
-| `claude/agents/*.md` | `~/.claude/agents/<name>.md` *(와일드카드 자동 발견)* |
+| (workstyle 플러그인) `~/.claude/workstyle/AGENTS.md` | `~/.codex/AGENTS.md` — 취향 규칙은 workstyle 플러그인이 `~/.claude/workstyle/` 에 내놓고 (`claude/CLAUDE.md` 가 홈 기준 경로로 import), Codex 링크는 그 폴더의 `AGENTS.md` 를 가리킨다. 비공개 배포 표 `~/.config/claude/deploy-targets.md` 와 장비 규칙 `~/.config/claude/local-rules.md` (원본은 워크스페이스 repo 의 `policy/`) 는 `make sync` 가 `~/.codex/AGENTS.override.md` 로 합친다. |
 | `mise/config.toml` | `~/.config/mise/config.toml` |
 | `scripts/brew-scheduled-update.sh` | `~/.local/bin/brew-scheduled-update` |
 | `scripts/sleepguard-toggle.sh` | `~/.local/bin/sleepguard` |
@@ -46,11 +43,9 @@
 | `scripts/mcp-pg-reader.sh` | `~/.local/bin/mcp-pg-reader` |
 | `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 위 두 실행기가 거친다)* |
 | `scripts/term-session.sh` | `~/.local/bin/term-session` |
-| `claude/scripts/loop-metrics.sh` | `~/.local/bin/loop-metrics` *(질문 지표)* |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 
-> `claude/commands/*.md`, `claude/skills/*/`, `claude/agents/*.md` 는 Makefile 의 `COMMANDS` / `SKILLS` / `AGENT_DEFS` 와일드카드가 자동 발견하므로, 새 명령/skill/agent 를 추가해도 Makefile 수정 불필요.
-> 단, skills 와 agents 는 dotfiles 에 있는 항목만 링크하므로 dotfiles 에 없는 머신별 실파일/실디렉토리 (예: 로컬에서만 만든 agent) 는 보존됩니다. 같은 이름의 실파일은 덮어씁니다.
+> 슬래시 명령 · 스킬 · 에이전트는 dotfiles 가 링크하지 않는다 — 작업 장치는 cc-marketplace 플러그인 (workstyle 등) 이 싣는다. `~/.local/bin/workstyle` · `loop-metrics` 는 `make sync` 가 부르는 `workstyle install` 이 만드는 실행 파일이다.
 
 ## 심볼릭 링크 매핑 — 디렉토리
 
@@ -59,9 +54,8 @@
 | `ghostty/` | `~/.config/ghostty/` |
 | `karabiner/` | `~/.config/karabiner/` |
 | `swiftbar/` | `~/.swiftbar-plugins/` |
-| `claude/rules/` | (링크 없음 — 코딩 스타일은 workstyle 플러그인의 `~/.claude/workstyle/coding-style.md` 로 옮겼고 안내 파일만 남았다) |
 | `claude/scripts/` | `~/.claude/scripts/` |
-| `claude/docs/` | `~/.claude/docs/` |
+| `claude/docs/` | `~/.claude/docs/` *(전역 교훈 `lessons.md`)* |
 | `alfred/workflows/*/` | `~/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/<name>` *(와일드카드 자동 발견, 디렉토리 단위)* |
 
 > `claude/mods/*/` (Claude Code mod) 는 링크하지 않고 `claude/settings.json` 의 `env.CLAUDE_CODE_PLUGIN_DIRS` 가 저장소 경로를 직접 가리킵니다 (tmux 로 바로 띄운 세션처럼 zshrc 를 거치지 않는 세션에도 적용).

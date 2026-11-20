@@ -24,26 +24,6 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "ExitPlanMode",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle enforce-plan-review.sh",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash|mcp__github__merge_pull_request",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh deploy-guard enforce-deploy-check.sh",
-            "timeout": 5
-          }
-        ]
-      },
-      {
         "matcher": "AskUserQuestion|ExitPlanMode",
         "hooks": [
           {
@@ -70,38 +50,9 @@
             "command": "echo \"Slack 메시지는 직접 보내지 않는다 — 직접 전송하면 Slack 이 'Sent using @Claude' 를 붙인다 (사용자 지시 2026-11-12, 쓰레드 답글 금지는 2026-11-02). slack_send_message_draft 로 초안을 만들고 사용자가 보내게 한다\" >&2; exit 2"
           }
         ]
-      },
-      {
-        "matcher": "AskUserQuestion",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle ask-precheck.sh",
-            "timeout": 5
-          }
-        ]
       }
     ],
     "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle context-guard.sh",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh deploy-guard remind-deploy-qa.sh",
-            "timeout": 5
-          }
-        ]
-      },
       {
         "hooks": [
           {
@@ -113,16 +64,6 @@
       }
     ],
     "SessionStart": [
-      {
-        "matcher": "compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle compact-restore.sh",
-            "timeout": 10
-          }
-        ]
-      },
       {
         "matcher": "startup|resume|clear",
         "hooks": [
@@ -145,16 +86,6 @@
           {
             "type": "command",
             "command": "bash ~/.claude/scripts/tmux-claude-state.sh stop",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle team-cleanup-check.sh",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle stop-gate.sh",
             "timeout": 5
           }
         ]

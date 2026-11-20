@@ -53,7 +53,7 @@ mkdir -p ~/code ~/.local/bin
 ### Shell
 
 - 시크릿 환경 변수: `cp zsh/private.export.example ~/.private-exports` 후 토큰 입력 (NTFY/EXA/GitHub 등). zshrc 가 자동 로드합니다.
-- 배포 분류 (비공개): `~/.config/claude/deploy-targets` (배포 점검 훅 대상) 와 `deploy-targets.md` (Claude·Codex 가 읽는 repo 별 표) 의 원본은 비공개 워크스페이스 repo 의 `policy/` 에 있습니다. 워크스페이스를 clone 한 뒤 심링크 두 개를 걸고 (`ln -s <워크스페이스>/policy/deploy-targets ~/.config/claude/deploy-targets`, `.md` 도 같게) `make sync` 를 다시 돌립니다. 워크스페이스가 없는 장비는 `claude/deploy-targets*.example` 을 복사해 실파일로 씁니다. 회사 repo 이름은 사내 보안 정책상 공개 저장소에 넣지 않습니다. 운영 배포 대상이 없는 장비는 `prod` 줄 대신 `no-prod` 한 줄을 둡니다. 파일이 없으면 훅이 main·master·dev push 를 모두 운영 배포로 보고 확인창을 띄우고, 다른 브랜치로 가는 PR 머지는 미분류로 한 번 멈춥니다. repo 별 배포 스크립트 (FTP 업로드 등) 뒤에도 직접 QA 알림을 받으려면 `~/.config/claude/deploy-qa-patterns` 도 옮깁니다 (형식은 `claude/deploy-qa-patterns.example`).
+- 배포 분류 (비공개): `~/.config/claude/deploy-targets` (배포 점검 훅 대상) 와 `deploy-targets.md` (Claude·Codex 가 읽는 repo 별 표) 의 원본은 비공개 워크스페이스 repo 의 `policy/` 에 있습니다. 워크스페이스를 clone 한 뒤 심링크 두 개를 걸고 (`ln -s <워크스페이스>/policy/deploy-targets ~/.config/claude/deploy-targets`, `.md` 도 같게) `make sync` 를 다시 돌립니다. 워크스페이스가 없는 장비는 cc-marketplace 저장소의 `plugins/deploy-guard/skills/deploy/references/deploy-targets*.example` 을 복사해 실파일로 씁니다. 회사 repo 이름은 사내 보안 정책상 공개 저장소에 넣지 않습니다. 운영 배포 대상이 없는 장비는 `prod` 줄 대신 `no-prod` 한 줄을 둡니다. 파일이 없으면 훅이 main·master·dev push 를 모두 운영 배포로 보고 확인창을 띄우고, 다른 브랜치로 가는 PR 머지는 미분류로 한 번 멈춥니다. repo 별 배포 스크립트 (FTP 업로드 등) 뒤에도 직접 QA 알림을 받으려면 `~/.config/claude/deploy-qa-patterns` 도 옮깁니다 (형식은 같은 폴더의 `deploy-qa-patterns.example`).
 - doctor 금지어 목록: 기존 장비의 `~/.config/dotfiles/sensitive-words` (공개 저장소에 들어가면 안 되는 회사·사람 이름, 한 줄에 정규식 하나) 를 옮겨 둡니다. 저장소에 적으면 그 자체로 노출이라 저장소 밖에 둡니다.
 - `~/.zsh_history` 마이그레이션은 [migration.md 의 zsh history 섹션](migration.md#zsh-history-동기화-옵션-비교) 참조 (atuin 권장).
 - **atuin login** (sync 사용 시): `atuin login -u <username>` → 비밀번호 + sync key 입력. 이어서 `atuin sync` 로 기존 히스토리 가져오기. sync key 는 기존 머신에서 `atuin key` 로 확인.
@@ -120,7 +120,7 @@ mise trust ~/.dotfiles/mise/config.toml
 
 ### Claude
 
-`make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, scripts, docs, commands, skills, agents) 와 `~/.codex/AGENTS.md` (workstyle 플러그인이 내놓는 `~/.claude/workstyle/AGENTS.md`) 를 심링크합니다. 전역 규칙 (취향 규칙) 은 workstyle 플러그인의 것이라, 플러그인 설치 뒤 세션에서 `/workstyle:setup` 을 한 번 실행해 `~/.claude/workstyle` 를 잡습니다. `claude/skills/*/` 는 와일드카드로 자동 발견되어 디렉토리 단위로 심링크됩니다 — dotfiles 에 있는 skill 만 링크하므로 dotfiles 에 없는 머신별 skill (예: 로컬에서만 만든 것) 은 보존됩니다.
+`make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, scripts, docs) 와 `~/.codex/AGENTS.md` (workstyle 플러그인이 내놓는 `~/.claude/workstyle/AGENTS.md`) 를 심링크합니다. 전역 규칙 (취향 규칙) 은 workstyle 플러그인의 것이라, 플러그인 설치 뒤 세션에서 `/workstyle:setup` 을 한 번 실행해 `~/.claude/workstyle` 를 잡습니다. 작업 훅 · 에이전트 · 슬래시 명령은 dotfiles 가 아니라 플러그인 (workstyle · deploy-guard) 이 싣습니다. dotfiles 를 깔 수 없는 장비와 조직 정책 (배포 분류 · 장비 규칙 · 필요한 플러그인 선언) 은 비공개 워크스페이스 repo 의 `SETUP.md` 를 따릅니다.
 
 `make sync` 는 끝에서 `scripts/claude-plugins-sync.sh` 를 불러 공용 `settings.json` 에서 켠 플러그인 중 이 장비에 없는 것을 설치하고, 장비 등록이 필요한 장치를 다시 겁니다 (`claude` · `jq` 가 없으면 건너뛰고 안내 — 설치 뒤 `make sync` 를 다시 실행).
 

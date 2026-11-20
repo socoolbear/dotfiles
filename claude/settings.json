@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/enforce-deploy-check.sh",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh deploy-guard enforce-deploy-check.sh",
             "timeout": 5
           }
         ]
@@ -80,6 +80,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit|mcp__.*|Agent|Task|TeamCreate",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh night-loop night-guard.sh",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -97,7 +107,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/remind-deploy-qa.sh",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh deploy-guard remind-deploy-qa.sh",
             "timeout": 5
           }
         ]
@@ -154,6 +164,11 @@
           },
           {
             "type": "command",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh night-loop loop-verify-gate.sh",
+            "timeout": 1800
+          },
+          {
+            "type": "command",
             "command": "bash ~/.claude/scripts/stop-gate.sh",
             "timeout": 5
           }
@@ -197,6 +212,11 @@
           {
             "type": "command",
             "command": "bash ~/.claude/scripts/tmux-claude-state.sh busy",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh night-loop night-guard.sh",
             "timeout": 5
           }
         ]
@@ -270,7 +290,8 @@
     "clangd-lsp@claude-plugins-official": true,
     "programming@socoolbear-cc-marketplace": true,
     "sessions@socoolbear-cc-marketplace": true,
-    "night-loop@socoolbear-cc-marketplace": true
+    "night-loop@socoolbear-cc-marketplace": true,
+    "deploy-guard@socoolbear-cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {

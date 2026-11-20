@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > AI 에이전트가 이 저장소를 이해하고 작업하기 위한 가이드
-> 코딩 스타일은 `claude/rules/coding-style.md`, 언어·용어·환경 (공용) 은 `~/.dotfiles/claude/AGENTS.md`, Claude Code 워크플로우는 `~/.dotfiles/claude/CLAUDE.md` 참조
+> 코딩 스타일은 `~/.claude/workstyle/coding-style.md`, 언어·용어·환경 (공용) 은 `~/.claude/workstyle/AGENTS.md`, Claude Code 워크플로우는 `~/.claude/workstyle/workflow-table.md` 참조 (workstyle 플러그인의 글 — 고칠 때는 그 파일을 고치고 플러그인 저장소에 커밋)
 
 ## 프로젝트 개요
 

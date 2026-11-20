@@ -8,7 +8,7 @@ description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·
 **진단 → 처방서 → R1 (처방서 리뷰) → 적용 → R2~ (diff 리뷰, 수렴할 때까지) → 커밋·push → 보고.** 처음부터 끝까지 사용자에게 묻지 않고 진행한다 (2026-10-09 사용자 결정).
 
 이 스킬 안에서는 전역 규칙 중 아래를 이 문서의 절차로 대체한다.
-- `~/.claude/docs/workflow.md` §7 (착수 전 질문) → 아래 「진행 중 묻지 않는다」
+- `~/.claude/workstyle/docs/workflow.md` §7 (착수 전 질문) → 아래 「진행 중 묻지 않는다」
 - workflow §1·§2 (계획 모드, 계획서 적대적 검증) → 처방서와 검증 루프. 계획 모드로 들어가지 않는다
 - 규칙 3 의 `qa-runner` 위임 → 검증 명령은 몇 번의 호출로 끝나므로 직접 돌린다 (workflow §3-3)
 
@@ -48,9 +48,9 @@ description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·
 | 동작 설명이 사실인가 | 직접 확인 (필요하면 시험용 에이전트). 끝내 확인 못 하면 "미확인" 으로 보고하고 고치지 않는다 |
 | 비어 있거나 쓰지 않는 파일·설정, 발동하지 않는 훅 | `enabledPlugins`, 빈 설정 파일, 끝난 이관 메모, 훅이 판정에 쓰는 필드가 실제로 기록되는지 |
 | 최신 모델에 과한 지시 | 기계적 게이트, 시키지 않아도 하는 일을 시키는 지시 |
-| 서브에이전트 위임이 새 컨텍스트가 필요한 경우 (병렬 독립 작업 · 대량 반복 · 긴 출력 · 넓은 조사 · 별도 시점 검증 · 권한 분리) 로 한정됐는가. 아니면 메인 루프로 접을 후보 | `claude/CLAUDE.md` 규칙 3, `claude/docs/workflow.md` §3, `claude/agents/*.md` 의 `description`, 실제 사용량: `find ~/.claude/projects -maxdepth 2 -name '*.jsonl' -mtime -21 -size +20k \| xargs grep -ho '"subagent_type":"[^"]*"' \| sort \| uniq -c \| sort -rn` |
+| 서브에이전트 위임이 새 컨텍스트가 필요한 경우 (병렬 독립 작업 · 대량 반복 · 긴 출력 · 넓은 조사 · 별도 시점 검증 · 권한 분리) 로 한정됐는가. 아니면 메인 루프로 접을 후보 | `~/.claude/workstyle/workflow-table.md` 규칙 3, `~/.claude/workstyle/docs/workflow.md` §3, `claude/agents/*.md` 의 `description`, 실제 사용량: `find ~/.claude/projects -maxdepth 2 -name '*.jsonl' -mtime -21 -size +20k \| xargs grep -ho '"subagent_type":"[^"]*"' \| sort \| uniq -c \| sort -rn` |
 | 함께 불리거나 서로의 출력에 의존하는 에이전트 · 프롬프트만 있는 에이전트 — 합치거나 스킬로 바꿀 후보 | `claude/agents/*.md`, 프로젝트 에이전트와 겹치는지 |
-| 덧붙이기로 불어난 지시 — 날짜 단서·예외가 계속 붙어 규칙끼리 부딪히거나 톤이 갈리는 곳 | `claude/AGENTS.md`, `claude/CLAUDE.md`, `claude/docs/*.md` |
+| 덧붙이기로 불어난 지시 — 날짜 단서·예외가 계속 붙어 규칙끼리 부딪히거나 톤이 갈리는 곳 | `~/.claude/workstyle/AGENTS.md`, `claude/CLAUDE.md`, `~/.claude/workstyle/docs/*.md` |
 | 매 세션 로드되는 지시가 요약·포인터만 담는가 (상세는 필요할 때 읽게), 같은 지시가 두 번 로드되지 않는가 | `claude -p` 새 세션으로 로드된 지시 파일 목록 확인 — 로딩은 세션을 연 위치에 따라 다르므로 **홈 하위 (`~/code`) 와 홈 밖 (스크래치 디렉토리) 두 곳** |
 | 켜 둔 스킬·플러그인·MCP 가 겹치거나 쓰이지 않는가 (도구 정의가 많을수록 선택 정확도가 떨어진다) | `enabledPlugins`, `claude/skills/`, `claude mcp list` |
 

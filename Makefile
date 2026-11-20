@@ -92,7 +92,6 @@ LINKS_SINGLE := \
     tmux/tmux.conf.local:.config/tmux/tmux.conf.local \
     claude/settings.json:.claude/settings.json \
     claude/CLAUDE.md:.claude/CLAUDE.md \
-    claude/AGENTS.md:.codex/AGENTS.md \
     mise/config.toml:.config/mise/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
@@ -107,11 +106,8 @@ LINKS_DIR := \
     ghostty:.config/ghostty \
     karabiner:.config/karabiner \
     swiftbar:.swiftbar-plugins \
-    claude/rules:.claude/rules \
     claude/scripts:.claude/scripts \
-    claude/docs:.claude/docs \
-    claude/docs:.claude/workstyle/docs \
-    claude/AGENTS.md:.claude/workstyle/AGENTS.md
+    claude/docs:.claude/docs
 
 # claude/commands/*.md — 와일드카드 자동 발견 (파일 추가 시 Makefile 수정 불필요)
 COMMANDS := $(notdir $(wildcard $(DOTFILES)/claude/commands/*.md))
@@ -173,18 +169,30 @@ sync: ohmyzsh ohmytmux
 	@# ~/.codex/AGENTS.md 가 실파일이면 백업 (아래 ln -sf 가 덮어쓰므로 — 이전엔 Codex 가 손으로 만든 실파일이었다)
 	@if [ -e $(HOME)/.codex/AGENTS.md ] && [ ! -L $(HOME)/.codex/AGENTS.md ]; then \
 		mv $(HOME)/.codex/AGENTS.md $(HOME)/.codex/AGENTS.md.bak; \
-		echo "==> ~/.codex/AGENTS.md 실파일을 AGENTS.md.bak 으로 백업 (claude/AGENTS.md 심링크로 교체)"; \
+		echo "==> ~/.codex/AGENTS.md 실파일을 AGENTS.md.bak 으로 백업 (취향 규칙 심링크로 교체)"; \
 	fi
 
-	@# Codex 는 @import 를 못 읽어 비공개 배포 표 (~/.config/claude/deploy-targets.md) 를 AGENTS.override.md 로 합쳐 준다
+	@# 취향 규칙 (AGENTS.md 등) 은 workstyle 플러그인이 ~/.claude/workstyle 에 내놓는다 (사본이거나 플러그인 체크아웃 심링크).
+	@# Codex 는 그 폴더의 AGENTS.md 를 읽는다. 폴더가 없으면 걸지 않고 알린다 (플러그인 설치 뒤 세션에서 /workstyle:setup)
+	@if [ -f $(HOME)/.claude/workstyle/AGENTS.md ]; then \
+		mkdir -p $(HOME)/.codex; \
+		ln -sfn $(HOME)/.claude/workstyle/AGENTS.md $(HOME)/.codex/AGENTS.md; \
+	else \
+		echo "==> ~/.claude/workstyle/AGENTS.md 가 없어 ~/.codex/AGENTS.md 를 걸지 못했습니다 — workstyle 플러그인 설치 뒤 세션에서 /workstyle:setup"; \
+	fi
+	@# 예전 ~/.claude/rules 링크 정리 — 코딩 스타일은 전역 CLAUDE.md 가 ~/.claude/workstyle/coding-style.md 를 불러온다 (남아 있으면 두 번 실린다)
+	@[ ! -L $(HOME)/.claude/rules ] || rm $(HOME)/.claude/rules
+
+	@# Codex 는 @import 를 못 읽어 취향 규칙 (AGENTS.md) + 비공개 배포 표 + 장비 규칙 (local-rules.md) 을 AGENTS.override.md 로 합쳐 준다
 	@# (Codex 는 이 파일이 있으면 AGENTS.md 대신 읽는다 — 복사본이라 AGENTS.md·표를 고치면 make sync 를 다시 돌린다)
-	@if [ -f $(HOME)/.config/claude/deploy-targets.md ]; then \
+	@if [ -f $(HOME)/.config/claude/deploy-targets.md ] && [ -f $(HOME)/.claude/workstyle/AGENTS.md ]; then \
 	    mkdir -p $(HOME)/.codex; \
 	    if [ -f $(HOME)/.codex/AGENTS.override.md ] && ! grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md; then \
 	        mv $(HOME)/.codex/AGENTS.override.md $(HOME)/.codex/AGENTS.override.md.bak; \
 	        echo "==> 손으로 만든 ~/.codex/AGENTS.override.md 를 .bak 으로 백업"; \
 	    fi; \
-	    { echo "$(CODEX_OVERRIDE_MARK)"; cat $(DOTFILES)/claude/AGENTS.md; echo; cat $(HOME)/.config/claude/deploy-targets.md; } > $(HOME)/.codex/AGENTS.override.md; \
+	    { echo "$(CODEX_OVERRIDE_MARK)"; cat $(HOME)/.claude/workstyle/AGENTS.md; echo; cat $(HOME)/.config/claude/deploy-targets.md; \
+	      if [ -f $(HOME)/.config/claude/local-rules.md ]; then echo; cat $(HOME)/.config/claude/local-rules.md; fi; } > $(HOME)/.codex/AGENTS.override.md; \
 	elif grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md 2>/dev/null; then \
 	    rm -f $(HOME)/.codex/AGENTS.override.md; \
 	fi
@@ -200,7 +208,7 @@ sync: ohmyzsh ohmytmux
 	@# tmux.conf 잔재 정리 (oh-my-tmux 가 ~/.config/tmux/tmux.conf 사용)
 	@rm -f $(HOME)/.tmux.conf
 
-	@# ~/.claude/AGENTS.md 잔재 정리 (있으면 홈 하위 세션에서 전역 지시가 프로젝트 지시로 한 번 더 로드됨 — claude/CLAUDE.md 가 @AGENTS.md 로 실경로 import)
+	@# ~/.claude/AGENTS.md 잔재 정리 (있으면 홈 하위 세션에서 전역 지시가 프로젝트 지시로 한 번 더 로드됨 — 전역 지시는 claude/CLAUDE.md 가 ~/.claude/workstyle/ 에서 불러온다)
 	@[ ! -L $(HOME)/.claude/AGENTS.md ] || rm $(HOME)/.claude/AGENTS.md
 
 	@# claude/commands/*.md 자동 발견 후 심링크

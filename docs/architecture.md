@@ -46,9 +46,9 @@ launchd 는 예약 시각에 맥이 잠들어 있었으면 **깨어난 직후** 
 ## claude/ 하위 구성
 
 - `claude/settings.json` — Claude Code 글로벌 설정 (hooks, 권한, 환경변수)
-- `claude/AGENTS.md` — 공용 글로벌 인스트럭션 (언어·용어·출력 길이·환경·핵심 원칙·운영 배포 전 점검). Claude Code 와 Codex (`~/.codex/AGENTS.md` 심링크) 가 함께 읽는다
-- `claude/CLAUDE.md` — Claude Code 전용 인스트럭션 (도구·워크플로우). 맨 위에서 `@AGENTS.md` 를 import. `~/.claude/AGENTS.md` 로 심링크하지 않는다 — 홈 하위 세션에서 프로젝트 지시로 한 번 더 로드된다
-- `claude/rules/` — 자동 로드되는 규칙 모음 (예: `coding-style.md`)
+- 취향 규칙 (공용 글로벌 인스트럭션 `AGENTS.md` · 워크플로우 표 · 코딩 스타일 · 문서) 은 workstyle 플러그인 (socoolbear/cc-marketplace 의 `plugins/workstyle/rules/`) 으로 옮겼다. 이 장비에서는 `~/.claude/workstyle/` 가 그 체크아웃으로 가는 심링크이고, Codex (`~/.codex/AGENTS.md`) 는 그 폴더의 `AGENTS.md` 를 읽는다. dotfiles 의 `claude/AGENTS.md` · `claude/rules/` · `claude/docs/{workflow,work-split,wording,feedback-loop}.md` 는 옮겨졌다는 안내만 남았다 (옮기기 전 세션이 닫히면 삭제)
+- `claude/CLAUDE.md` — 전역 지시 파일. 불러오기 줄만 둔다: `@~/.claude/workstyle/{AGENTS,workflow-table,coding-style}.md` 와 비공개 파일 `@~/.config/claude/{deploy-targets,local-rules}.md`. 경로는 홈 기준 — 상대 경로는 이 파일의 실제 위치 (dotfiles) 기준으로 풀린다
+- `claude/rules/` — 안내 파일만 남음 (`~/.claude/rules` 링크는 걸지 않는다 — 걸면 코딩 스타일이 두 번 실린다)
 - `claude/scripts/` — Hook 등에서 호출하는 유틸 스크립트 (`statusline-command.sh`, `enforce-plan-review.sh`, `enforce-deploy-check.sh`, `remind-deploy-qa.sh`, `team-cleanup-check.sh`, `context-guard.sh`, `compact-restore.sh`, `tmux-claude-state.sh` — tmux 창 목록의 작업 상태 표시)
 - 넘겨주기 (`claude/scripts/legacy-hook-gate.sh`) — 플러그인으로 옮긴 장치 (배포 확인 `deploy-guard`, 야간 루프 `night-loop`) 의 옛 훅 스크립트 (`enforce-deploy-check.sh` · `remind-deploy-qa.sh` · `night-guard.sh` · `loop-verify-gate.sh`) 는 `settings.json` 에서 이 스크립트를 거쳐 불린다. 설정에서 훅 블록을 지우면 떠 있는 세션도 그 훅을 즉시 잃고 플러그인 훅은 세션 시작 때만 실리기 때문이다 (2.1.329 실측). 플러그인이 세션 시작 때 남기는 표시 (`${TMPDIR}/claude-plugin-sessions/<플러그인>-<세션 ID>`) 가 있으면 물러나고, 없으면 옛 스크립트를 실행한다. 옮기기 전에 시작한 세션이 모두 닫히면 설정의 블록 · 이 스크립트 · 옛 스크립트를 함께 지운다
 - 플러그인 — 야간 루프처럼 dotfiles 에서 플러그인 (socoolbear/cc-marketplace) 으로 옮긴 장치는 `settings.json` 의 `enabledPlugins` 가 켜고, `make sync` 가 `scripts/claude-plugins-sync.sh` 로 빠진 플러그인 설치와 장비 등록 (`claude-loop install` — launchd 예약 · `~/.local/bin/claude-loop`) 을 챙긴다. `make clean` 은 그 등록을 해제한다

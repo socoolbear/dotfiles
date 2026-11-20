@@ -106,6 +106,11 @@ registerWorkstyle() {
   fi
 
   "${runner}" install >/dev/null || echo "==> workstyle 실행 파일 등록 실패 — 직접 실행해 확인: ${runner} install"
+
+  # 취향 규칙 폴더는 세션 시작 훅이 사본을 만든다. 전역 지시 파일의 불러오기 줄과 개발 장비 심링크는 /workstyle:setup 이 맡는다
+  if [[ ! -e "${HOME}/.claude/workstyle" ]]; then
+    echo "==> 취향 규칙 폴더 (~/.claude/workstyle) 가 없습니다 — 세션에서 /workstyle:setup"
+  fi
 }
 
 main() {

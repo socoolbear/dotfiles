@@ -318,7 +318,7 @@
     }
   },
   "language": "korean",
-  "model": "claude-fable-5-2",
+  "model": "claude-opus-5-5",
   "effortLevel": "high",
   "modelSettings": {
     "claude-opus-5-5": {

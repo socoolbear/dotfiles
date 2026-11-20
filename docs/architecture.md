@@ -50,6 +50,7 @@ launchd 는 예약 시각에 맥이 잠들어 있었으면 **깨어난 직후** 
 - `claude/CLAUDE.md` — Claude Code 전용 인스트럭션 (도구·워크플로우). 맨 위에서 `@AGENTS.md` 를 import. `~/.claude/AGENTS.md` 로 심링크하지 않는다 — 홈 하위 세션에서 프로젝트 지시로 한 번 더 로드된다
 - `claude/rules/` — 자동 로드되는 규칙 모음 (예: `coding-style.md`)
 - `claude/scripts/` — Hook 등에서 호출하는 유틸 스크립트 (`statusline-command.sh`, `enforce-plan-review.sh`, `enforce-deploy-check.sh`, `remind-deploy-qa.sh`, `team-cleanup-check.sh`, `context-guard.sh`, `compact-restore.sh`, `tmux-claude-state.sh` — tmux 창 목록의 작업 상태 표시)
+- 플러그인 — 야간 루프처럼 dotfiles 에서 플러그인 (socoolbear/cc-marketplace) 으로 옮긴 장치는 `settings.json` 의 `enabledPlugins` 가 켜고, `make sync` 가 `scripts/claude-plugins-sync.sh` 로 빠진 플러그인 설치와 장비 등록 (`claude-loop install` — launchd 예약 · `~/.local/bin/claude-loop`) 을 챙긴다. `make clean` 은 그 등록을 해제한다
 - `claude/docs/` — `claude/CLAUDE.md` 가 `@docs/...` 로 참조하는 상세 가이드 (워크플로우, 피드백 라우팅 등)
 - `claude/commands/` — 슬래시 명령어 정의 (`*.md` 와일드카드 자동 발견)
 - `claude/skills/` — Claude Code skill 정의 (`*/` 디렉토리 단위 자동 발견, 머신별 실디렉토리는 보존)

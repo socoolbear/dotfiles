@@ -15,6 +15,9 @@
 #     확인은 이 확인창 한 번이다 — 에이전트는 점검 결과를 적고 대화로 따로 묻지 않는다 (2026-11-19 사용자 결정)
 #     -p 실행과 coolgom 세션은 답할 사람이 없어 자동 거부된다 (2.1.326 실측)
 #   - AGENT_BOT=1 (coolgom 봇) 은 운영도 다시 실행하면 통과 — Slack 의 사용자 본인 승인을 확인으로 본다
+#   - coolgom 이 Slack 쓰레드에 연결해 띄운 태스크 세션 (COOLGOM_REPORT_DIR 있음) 도 운영을 다시 실행하면 통과한다
+#     (2026-11-20 사용자 결정 — Slack 에서 대상을 짚어 요청한 뒤 터미널 확인창까지 눌러야 해 확인이 두 번이었다).
+#     그 세션의 입력은 허용 사용자 본인의 Slack 답글과 터미널 입력뿐이다. repo 미확인과 prod-command 는 이 세션도 확인창을 띄운다
 #   - 야간 모드 (claude-loop 가 일을 맡긴 세션) 는 운영·dev·미분류 모두 처음부터 ask — 밤에는 dev 배포 점검을 할 수 없다
 #   - prod-command 에 걸린 명령은 점검 목록 없이 처음부터 ask (2026-11-18 사용자 결정) — 변경 내용 보고는 그 repo 의 배포 절차가 맡는다.
 #     봇 세션도 예외 없이 ask 라 자동 거부된다 — 자리에 사람이 없을 때 git 밖 운영 배포가 나가지 않게
@@ -192,6 +195,11 @@ is_night_mode() {
   [[ -n "${session_id}" ]] || return 1
   [[ -f "${night_dir}/${session_id}" ]] \
     || [[ "${CLAUDE_NIGHT:-}" == "1" && -f "${night_dir}/active" && ! -f "${night_dir}/released/${session_id}" ]]
+}
+
+# 사용자 본인의 Slack 요청을 운영 배포 확인으로 보는 세션인가 — coolgom 봇 세션, coolgom 이 Slack 쓰레드에 연결해 띄운 태스크 세션
+is_slack_approved_session() {
+  [[ "${AGENT_BOT:-}" == "1" || -n "${COOLGOM_REPORT_DIR:-}" ]]
 }
 
 # push 대상 브랜치가 명령에 없거나 HEAD 뿐이면 push 가 도는 폴더의 현재 브랜치를 쓴다 (main·master·dev 일 때만 출력)
@@ -418,8 +426,8 @@ state_key=$(printf '%s %s' "${session_id}" "${label}" | md5 -q)
 state_file="${STATE_DIR}/${state_key}"
 
 if [[ -f "${state_file}" ]]; then
-  # 봇 세션은 다시 실행하면 통과 — prod-command 가 함께 걸린 명령은 봇 세션도 확인창
-  if [[ "${kind}" == "prod" ]] && [[ "${AGENT_BOT:-}" != "1" || -n "${prod_command_hit}" ]]; then
+  # 봇 세션 · Slack 연결 세션은 다시 실행하면 통과 — prod-command 가 함께 걸린 명령은 이 세션들도 확인창
+  if [[ "${kind}" == "prod" ]] && { ! is_slack_approved_session || [[ -n "${prod_command_hit}" ]]; }; then
     emit_ask "[운영 배포] ${repo:-?}:${branch} — ${label}${prod_command_hit:+ + prod-command 에 걸린 명령}. 점검 결과를 확인했으면 Yes"
   fi
 
@@ -460,7 +468,7 @@ EOF
 - 범위 (함께 실리는 다른 커밋 목록) · CI·리뷰 · 선행 조건 · 호환성 · 검증 근거 · 독립 검증 · 되돌리기 (롤백 기준·관찰 시간)
 
 - 적은 뒤 대화로 따로 묻거나 턴을 끝내지 않고 같은 명령을 바로 다시 실행한다. 확인창이 뜨고, 사용자가 누르는 Yes 가 확인이다 (2026-11-19 사용자 결정 — 확인은 한 번)
-- 봇 세션 (AGENT_BOT=1) 은 확인창 없이 통과하므로, 다시 실행하기 전에 사용자 본인의 승인을 받는다
+- 봇 세션 (AGENT_BOT=1) 과 Slack 쓰레드에 연결된 태스크 세션은 확인창 없이 통과한다. 사용자 본인이 Slack 에서 이 대상을 짚어 요청했을 때만 다시 실행하고, 아니면 먼저 승인을 받는다
 - 승인 뒤: 검토한 해시로 배포, 운영 QA, 롤백 기준에 걸리면 따로 묻지 않고 revert 하고 보고 (revert 도 이 확인창에서 Yes 가 필요하다)
 EOF
     ;;

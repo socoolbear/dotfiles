@@ -6,7 +6,7 @@
 
 판단 기준은 "이 동작이 운영에 닿는가" 하나이고, 그 repo 의 배포 workflow 트리거 (`on:`) 를 열어 확인한다. 모르면 운영 배포로 본다.
 
-repo 별 분류 표는 비공개 파일 `~/.config/claude/deploy-targets.md` 에 있다 — 회사 repo 이름은 사내 보안 정책상 공개 dotfiles 에 넣지 않는다 (2026-11-17 사용자 결정). Claude 는 `CLAUDE.md` 가 불러오고, Codex 는 `make sync` 가 만드는 `~/.codex/AGENTS.override.md` (`claude/AGENTS.md` 와 표를 합친 사본 — 둘 중 하나를 고치면 `make sync` 를 다시 돌린다) 로 읽는다. 표에 없는 repo 는 처음 다룰 때 workflow 를 확인해 그 표와 훅 대상 파일 `~/.config/claude/deploy-targets` 에 넣는다 (형식은 `claude/deploy-targets*.example`).
+repo 별 분류 표는 비공개 파일 `~/.config/claude/deploy-targets.md` 에 있다 — 회사 repo 이름은 사내 보안 정책상 공개 dotfiles 에 넣지 않는다 (2026-11-17 사용자 결정). 표와 훅 대상 파일의 원본은 비공개 워크스페이스 repo 의 `policy/` 에 있고 `~/.config/claude/` 의 두 파일은 그 원본으로 가는 심링크다 (2026-11-20 사용자 결정 — 장비마다 손으로 옮기지 않으려는 것). 고치면 워크스페이스 repo 에서 그 두 파일만 지정해 커밋·push 한다. 워크스페이스가 없는 장비는 실파일을 쓴다. Claude 는 `CLAUDE.md` 가 불러오고, Codex 는 `make sync` 가 만드는 `~/.codex/AGENTS.override.md` (`claude/AGENTS.md` 와 표를 합친 사본 — 둘 중 하나를 고치면 `make sync` 를 다시 돌린다) 로 읽는다. 표에 없는 repo 는 처음 다룰 때 workflow 를 확인해 그 표와 훅 대상 파일 `~/.config/claude/deploy-targets` 에 넣는다 (형식은 `claude/deploy-targets*.example`).
 
 ## 2. 확인을 받는 것과 받지 않는 것
 

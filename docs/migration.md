@@ -24,7 +24,8 @@
 | `~/.aws/credentials` | **절대 금지** | 1Password CLI (`op`) 로 관리 — [secrets.md](secrets.md) |
 | `~/.kube/config` | 클러스터 접근 토큰 | 절대 금지 |
 | `~/.docker/config.json` | registry credentials | 비추천 |
-| `~/.config/claude/deploy-targets{,.md}` · `deploy-qa-patterns` | 회사 repo 이름 · repo 별 배포 스크립트 이름 (사내 보안 정책) | repo 금지. 기존 장비에서 직접 복사 (`make backup` 대상) |
+| `~/.config/claude/deploy-targets{,.md}` | 회사 repo 이름 (사내 보안 정책) | 공개 repo 금지. 원본은 비공개 워크스페이스 repo 의 `policy/` — clone 뒤 심링크 두 개 (`docs/setup.md`). 워크스페이스가 없는 장비만 실파일 (`make backup` 대상) |
+| `~/.config/claude/deploy-qa-patterns` | repo 별 배포 스크립트 이름 (사내 보안 정책) | repo 금지. 기존 장비에서 직접 복사 (`make backup` 대상) |
 
 ## 🔄 옮길 필요 없음 — 자동 재생성됨
 

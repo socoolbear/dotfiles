@@ -8,10 +8,6 @@ DOTFILES := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 # Homebrew 예약 갱신 작업의 launchd 라벨 (sync / clean / brew-scheduled-update 가 공유)
 BREW_SCHEDULED_UPDATE_LABEL := com.socoolbear.brew-scheduled-update
 
-# AI 야간 루프는 cc-marketplace 의 night-loop 플러그인으로 옮겼다. 플러그인 설치와 장비 등록 (`claude-loop install`) 은
-# sync 가 scripts/claude-plugins-sync.sh 로 챙긴다. 이 라벨은 sync 가 예전 dotfiles 링크의 잔재를 치울 때만 쓴다
-CLAUDE_LOOP_OLD_LABELS := com.socoolbear.claude-loop-night com.socoolbear.claude-loop-brief
-
 # sync 가 만든 ~/.codex/AGENTS.override.md 표시 (clean 과 sync 가 이 표시가 있는 파일만 지운다)
 CODEX_OVERRIDE_MARK := <!-- make sync 가 claude/AGENTS.md + ~/.config/claude/deploy-targets.md 로 만든 파일 -->
 
@@ -259,16 +255,6 @@ sync: ohmyzsh ohmytmux
 	@# launchd 예약 작업 재등록 (심링크 생성만으로는 등록되지 않음 — bootout 후 bootstrap 으로 멱등)
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(BREW_SCHEDULED_UPDATE_LABEL).plist 2>/dev/null || true
-	@# 야간 루프 잔재 정리 — 예전에 dotfiles 를 가리키던 링크가 끊긴 채 남아 있으면 해제하고 지운다 (night-loop 플러그인이 만든 실파일은 건드리지 않는다)
-	@for label in $(CLAUDE_LOOP_OLD_LABELS); do \
-	    plist="$(HOME)/Library/LaunchAgents/$$label.plist"; \
-	    if [ -L "$$plist" ] && [ ! -e "$$plist" ]; then \
-	        launchctl bootout gui/$$(id -u)/$$label 2>/dev/null || true; \
-	        rm -f "$$plist"; \
-	        echo "==> 야간 루프의 옛 launchd 링크 정리: $$label (다시 쓰려면 night-loop 플러그인의 claude-loop install)"; \
-	    fi; \
-	done
-	@if [ -L $(HOME)/.local/bin/claude-loop ] && [ ! -e $(HOME)/.local/bin/claude-loop ]; then rm -f $(HOME)/.local/bin/claude-loop; fi
 
 	@# Claude 플러그인 맞추기 — settings.json 에서 켠 플러그인 중 없는 것 설치 + 장치별 장비 등록 (launchd 등) 다시 걸기
 	@bash $(DOTFILES)/scripts/claude-plugins-sync.sh
@@ -282,8 +268,6 @@ sync: ohmyzsh ohmytmux
 
 clean:
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
-	@# 야간 루프 (night-loop 플러그인) 의 launchd 예약과 실행 파일 해제 — sync 가 다시 건다. 플러그인 자체와 장비 설정은 남긴다
-	@[ ! -x $(HOME)/.local/bin/claude-loop ] || $(HOME)/.local/bin/claude-loop uninstall >/dev/null 2>&1 || true
 	@grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md 2>/dev/null && rm -f $(HOME)/.codex/AGENTS.override.md || true
 	@for entry in $(LINKS_SINGLE); do \
 	    rm -f "$(HOME)/$${entry##*:}"; \

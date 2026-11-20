@@ -69,28 +69,6 @@ installedPath() {   # installedPath <플러그인 이름> → 설치본 폴더 (
   jq -r --arg prefix "$1@" '[.plugins | to_entries[] | select(.key | startswith($prefix)) | .value[] | .installPath] | last // empty' "${INSTALLED}"
 }
 
-# night-loop: launchd 예약 2개와 ~/.local/bin/claude-loop 실행 파일
-registerNightLoop() {
-  local root runner
-
-  root=$(installedPath night-loop)
-  runner="${root}/bin/claude-loop"
-
-  [[ -n "${root}" && -x "${runner}" ]] || return 0
-
-  if [[ ! -f "${HOME}/.config/claude-loop/env" ]]; then
-    echo "==> 야간 루프 (night-loop) 가 이 장비에 등록되지 않았습니다 — 쓰려면 세션에서 /night-loop:setup 또는: ${runner} install --workspace <워크스페이스 경로>"
-    return 0
-  fi
-
-  if [[ -n "${DRY}" ]]; then
-    echo "[dry] ${runner} install"
-    return 0
-  fi
-
-  "${runner}" install >/dev/null || echo "==> 야간 루프 등록 실패 — 직접 실행해 확인: ${runner} install"
-}
-
 # workstyle: ~/.local/bin/workstyle · loop-metrics 실행 파일 (설치본을 찾아 부르는 작은 스크립트)
 registerWorkstyle() {
   local root runner
@@ -124,7 +102,6 @@ main() {
   fi
 
   installMissingPlugins
-  registerNightLoop
   registerWorkstyle
 }
 

@@ -122,7 +122,7 @@ mise trust ~/.dotfiles/mise/config.toml
 
 `make sync` 가 `~/.claude/` 하위 (settings.json, CLAUDE.md, scripts, docs, commands, skills, agents) 와 `~/.codex/AGENTS.md` (workstyle 플러그인이 내놓는 `~/.claude/workstyle/AGENTS.md`) 를 심링크합니다. 전역 규칙 (취향 규칙) 은 workstyle 플러그인의 것이라, 플러그인 설치 뒤 세션에서 `/workstyle:setup` 을 한 번 실행해 `~/.claude/workstyle` 를 잡습니다. `claude/skills/*/` 는 와일드카드로 자동 발견되어 디렉토리 단위로 심링크됩니다 — dotfiles 에 있는 skill 만 링크하므로 dotfiles 에 없는 머신별 skill (예: 로컬에서만 만든 것) 은 보존됩니다.
 
-`make sync` 는 끝에서 `scripts/claude-plugins-sync.sh` 를 불러 공용 `settings.json` 에서 켠 플러그인 중 이 장비에 없는 것을 설치하고, 장비 등록이 필요한 장치를 다시 겁니다 (`claude` · `jq` 가 없으면 건너뛰고 안내 — 설치 뒤 `make sync` 를 다시 실행). 야간 루프 (`night-loop` 플러그인) 는 장비 설정 `~/.config/claude-loop/env` 가 있어야 launchd 예약이 걸립니다 — 새 장비에서는 세션에서 `/night-loop:setup` 을 한 번 실행합니다 (워크스페이스 경로를 묻습니다).
+`make sync` 는 끝에서 `scripts/claude-plugins-sync.sh` 를 불러 공용 `settings.json` 에서 켠 플러그인 중 이 장비에 없는 것을 설치하고, 장비 등록이 필요한 장치를 다시 겁니다 (`claude` · `jq` 가 없으면 건너뛰고 안내 — 설치 뒤 `make sync` 를 다시 실행).
 
 plugin 관리는 `/plugin` 명령어로 일원화 — 변경사항은 committed `settings.json` 에 자동 기록되어 모든 장비에 동기화됩니다. 설정이 필요한 plugin 을 켜 두면 설정하지 않은 장비에서 MCP 연결 실패가 매 세션 나므로, 장비마다 다른 plugin (예: 회사 장비의 datadog) 은 공용에서 끄고 `~/.config/claude/machine.json` 에서 켭니다 — `/plugin` 으로 켜면 공용 `settings.json` 이 바뀝니다. 자세한 사용법은 `claude/Readme.md`. `~/.claude/settings.local.json` 은 사용자 수준에서 읽히지 않습니다.
 

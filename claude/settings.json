@@ -80,16 +80,6 @@
             "timeout": 5
           }
         ]
-      },
-      {
-        "matcher": "Bash|Edit|Write|NotebookEdit|mcp__.*|Agent|Task|TeamCreate",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh night-loop night-guard.sh",
-            "timeout": 10
-          }
-        ]
       }
     ],
     "PostToolUse": [
@@ -164,11 +154,6 @@
           },
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh night-loop loop-verify-gate.sh",
-            "timeout": 1800
-          },
-          {
-            "type": "command",
             "command": "bash ~/.claude/scripts/legacy-hook-gate.sh workstyle stop-gate.sh",
             "timeout": 5
           }
@@ -212,11 +197,6 @@
           {
             "type": "command",
             "command": "bash ~/.claude/scripts/tmux-claude-state.sh busy",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/legacy-hook-gate.sh night-loop night-guard.sh",
             "timeout": 5
           }
         ]
@@ -290,7 +270,6 @@
     "clangd-lsp@claude-plugins-official": true,
     "programming@socoolbear-cc-marketplace": true,
     "sessions@socoolbear-cc-marketplace": true,
-    "night-loop@socoolbear-cc-marketplace": true,
     "deploy-guard@socoolbear-cc-marketplace": true,
     "workstyle@socoolbear-cc-marketplace": true
   },

@@ -46,6 +46,7 @@
 | `scripts/mcp-pg-reader.sh` | `~/.local/bin/mcp-pg-reader` |
 | `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 위 두 실행기가 거친다)* |
 | `scripts/term-session.sh` | `~/.local/bin/term-session` |
+| `claude/scripts/loop-metrics.sh` | `~/.local/bin/loop-metrics` *(질문 지표 — night-loop 플러그인의 아침 요약이 PATH 에서 찾아 부른다)* |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 
 > `claude/commands/*.md`, `claude/skills/*/`, `claude/agents/*.md` 는 Makefile 의 `COMMANDS` / `SKILLS` / `AGENT_DEFS` 와일드카드가 자동 발견하므로, 새 명령/skill/agent 를 추가해도 Makefile 수정 불필요.

@@ -8,8 +8,9 @@ DOTFILES := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 # Homebrew 예약 갱신 작업의 launchd 라벨 (sync / clean / brew-scheduled-update 가 공유)
 BREW_SCHEDULED_UPDATE_LABEL := com.socoolbear.brew-scheduled-update
 
-# AI 야간 루프 launchd 라벨 (sync 가 재등록, clean 이 해제 — scripts/claude-loop.sh)
-CLAUDE_LOOP_LABELS := com.socoolbear.claude-loop-night com.socoolbear.claude-loop-brief
+# AI 야간 루프는 cc-marketplace 의 night-loop 플러그인으로 옮겼다 (러너 · launchd 등록은 `claude-loop install`).
+# 이 라벨은 sync 가 예전 dotfiles 링크의 잔재를 치울 때만 쓴다
+CLAUDE_LOOP_OLD_LABELS := com.socoolbear.claude-loop-night com.socoolbear.claude-loop-brief
 
 # sync 가 만든 ~/.codex/AGENTS.override.md 표시 (clean 과 sync 가 이 표시가 있는 파일만 지운다)
 CODEX_OVERRIDE_MARK := <!-- make sync 가 claude/AGENTS.md + ~/.config/claude/deploy-targets.md 로 만든 파일 -->
@@ -99,10 +100,8 @@ LINKS_SINGLE := \
     scripts/mcp-pg-reader.sh:.local/bin/mcp-pg-reader \
     scripts/mcp-lazy.mjs:.local/bin/mcp-lazy \
     scripts/term-session.sh:.local/bin/term-session \
-    scripts/claude-loop.sh:.local/bin/claude-loop \
-    launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist \
-    launchd/com.socoolbear.claude-loop-night.plist:Library/LaunchAgents/com.socoolbear.claude-loop-night.plist \
-    launchd/com.socoolbear.claude-loop-brief.plist:Library/LaunchAgents/com.socoolbear.claude-loop-brief.plist
+    claude/scripts/loop-metrics.sh:.local/bin/loop-metrics \
+    launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
 LINKS_DIR := \
@@ -251,10 +250,16 @@ sync: ohmyzsh ohmytmux
 	@# launchd 예약 작업 재등록 (심링크 생성만으로는 등록되지 않음 — bootout 후 bootstrap 으로 멱등)
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(BREW_SCHEDULED_UPDATE_LABEL).plist 2>/dev/null || true
-	@for label in $(CLAUDE_LOOP_LABELS); do \
-	    launchctl bootout gui/$$(id -u)/$$label 2>/dev/null || true; \
-	    launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$$label.plist 2>/dev/null || true; \
+	@# 야간 루프 잔재 정리 — 예전에 dotfiles 를 가리키던 링크가 끊긴 채 남아 있으면 해제하고 지운다 (night-loop 플러그인이 만든 실파일은 건드리지 않는다)
+	@for label in $(CLAUDE_LOOP_OLD_LABELS); do \
+	    plist="$(HOME)/Library/LaunchAgents/$$label.plist"; \
+	    if [ -L "$$plist" ] && [ ! -e "$$plist" ]; then \
+	        launchctl bootout gui/$$(id -u)/$$label 2>/dev/null || true; \
+	        rm -f "$$plist"; \
+	        echo "==> 야간 루프의 옛 launchd 링크 정리: $$label (다시 쓰려면 night-loop 플러그인의 claude-loop install)"; \
+	    fi; \
 	done
+	@if [ -L $(HOME)/.local/bin/claude-loop ] && [ ! -e $(HOME)/.local/bin/claude-loop ]; then rm -f $(HOME)/.local/bin/claude-loop; fi
 
 	@# mise config 신뢰 (심링크 직후 mise 가 untrusted 로 보지 않도록)
 	@command -v mise >/dev/null 2>&1 && mise trust $(DOTFILES)/mise/config.toml >/dev/null 2>&1 || true
@@ -265,7 +270,6 @@ sync: ohmyzsh ohmytmux
 
 clean:
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
-	@for label in $(CLAUDE_LOOP_LABELS); do launchctl bootout gui/$$(id -u)/$$label 2>/dev/null || true; done
 	@grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md 2>/dev/null && rm -f $(HOME)/.codex/AGENTS.override.md || true
 	@for entry in $(LINKS_SINGLE); do \
 	    rm -f "$(HOME)/$${entry##*:}"; \

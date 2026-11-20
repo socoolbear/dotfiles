@@ -80,16 +80,6 @@
             "timeout": 5
           }
         ]
-      },
-      {
-        "matcher": "Bash|Edit|Write|NotebookEdit|mcp__.*|Agent|Task|TeamCreate",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/night-guard.sh",
-            "timeout": 10
-          }
-        ]
       }
     ],
     "PostToolUse": [
@@ -164,11 +154,6 @@
           },
           {
             "type": "command",
-            "command": "bash ~/.claude/scripts/loop-verify-gate.sh",
-            "timeout": 1800
-          },
-          {
-            "type": "command",
             "command": "bash ~/.claude/scripts/stop-gate.sh",
             "timeout": 5
           }
@@ -212,11 +197,6 @@
           {
             "type": "command",
             "command": "bash ~/.claude/scripts/tmux-claude-state.sh busy",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/night-guard.sh",
             "timeout": 5
           }
         ]
@@ -289,7 +269,8 @@
     "cc-plugin-you-should-know@builtin": true,
     "clangd-lsp@claude-plugins-official": true,
     "programming@socoolbear-cc-marketplace": true,
-    "sessions@socoolbear-cc-marketplace": true
+    "sessions@socoolbear-cc-marketplace": true,
+    "night-loop@socoolbear-cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {

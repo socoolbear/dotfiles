@@ -38,7 +38,7 @@ unbind -T prefix m #!important
 unbind r
 bind r source-file ~/.config/tmux/tmux.conf \; display-message 'tmux.conf reloaded' #!important
 
-# prefix + B — Claude 세션 상황판 (세션마다 지금 / 사용자 몫 / 다음). 세션을 깨우지 않고 파일만 읽는다 (scripts/claude-loop.sh board)
+# prefix + B — Claude 세션 상황판 (세션마다 지금 / 사용자 몫 / 다음). 세션을 깨우지 않고 파일만 읽는다 (night-loop 플러그인의 claude-loop board)
 bind B display-popup -E -w 90% -h 85% "$HOME/.local/bin/claude-loop board | less -R"
 
 # -- Claude Code 작업 상태 표시 (창 목록) --

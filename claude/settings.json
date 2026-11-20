@@ -202,7 +202,8 @@
     "programming@socoolbear-cc-marketplace": true,
     "sessions@socoolbear-cc-marketplace": true,
     "deploy-guard@socoolbear-cc-marketplace": true,
-    "workstyle@socoolbear-cc-marketplace": true
+    "workstyle@socoolbear-cc-marketplace": true,
+    "cc-safety-net@cc-marketplace": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -225,6 +226,13 @@
         "repo": "jetbrains/phpstorm-claude-marketplace"
       },
       "autoUpdate": true
+    },
+    "cc-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "kenryu42/cc-marketplace"
+      },
+      "autoUpdate": false
     }
   },
   "language": "korean",

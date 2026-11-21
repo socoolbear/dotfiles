@@ -73,6 +73,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "aws agent-toolkit update-skill --hook --agent claude-code --no-cli-auto-prompt || true",
+            "timeout": 60
+          }
+        ]
       }
     ],
     "Stop": [

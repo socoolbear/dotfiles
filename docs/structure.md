@@ -4,7 +4,7 @@
 
 | 디렉토리 | 설명 | 대상 경로 | 자동 링크 |
 |----------|------|-----------|-----------|
-| `zsh/` | Zsh 설정 (oh-my-zsh) | `~/.zshrc` | ✅ |
+| `zsh/` | Zsh 설정 (oh-my-zsh) | `~/.zshrc`, `~/.zshenv` | ✅ |
 | `vim/` | Vim/GVim 설정 | `~/.vimrc`, `~/.gvimrc` | ✅ |
 | `idea/` | IdeaVim (JetBrains IDE) | `~/.ideavimrc` | ✅ |
 | `tmux/` | Tmux 설정 (oh-my-tmux) | `~/.config/tmux/` | ✅ |
@@ -28,6 +28,7 @@
 | Source | Target |
 |--------|--------|
 | `zsh/zshrc` | `~/.zshrc` |
+| `zsh/zshenv` | `~/.zshenv` |
 | `vim/vimrc` | `~/.vimrc` |
 | `vim/gvimrc` | `~/.gvimrc` |
 | `idea/ideavimrc` | `~/.ideavimrc` |

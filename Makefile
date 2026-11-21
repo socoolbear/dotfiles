@@ -97,6 +97,7 @@ machine-check-log:
 # 단일 파일 — 기존 심링크가 있으면 유지 (멱등)
 LINKS_SINGLE := \
     zsh/zshrc:.zshrc \
+    zsh/zshenv:.zshenv \
     vim/vimrc:.vimrc \
     vim/gvimrc:.gvimrc \
     idea/ideavimrc:.ideavimrc \

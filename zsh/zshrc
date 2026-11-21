@@ -169,6 +169,16 @@ cct() {
 #--------------------------------------------------------------------------
 [ -f ~/.private-exports ] && source $HOME/.private-exports
 
+# 폴더별 환경 변수 — 함수는 ~/.zshenv 가 비공개 파일에서 싣는다. 대화형 셸에서는 cd 할 때마다 다시 적용
+if (( $+functions[dir_env_apply] )); then
+  autoload -Uz add-zsh-hook
+  add-zsh-hook chpwd dir_env_apply
+fi
+
+# AWS MCP 는 필요할 때만 켠다 — 지금 폴더의 Claude Code 세션에만 붙고 (로컬 범위), 켠 뒤 세션을 다시 연다
+aws-mcp-on() { claude mcp add aws-mcp --scope local -- uvx mcp-proxy-for-aws@latest https://aws-mcp.us-east-1.api.aws/mcp --metadata INSTALL_SOURCE=aws-cli; }
+aws-mcp-off() { claude mcp remove aws-mcp --scope local; }
+
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
 

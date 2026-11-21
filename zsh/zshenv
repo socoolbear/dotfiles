@@ -1,0 +1,3 @@
+# 모든 zsh (비대화형 포함 — tmux 명령 창, Claude Code 의 셸 명령) 가 읽는다
+# 폴더별 환경 변수는 저장소 밖 비공개 파일에 둔다 (고객·회사 이름을 공개 저장소에 넣지 않기 위해)
+[[ -r "${HOME}/.config/zsh/dir-env.zsh" ]] && source "${HOME}/.config/zsh/dir-env.zsh"

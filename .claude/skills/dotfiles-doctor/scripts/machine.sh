@@ -238,6 +238,36 @@ for plist in "${DOTFILES}"/launchd/*.plist; do
   launchctl list "${label}" >/dev/null 2>&1 || fail "launchd 작업이 등록되지 않음: ${label} (make sync)"
 done
 
+# 실행할 파일이 없는 예약 작업 (지운 프로그램 · 옮긴 스크립트가 남긴 것) — 남의 것도 보지만 보고만 한다.
+# dotfiles 가 건 작업 (com.socoolbear.*) 을 저장소에서 지운 경우는 make sync 가 내리고 치운다 (scripts/launchd-agents.sh).
+# 셸 · 인터프리터를 거쳐 스크립트를 부르는 작업은 그 스크립트 경로까지 본다.
+launchd_missing_target() {
+  local plist=$1
+  local program script
+  program=$(plutil -extract Program raw "${plist}" 2>/dev/null || plutil -extract ProgramArguments.0 raw "${plist}" 2>/dev/null)
+  [[ "${program}" == /* ]] || return 1
+  [[ -e "${program}" ]] || { printf '%s' "${program}"; return 0; }
+
+  case "${program##*/}" in
+    bash|sh|zsh|python3|node) ;;
+    *) return 1 ;;
+  esac
+
+  script=$(plutil -extract ProgramArguments.1 raw "${plist}" 2>/dev/null)
+  [[ "${script}" == /* && ! -e "${script}" ]] || return 1
+  printf '%s' "${script}"
+}
+
+for plist in "${H}"/Library/LaunchAgents/*.plist; do
+  if [[ -L "${plist}" && ! -e "${plist}" ]]; then
+    warn "예약 작업 plist 가 끊긴 링크: ${plist##*/} -> $(readlink "${plist}" | sed "s|^${HOME}|${tilde}|")"
+    continue
+  fi
+  [[ -f "${plist}" ]] || continue
+  missing=$(launchd_missing_target "${plist}") || continue
+  warn "예약 작업의 실행 파일 없음: ${plist##*/} -> ${missing/#${HOME}/${tilde}} (지운 프로그램이면 launchctl bootout 뒤 plist 삭제)"
+done
+
 log_epoch() { date -j -f '%Y-%m-%d %H:%M:%S' "${1}" +%s 2>/dev/null; }
 
 if [[ ! -f "${BREW_LOG}" ]]; then

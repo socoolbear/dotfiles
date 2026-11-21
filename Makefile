@@ -6,15 +6,6 @@
 # Makefile 위치 기반 (cwd 와 독립) — make -C / -f 에서도 안전
 DOTFILES := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
-# Homebrew 예약 갱신 작업의 launchd 라벨 (sync / clean / brew-scheduled-update 가 공유)
-BREW_SCHEDULED_UPDATE_LABEL := com.socoolbear.brew-scheduled-update
-
-# 주 1회 장비 점검 작업의 launchd 라벨 (sync / clean 이 공유)
-MACHINE_CHECK_LABEL := com.socoolbear.dotfiles-machine-check
-
-# dotfiles · cc-marketplace 자동 갱신 작업의 launchd 라벨 (sync / clean 이 공유)
-AUTO_UPDATE_LABEL := com.socoolbear.dotfiles-auto-update
-
 # sync 가 만든 ~/.codex/AGENTS.override.md 표시 (clean 과 sync 가 이 표시가 있는 파일만 지운다)
 CODEX_OVERRIDE_MARK := <!-- make sync 가 claude/AGENTS.md + ~/.config/claude/deploy-targets.md 로 만든 파일 -->
 
@@ -132,10 +123,7 @@ LINKS_SINGLE := \
     scripts/mcp-lazy.mjs:.local/bin/mcp-lazy \
     scripts/mcp-secret-env.sh:.local/bin/mcp-secret-env \
     mcp/dbhub-pg-readonly.toml:.config/dbhub/pg-readonly.toml \
-    mcp/dbhub-mysql-readonly.toml:.config/dbhub/mysql-readonly.toml \
-    launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist \
-    launchd/com.socoolbear.dotfiles-machine-check.plist:Library/LaunchAgents/com.socoolbear.dotfiles-machine-check.plist \
-    launchd/com.socoolbear.dotfiles-auto-update.plist:Library/LaunchAgents/com.socoolbear.dotfiles-auto-update.plist
+    mcp/dbhub-mysql-readonly.toml:.config/dbhub/mysql-readonly.toml
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
 LINKS_DIR := \
@@ -260,19 +248,9 @@ sync: ohmyzsh ohmytmux
 	    echo "==> Alfred 환경설정 폴더 없음 — 워크플로우 링크 건너뜀 (make brew-apps 후 Alfred 를 한 번 실행하고 make sync)"; \
 	fi
 
-	@# launchd 예약 작업 재등록 (심링크 생성만으로는 등록되지 않음 — bootout 후 bootstrap 으로 멱등)
-	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
-	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(BREW_SCHEDULED_UPDATE_LABEL).plist 2>/dev/null || true
-	@launchctl bootout gui/$$(id -u)/$(MACHINE_CHECK_LABEL) 2>/dev/null || true
-	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(MACHINE_CHECK_LABEL).plist 2>/dev/null || true
-	@# 자동 갱신 작업이 부른 sync (DOTFILES_AUTO_UPDATE_RUNNING) 는 그 작업을 bootout 하지 않는다 — 실행 중인 작업을 bootout 하면 launchd 가 죽인다.
-	@# 그때는 등록이 없을 때만 건다 (예약 설정의 변경은 다음에 손으로 sync 할 때 반영)
-	@if [ -z "$$DOTFILES_AUTO_UPDATE_RUNNING" ]; then \
-	    launchctl bootout gui/$$(id -u)/$(AUTO_UPDATE_LABEL) 2>/dev/null || true; \
-	    launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(AUTO_UPDATE_LABEL).plist 2>/dev/null || true; \
-	elif ! launchctl print gui/$$(id -u)/$(AUTO_UPDATE_LABEL) >/dev/null 2>&1; then \
-	    launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(AUTO_UPDATE_LABEL).plist 2>/dev/null || true; \
-	fi
+	@# launchd 예약 작업 — launchd/ 의 틀로 ~/Library/LaunchAgents/ 에 plist 를 만들어 다시 걸고, 저장소에서 지운 작업은 내리고 치운다
+	@# (심링크가 아니라 생성: 실행 파일을 직접 불러야 로그인 항목에 "bash" 가 아닌 작업 이름으로 뜬다. 자동 갱신이 부른 sync 는 그 작업을 내리지 않는다)
+	@bash $(DOTFILES)/scripts/launchd-agents.sh sync
 
 	@# Claude 플러그인 맞추기 — settings.json 에서 켠 플러그인 중 없는 것 설치 + 장치별 장비 등록 (launchd 등) 다시 걸기
 	@bash $(DOTFILES)/scripts/claude-plugins-sync.sh
@@ -285,9 +263,7 @@ sync: ohmyzsh ohmytmux
 #--------------------------------------------------------------------------
 
 clean:
-	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
-	@launchctl bootout gui/$$(id -u)/$(MACHINE_CHECK_LABEL) 2>/dev/null || true
-	@launchctl bootout gui/$$(id -u)/$(AUTO_UPDATE_LABEL) 2>/dev/null || true
+	@bash $(DOTFILES)/scripts/launchd-agents.sh clean
 	@grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md 2>/dev/null && rm -f $(HOME)/.codex/AGENTS.override.md || true
 	@for entry in $(LINKS_SINGLE); do \
 	    rm -f "$(HOME)/$${entry##*:}"; \

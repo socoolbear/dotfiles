@@ -111,6 +111,7 @@ mise trust ~/.dotfiles/mise/config.toml
   - `cmd + esc` 안 눌리는 문제 해결: 설정 → 키보드 단축키 → 미션 컨트롤 → "게임 오버레이" off
 - **Claude Code**:
   - 장비 점검 메일: 주 1회 장비 점검 (launchd) 은 결과를 `claude -p` 로 claude.ai 의 Gmail 커넥터를 써서 `git config user.email` 에게 보냅니다. 장비마다 Claude Code 로그인 (claude.ai 계정) 과 claude.ai 설정의 Gmail 커넥터 연결이 필요하고, 확인은 `dotfiles-machine-check --test-mail` (시험 메일 한 통). 없으면 메일 대신 다음 점검 · 세션 시작 제안에 "메일 발송 실패" 가 뜹니다
+  - 예약 작업 셋 (Homebrew 예약 갱신 · 장비 점검 · 자동 갱신) 은 `make sync` 가 그 장비의 홈 경로로 plist 를 만들어 겁니다 (따로 할 일 없음). 시스템 설정 > 일반 > 로그인 항목 및 확장 프로그램 에 작업 이름으로 뜨고, 처음 걸 때 macOS 가 "백그라운드 항목 추가됨" 알림을 띄울 수 있습니다
   - 자동 갱신 (launchd 매일 11:00): `make sync` 가 등록하고, 없는 것 (cc-marketplace 체크아웃 · claude · SwiftBar) 은 건너뜁니다. 메뉴 막대 표시는 SwiftBar 가 있어야 보이고 (`make sleepguard` 가 플러그인 폴더를 지정), 없으면 주 1회 장비 점검 메일로만 알립니다. 등록 직후 `make auto-update` 로 한 번 돌려 `make auto-update-log` 로 확인합니다
   - 브라우저 MCP 는 aside: aside 앱 (dotfiles 밖) 을 먼저 설치하고 `aside` 명령이 PATH 에 잡히는지 (`command -v aside`) 확인한 뒤 `claude mcp add -s user aside -- aside mcp`
 - **ngrok**: `ngrok config add-authtoken <token>` 으로 인증 (`~/.config/ngrok/ngrok.yml` 생성). 토큰은 [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken) 에서 확인

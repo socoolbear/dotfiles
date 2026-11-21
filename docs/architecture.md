@@ -5,6 +5,20 @@
 - **단일 파일**: `[ -L ... ] || ln -sf` 패턴으로 멱등 심볼릭 링크
 - **디렉토리**: `rm -rf` 후 `ln -sf` 패턴으로 전체 교체
 - **프레임워크**: oh-my-zsh, oh-my-tmux 자동 설치
+- **launchd 예약 작업**: 심링크가 아니라 생성 — 아래 「launchd 예약 작업 등록」
+
+## launchd 예약 작업 등록 (생성 · 자동 정리)
+
+`launchd/*.plist` 는 **틀**입니다. `make sync` 가 부르는 `scripts/launchd-agents.sh sync` 가 틀의 `@HOME@` 을 그 장비의 홈 경로로 채워 `~/Library/LaunchAgents/` 에 plist 를 만들고 `bootout` → `bootstrap` 으로 다시 겁니다 (내용이 같으면 파일은 다시 쓰지 않음 — 멱등). `launchd/` 에 있는 틀이 곧 등록 목록입니다.
+
+- **왜 생성인가** — 시스템 설정 > 일반 > 로그인 항목 및 확장 프로그램 의 백그라운드 항목 이름은 plist 가 실행하는 파일 (`ProgramArguments` 첫 칸) 의 끝 이름입니다 (`sfltool dumpbtm` 의 `Name` · `Executable Path` 로 확인, 심링크는 풀지 않음). plist 는 `$HOME` 을 풀지 못해 예전에는 `/bin/bash -c 'exec "$HOME/.local/bin/…"'` 를 거쳤고, 그래서 셋 다 "bash" 로 떴습니다. 지금은 `~/.local/bin/<작업 이름>` 을 직접 불러 `brew-scheduled-update` · `dotfiles-machine-check` · `dotfiles-auto-update` 로 뜹니다. 저장소에는 틀만 있고 절대 경로가 든 plist 는 장비에만 있습니다
+- **표식** — 만든 plist 의 둘째 줄에 `<!-- dotfiles-generated: … -->` 주석을 넣습니다. 자동 정리 · `make clean` 은 이 표식이 있거나 이 저장소의 `launchd/` 를 가리키는 링크인 것만 지웁니다
+- **자동 정리** — 라벨이 `com.socoolbear.` 로 시작하고 틀이 없는 plist 가운데 ① 이 저장소의 `launchd/` 를 가리키는 끊긴 심링크 (생성 방식 이전에 걸었던 작업을 저장소에서 지운 경우) ② 표식이 든 파일 은 `bootout` 하고 지웁니다. 치운 것은 `==> launchd: <라벨>: 내리고 plist 를 치움 (사유)` 로 출력돼 손으로 돌린 `make sync` 는 터미널에, 자동 갱신이 부른 것은 `~/Library/Logs/dotfiles-auto-update.log` 에 남습니다. 둘 다 아니면 (다른 저장소 · 앱이 깐 것, 표식 없는 파일) 건드리지 않습니다 — 실행 파일이 없는 남의 예약 작업은 장비 점검 (`machine.sh` §4) 이 WARN 으로 알리기만 합니다
+- **지우는 경로** — 폴더 (`$HOME/Library/LaunchAgents`) 와 접두사 (`com.socoolbear.`) 는 고정 문자열이고, 지우는 대상은 그 폴더의 `com.socoolbear.*.plist` 글롭에 걸린 파일 하나씩입니다 (`rm -f`, `-r` 없음). `HOME` 이 비었거나 `/` · 상대 경로 · 없는 폴더면 아무것도 하지 않고 멈춥니다
+- **실행 중인 작업은 내리지 않음** — 실행 중인 작업을 `bootout` 하면 launchd 가 죽입니다. 자동 갱신이 부른 `make sync` (`DOTFILES_AUTO_UPDATE_RUNNING=1`) 는 자동 갱신 작업을 등록이 없을 때만 걸고, launchd 가 띄운 프로세스 (`XPC_SERVICE_NAME` = 그 라벨) 는 자기 라벨을 정리하지 않습니다
+- **로그인 항목 목록의 줄** — 작업을 내리고 plist 를 지우면 백그라운드 항목 DB 의 그 줄도 1분 안쪽에 빠집니다 (2026-11-21 시험). 실행 파일만 바꿔 다시 걸면 같은 줄의 이름이 바뀝니다. 그래도 남은 줄은 그 화면에서 스위치를 끕니다 — `sfltool resetbtm` 은 모든 앱의 항목을 초기화하므로 쓰지 않습니다
+- **되돌리기** — 예전 방식으로 돌아가려면 이 변경 커밋을 되돌리고 `make sync` (생성된 파일은 그대로 두고 심링크를 걸지 않으므로 먼저 `make clean` 또는 `scripts/launchd-agents.sh clean`)
+- **새 작업 추가** — `launchd/com.socoolbear.<이름>.plist` 틀을 만들고 (`ProgramArguments` 첫 칸 `@HOME@/.local/bin/<이름>`, 실행 파일은 `LINKS_SINGLE` 로 `~/.local/bin/` 에 링크) `make sync`. 지우면 다음 `make sync` 가 내리고 치웁니다
 
 ## Homebrew 예약 갱신 (launchd)
 
@@ -40,7 +54,7 @@ launchd 는 예약 시각에 맥이 잠들어 있었으면 **깨어난 직후** 
 - 상태 파일: `~/.local/state/brew-scheduled-update/last-run` (마지막 실행 시각)
 - 로그: `~/Library/Logs/brew-scheduled-update.log` (1MB 초과 시 `.1` 로 1 회 로테이션)
 - 예약을 기다리지 않고 즉시 실행 / 로그 확인: `make brew-scheduled-update`, `make brew-scheduled-update-log`
-- 예약 등록은 심링크만으로 되지 않으므로 `make sync` 가 `launchctl bootout` → `bootstrap` 으로 재등록합니다 (멱등). `make clean` 은 `bootout` 후 심링크를 제거합니다.
+- 등록은 `make sync` 가 틀로 plist 를 만들어 `launchctl bootout` → `bootstrap` 으로 다시 겁니다 (멱등, 위 「launchd 예약 작업 등록」). `make clean` 은 `bootout` 후 plist 를 치웁니다.
 - 등록 상태 확인: `launchctl print gui/$(id -u)/com.socoolbear.brew-scheduled-update`
 - 알림은 `terminal-notifier` (Brewfile) 로 띄워 누르면 로그가 열립니다. terminal-notifier 가 없거나 시스템 설정 > 알림 에서 허용되지 않았으면 (exit 3) `osascript` 로 띄우고, 이 알림은 누르면 스크립트 편집기가 열리므로 본문의 로그 명령을 씁니다
 
@@ -55,7 +69,7 @@ dotfiles-doctor 의 장비 상태 점검 (`.claude/skills/dotfiles-doctor/script
 - 발송에 실패하면 (claude 없음 · 로그인 · 커넥터 끊김 · 시간 초과 180초 · 받는 주소 없음) 다른 알림 없이 `~/.local/state/dotfiles-machine-check/mail-failed` 에 시각과 이유를 남기고 끝냅니다 (exit 0). 다음 `machine.sh` 가 이 파일을 WARN 으로 내고, 세션 시작 때의 doctor 제안 (`suggest.sh`) 도 이 파일을 봅니다. 다음 발송이 성공하면 지워집니다
 - 없는 것은 실패로 치지 않습니다: 네트워크가 없으면 npm 폐기 표시 · cc-marketplace CI 결과는 INFO 로 건너뛰고, `gh` 인증이 없어도 INFO, cc-marketplace 체크아웃 · 가드 기록 · MCP 설정이 없으면 그 항목을 건너뜁니다. 반대로 점검에 쓰는 명령 (`jq` · `git` · `gh` · `npm` · `node`) 을 못 찾으면 WARN 입니다 — 조용히 0건이 되지 않게
 - 로그: `~/Library/Logs/dotfiles-machine-check.log` (1MB 초과 시 `.1` 로 1 회 로테이션). 즉시 실행 / 로그 확인 / 메일 시험: `make machine-check`, `make machine-check-log`, `dotfiles-machine-check --test-mail` (제목에 "(시험)", 실패 표시 파일은 건드리지 않음)
-- 등록 · 해제는 Homebrew 예약과 같이 `make sync` (`bootout` → `bootstrap`) · `make clean` (`bootout`). 끄려면 `launchctl bootout gui/$(id -u)/com.socoolbear.dotfiles-machine-check` (다음 `make sync` 때 다시 등록됩니다). 점검은 두고 메일만 받지 않으려면 Gmail 에서 제목 `dotfiles 장비 점검` 을 거르는 필터를 겁니다
+- 등록 · 해제는 Homebrew 예약과 같이 `make sync` (plist 생성 · `bootout` → `bootstrap`) · `make clean` (`bootout` · plist 삭제). 끄려면 `launchctl bootout gui/$(id -u)/com.socoolbear.dotfiles-machine-check` (다음 `make sync` 때 다시 등록됩니다). 점검은 두고 메일만 받지 않으려면 Gmail 에서 제목 `dotfiles 장비 점검` 을 거르는 필터를 겁니다
 
 ## 자동 갱신 (launchd + 메뉴 막대)
 

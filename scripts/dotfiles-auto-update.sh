@@ -17,7 +17,7 @@
 # (DOTFILES_AUTO_UPDATE_STAGE=after-dotfiles). 끝줄은 `main "$@"; exit $?` 한 줄이라, 파일이 바뀌어도 그 뒤를 읽지 않는다.
 #
 # make sync 는 launchd 작업을 bootout · bootstrap 으로 다시 건다. 실행 중인 작업을 bootout 하면 launchd 가 그 작업을 죽이므로,
-# 여기서 부른 make sync 는 DOTFILES_AUTO_UPDATE_RUNNING=1 을 받아 이 작업의 다시 걸기를 건너뛴다 (Makefile 의 sync).
+# 여기서 부른 make sync 는 DOTFILES_AUTO_UPDATE_RUNNING=1 을 받아 이 작업의 다시 걸기를 건너뛴다 (scripts/launchd-agents.sh).
 #
 # 무인 실행에서 1Password SSH 에이전트의 승인 창이 뜨지 않도록 GitHub 의 SSH 원격 (git@github.com:) 은 HTTPS 로 바꿔 받는다
 # (받기만 하므로 공개 저장소면 인증이 필요 없다). 그래도 SSH 로 남는 원격 (다른 호스트 · ssh 설정의 별칭) 은 받지 않고 손 필요로 둔다.

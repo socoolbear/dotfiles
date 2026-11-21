@@ -5,12 +5,11 @@
   <key>Label</key>
   <string>com.socoolbear.brew-scheduled-update</string>
 
-  <!-- dotfiles 위치에 의존하지 않도록 ~/.local/bin 심링크를 경유해 실행 -->
+  <!-- 틀이다 — make sync (scripts/launchd-agents.sh) 가 @HOME@ 을 이 장비의 홈 경로로 채워 ~/Library/LaunchAgents/ 에 만든다.
+       ~/.local/bin 의 실행 파일을 직접 불러 로그인 항목에 이 이름 (brew-scheduled-update) 으로 뜬다 (/bin/bash 를 거치면 "bash" 로 뜬다) -->
   <key>ProgramArguments</key>
   <array>
-    <string>/bin/bash</string>
-    <string>-c</string>
-    <string>exec "$HOME/.local/bin/brew-scheduled-update"</string>
+    <string>@HOME@/.local/bin/brew-scheduled-update</string>
   </array>
 
   <!-- 예약 시각: 매일 04:30 (스크립트의 RUN_WINDOW_START~RUN_WINDOW_END 안에 있어야 함) -->

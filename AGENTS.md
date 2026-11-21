@@ -51,4 +51,5 @@ make help        # 명령어 목록 출력
 - [ ] 요청된 모든 변경사항이 반영되었는가?
 - [ ] `make sync` 가 정상 동작하는가? (멱등성 확인)
 - [ ] 새로운 심볼릭 링크 추가 시 `make clean` 에도 대응 줄을 추가했는가?
+- [ ] launchd 예약 작업은 `launchd/` 에 틀 (`@HOME@/.local/bin/<이름>` 직접 실행) 만 두었는가? (`make sync` 가 만들고 걸며, 틀을 지우면 내리고 치운다 — `docs/architecture.md`)
 - [ ] 기존 심볼릭 링크가 영향받지 않았는가?

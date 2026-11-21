@@ -15,7 +15,7 @@
 | `mise/` | mise 글로벌 도구 매니페스트 (node, go 등) | `~/.config/mise/config.toml` | ✅ |
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
 | `git/` | Git 설정 (alias / delta / include) | `~/.gitconfig`, `~/.gitignore_global` | ✅ |
-| `launchd/` | launchd 예약 작업 정의 (Homebrew 예약 갱신 · 주 1회 장비 점검) | `~/Library/LaunchAgents/` | ✅ |
+| `launchd/` | launchd 예약 작업의 틀 (Homebrew 예약 갱신 · 주 1회 장비 점검 · 자동 갱신) | `~/Library/LaunchAgents/` 에 생성 *(심링크 아님 — `make sync` 가 `@HOME@` 을 채워 만든다, `docs/architecture.md` 「launchd 예약 작업 등록」)* | ✅ (생성) |
 | `scripts/` | Makefile / launchd / MCP 설정이 호출하는 유틸 스크립트 | `~/.local/bin/` (일부) | ✅ (부분) |
 | `mcp/` | MCP 서버 설정 파일 (dbhub 읽기 전용 설정) | `~/.config/dbhub/` | ✅ |
 | `macos/` | macOS 시스템 기본값 스크립트 (`defaults.sh`, `make macos` 가 실행) | — | ❌ (스크립트 직접 실행) |
@@ -47,10 +47,9 @@
 | `scripts/mcp-secret-env.sh` | `~/.local/bin/mcp-secret-env` *(비밀 값을 1Password · 키체인에서 꺼내 환경 변수 하나로 넘기고 MCP 서버를 실행 — 시험 DB MCP 와 운영 조회용 PostgreSQL · MySQL MCP 가 쓴다)* |
 | `mcp/dbhub-pg-readonly.toml` | `~/.config/dbhub/pg-readonly.toml` *(dbhub PostgreSQL MCP 의 읽기 전용 설정 — 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
 | `mcp/dbhub-mysql-readonly.toml` | `~/.config/dbhub/mysql-readonly.toml` *(dbhub MySQL MCP 의 읽기 전용 설정 — 운영 조회용 MySQL MCP 가 쓴다. 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
-| `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
-| `launchd/com.socoolbear.dotfiles-machine-check.plist` | `~/Library/LaunchAgents/com.socoolbear.dotfiles-machine-check.plist` |
-| `launchd/com.socoolbear.dotfiles-auto-update.plist` | `~/Library/LaunchAgents/com.socoolbear.dotfiles-auto-update.plist` |
 
+> `launchd/*.plist` 는 링크하지 않고 `make sync` (`scripts/launchd-agents.sh`) 가 `~/Library/LaunchAgents/` 에 같은 이름으로 만든다.
+>
 > 슬래시 명령 · 스킬 · 에이전트는 dotfiles 가 링크하지 않는다 — 작업 장치는 cc-marketplace 플러그인 (workstyle 등) 이 싣는다. `~/.local/bin/workstyle` · `loop-metrics` 는 `make sync` 가 부르는 `workstyle install` 이 만드는 실행 파일이다.
 
 ## 심볼릭 링크 매핑 — 디렉토리

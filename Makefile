@@ -92,7 +92,6 @@ LINKS_SINGLE := \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
     scripts/mcp-mysql-reader.sh:.local/bin/mcp-mysql-reader \
-    scripts/mcp-pg-reader.sh:.local/bin/mcp-pg-reader \
     scripts/mcp-lazy.mjs:.local/bin/mcp-lazy \
     scripts/mcp-secret-env.sh:.local/bin/mcp-secret-env \
     mcp/dbhub-pg-readonly.toml:.config/dbhub/pg-readonly.toml \

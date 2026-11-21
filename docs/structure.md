@@ -41,9 +41,8 @@
 | `scripts/brew-scheduled-update.sh` | `~/.local/bin/brew-scheduled-update` |
 | `scripts/sleepguard-toggle.sh` | `~/.local/bin/sleepguard` |
 | `scripts/mcp-mysql-reader.sh` | `~/.local/bin/mcp-mysql-reader` |
-| `scripts/mcp-pg-reader.sh` | `~/.local/bin/mcp-pg-reader` |
-| `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 위 두 실행기와 아래 `mcp-secret-env` 가 거친다)* |
-| `scripts/mcp-secret-env.sh` | `~/.local/bin/mcp-secret-env` *(비밀 값을 1Password · 키체인에서 꺼내 환경 변수 하나로 넘기고 MCP 서버를 실행 — 시험 DB MCP 가 쓴다)* |
+| `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 위 `mcp-mysql-reader` 와 아래 `mcp-secret-env` 가 거친다)* |
+| `scripts/mcp-secret-env.sh` | `~/.local/bin/mcp-secret-env` *(비밀 값을 1Password · 키체인에서 꺼내 환경 변수 하나로 넘기고 MCP 서버를 실행 — 시험 DB MCP 와 운영 조회용 PostgreSQL MCP 가 쓴다)* |
 | `mcp/dbhub-pg-readonly.toml` | `~/.config/dbhub/pg-readonly.toml` *(dbhub PostgreSQL MCP 의 읽기 전용 설정 — 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
 | `scripts/term-session.sh` | `~/.local/bin/term-session` |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |

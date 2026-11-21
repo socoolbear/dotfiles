@@ -13,6 +13,7 @@ CLAUDE_JSON="${H}/.claude.json"
 PLUGINS_DIR="${H}/.claude/plugins"
 ALLOW_FILE="${H}/.config/dotfiles/mcp-plaintext-allow"
 BREW_LOG="${H}/Library/Logs/brew-scheduled-update.log"
+MAIL_FAILED_FLAG="${H}/.local/state/dotfiles-machine-check/mail-failed"
 GUARD_LOGS="${H}/.cc-safety-net/logs"
 BACKUP_DIR="${H}/backup_dotfiles"
 NOW=$(date +%s)
@@ -284,6 +285,11 @@ else
   done <<< "${runs}"
 
   (( recent > 0 )) || warn "Homebrew 예약 갱신: 최근 48시간 안에 실행 기록 없음 (launchd 작업 · 로그 확인)"
+fi
+
+# 주 1회 장비 점검은 결과를 메일로만 알린다. 메일을 못 보냈으면 그 스크립트가 남긴 표시 파일을 여기서 WARN 으로 올린다 (조용히 묻히지 않게)
+if [[ -f "${MAIL_FAILED_FLAG}" ]]; then
+  warn "지난 장비 점검이 결과를 메일로 알리지 못함: $(head -c 200 "${MAIL_FAILED_FLAG}") — 로그 (make machine-check-log) 확인, 다음 발송이 성공하면 사라진다"
 fi
 
 # --- 5. 파괴적 명령 가드 (판단 재료) ---

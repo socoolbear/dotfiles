@@ -47,7 +47,7 @@ description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·
 
 ### 자동 실행
 
-- `machine.sh` 는 launchd 가 **주 1회 (월 14:00) 자동으로** 돌린다 (`scripts/machine-check-scheduled.sh`, `make sync` 가 등록). FAIL · WARN 이 있으면 macOS 알림이 온다 (로그 `~/Library/Logs/dotfiles-machine-check.log`). **알림이 오면 이 스킬로 확인한다** — 로그만 보려면 `make machine-check-log`, 지금 다시 돌리려면 `make machine-check`
+- `machine.sh` 는 launchd 가 **주 1회 (월 14:00) 자동으로** 돌린다 (`scripts/machine-check-scheduled.sh`, `make sync` 가 등록). FAIL · WARN 이 있으면 메일이 온다 (`claude -p` + claude.ai Gmail 커넥터, 제목 `dotfiles 장비 점검: FAIL n · WARN n (장비)`, 로그 `~/Library/Logs/dotfiles-machine-check.log`). 메일을 못 보내면 다음 점검이 `지난 장비 점검이 결과를 메일로 알리지 못함` WARN 을 낸다. **메일이 오면 이 스킬로 확인한다** — 로그만 보려면 `make machine-check-log`, 지금 다시 돌리려면 `make machine-check`
 - `doctor.sh --repo-only` (저장소 안에서 끝나는 점검만) 는 GitHub Actions (`.github/workflows/check.yml`) 가 push · PR · 주 1회 돌린다. 실패하면 GitHub 가 메일을 보낸다
 
 ### claude/ 점검 기준 (장비 접착)

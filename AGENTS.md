@@ -18,7 +18,7 @@ make brew-cleanup        # Brewfile 에 없는 패키지 출력 (dry-run)
 make brew-cleanup-force  # Brewfile 에 없는 패키지 실제 제거
 make brew-scheduled-update     # Homebrew 예약 갱신을 지금 즉시 실행 (예약 대기 없이)
 make brew-scheduled-update-log # 예약 갱신 최근 로그 확인
-make machine-check     # 주 1회 장비 점검 (launchd, dotfiles-doctor 의 machine.sh) 을 지금 즉시 실행
+make machine-check     # 주 1회 장비 점검 (launchd, dotfiles-doctor 의 machine.sh) 을 지금 즉시 실행 — FAIL · WARN 이 있으면 메일
 make machine-check-log # 장비 점검 최근 로그 확인
 make sync        # 심볼릭 링크 생성 (oh-my-zsh, oh-my-tmux 자동 설치)
 make mise        # mise/config.toml 의 글로벌 도구 설치 (node, go)

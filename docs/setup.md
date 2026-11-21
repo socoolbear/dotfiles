@@ -110,6 +110,7 @@ mise trust ~/.dotfiles/mise/config.toml
   - `cmd + shift + A` 충돌 해결: 설정 → 키보드 단축키 → 서비스 → 텍스트 → "터미널에서 man 페이지 인덱스 검색" off
   - `cmd + esc` 안 눌리는 문제 해결: 설정 → 키보드 단축키 → 미션 컨트롤 → "게임 오버레이" off
 - **Claude Code**:
+  - 장비 점검 메일: 주 1회 장비 점검 (launchd) 은 결과를 `claude -p` 로 claude.ai 의 Gmail 커넥터를 써서 `git config user.email` 에게 보냅니다. 장비마다 Claude Code 로그인 (claude.ai 계정) 과 claude.ai 설정의 Gmail 커넥터 연결이 필요하고, 확인은 `dotfiles-machine-check --test-mail` (시험 메일 한 통). 없으면 메일 대신 다음 점검 · 세션 시작 제안에 "메일 발송 실패" 가 뜹니다
   - 브라우저 MCP 는 aside: aside 앱 (dotfiles 밖) 을 먼저 설치하고 `aside` 명령이 PATH 에 잡히는지 (`command -v aside`) 확인한 뒤 `claude mcp add -s user aside -- aside mcp`
 - **ngrok**: `ngrok config add-authtoken <token>` 으로 인증 (`~/.config/ngrok/ngrok.yml` 생성). 토큰은 [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken) 에서 확인
 - **BetterDisplay**: 첫 실행 시 화면 녹화 권한 요청 승인 (시스템 설정 → 개인정보 보호 및 보안 → 화면 녹화). Pro 라이선스 키 있으면 메뉴바 아이콘 → Settings → License 에서 입력

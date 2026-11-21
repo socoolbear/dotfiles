@@ -12,7 +12,15 @@ Homebrew 갱신을 **정해진 시각에만** 수행합니다. 작업 중인 `br
 
 - `zsh/zshrc` 의 `HOMEBREW_NO_AUTO_UPDATE=1` — brew 명령이 스스로 갱신하지 않음 (기존 `HOMEBREW_AUTO_UPDATE_SECS` 대체)
 - `launchd/com.socoolbear.brew-scheduled-update.plist` — **예약 시각 매일 04:30** (`StartCalendarInterval`), `RunAtLoad` 는 꺼둠
-- `scripts/brew-scheduled-update.sh` — `brew update` → `brew upgrade` (formula + cask) → `brew cleanup --prune=30`
+- `scripts/brew-scheduled-update.sh` — `brew update` → `brew upgrade --formula` → `brew upgrade --cask` → `brew cleanup --prune=30`. 한 단계가 실패해도 다음 단계는 돌고, 두 upgrade 는 실패하면 60초 뒤 한 번 더 시도합니다
+
+### 사람 없는 새벽 실행에 맞춘 처리
+
+| 문제 | 처리 |
+|------|------|
+| launchd 가 맥이 잠깐 깬 상태 (darkwake) 에서 작업을 띄우고, 맥이 수십 초 안에 다시 잠들어 다운로드가 실패함 | 스크립트가 끝날 때까지 `caffeinate -i -w <pid>` 로 잠자기를 막음 |
+| pkg 설치기를 쓰는 cask (`corretto@25` · `session-manager-plugin` 등) 는 sudo 비밀번호가 필요해 늘 실패함 | 예약 실행에서는 건너뛰고, 로그에 `손으로 올릴 것 (sudo 필요): brew upgrade --cask …` 를 남김 |
+| 실패해도 로그에만 남아 모름 | 실패한 단계가 있거나 손으로 올릴 cask 가 있으면 macOS 알림을 띄움. 로그 끝에 `결과:` 줄이 있음 |
 
 ### 지연 실행 처리
 

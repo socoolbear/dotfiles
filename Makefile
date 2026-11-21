@@ -1,6 +1,6 @@
 .PHONY: all clean sync ohmyzsh ohmytmux backup brew brew-core brew-apps \
         brew-cleanup brew-cleanup-force brew-scheduled-update brew-scheduled-update-log \
-        machine-check machine-check-log \
+        machine-check machine-check-log auto-update auto-update-log \
         mise npm macos sleepguard bootstrap fresh update help
 
 # Makefile 위치 기반 (cwd 와 독립) — make -C / -f 에서도 안전
@@ -11,6 +11,9 @@ BREW_SCHEDULED_UPDATE_LABEL := com.socoolbear.brew-scheduled-update
 
 # 주 1회 장비 점검 작업의 launchd 라벨 (sync / clean 이 공유)
 MACHINE_CHECK_LABEL := com.socoolbear.dotfiles-machine-check
+
+# dotfiles · cc-marketplace 자동 갱신 작업의 launchd 라벨 (sync / clean 이 공유)
+AUTO_UPDATE_LABEL := com.socoolbear.dotfiles-auto-update
 
 # sync 가 만든 ~/.codex/AGENTS.override.md 표시 (clean 과 sync 가 이 표시가 있는 파일만 지운다)
 CODEX_OVERRIDE_MARK := <!-- make sync 가 claude/AGENTS.md + ~/.config/claude/deploy-targets.md 로 만든 파일 -->
@@ -39,6 +42,8 @@ help:
 	@echo "    brew-scheduled-update-log    예약 갱신 작업 최근 로그 출력"
 	@echo "    machine-check       주 1회 장비 점검을 지금 즉시 실행 (예약 대기 없이)"
 	@echo "    machine-check-log   장비 점검 최근 로그 출력"
+	@echo "    auto-update         dotfiles · cc-marketplace · 플러그인 자동 갱신을 지금 즉시 실행"
+	@echo "    auto-update-log     자동 갱신 상태와 최근 로그 출력"
 	@echo "    mise          mise/config.toml 의 글로벌 도구 설치 (node, go)"
 	@echo "    npm           NPM globals (npm/globals.txt + @nestjs/cli)"
 	@echo "    macos         macOS 시스템 기본값 (macos/defaults.sh)"
@@ -90,6 +95,19 @@ machine-check-log:
 	@tail -n 40 $(HOME)/Library/Logs/dotfiles-machine-check.log 2>/dev/null || echo "아직 로그가 없습니다."
 
 #--------------------------------------------------------------------------
+# 자동 갱신 예약 (launchd 가 하루 1회 dotfiles · cc-marketplace 체크아웃 · Claude 플러그인을 안전할 때만 받는다)
+#--------------------------------------------------------------------------
+
+auto-update:
+	@bash $(DOTFILES)/scripts/dotfiles-auto-update.sh
+	@echo "==> 완료. 로그: ~/Library/Logs/dotfiles-auto-update.log"
+
+auto-update-log:
+	@bash $(DOTFILES)/scripts/dotfiles-auto-update.sh --status
+	@echo "---"
+	@tail -n 40 $(HOME)/Library/Logs/dotfiles-auto-update.log 2>/dev/null || echo "아직 로그가 없습니다."
+
+#--------------------------------------------------------------------------
 # 심볼릭 링크 매니페스트 (sync / clean 공유)
 # 형식: <source-relative-to-DOTFILES>:<target-relative-to-HOME>
 #--------------------------------------------------------------------------
@@ -109,13 +127,15 @@ LINKS_SINGLE := \
     mise/config.toml:.config/mise/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/machine-check-scheduled.sh:.local/bin/dotfiles-machine-check \
+    scripts/dotfiles-auto-update.sh:.local/bin/dotfiles-auto-update \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
     scripts/mcp-lazy.mjs:.local/bin/mcp-lazy \
     scripts/mcp-secret-env.sh:.local/bin/mcp-secret-env \
     mcp/dbhub-pg-readonly.toml:.config/dbhub/pg-readonly.toml \
     mcp/dbhub-mysql-readonly.toml:.config/dbhub/mysql-readonly.toml \
     launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist \
-    launchd/com.socoolbear.dotfiles-machine-check.plist:Library/LaunchAgents/com.socoolbear.dotfiles-machine-check.plist
+    launchd/com.socoolbear.dotfiles-machine-check.plist:Library/LaunchAgents/com.socoolbear.dotfiles-machine-check.plist \
+    launchd/com.socoolbear.dotfiles-auto-update.plist:Library/LaunchAgents/com.socoolbear.dotfiles-auto-update.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
 LINKS_DIR := \
@@ -245,6 +265,14 @@ sync: ohmyzsh ohmytmux
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(BREW_SCHEDULED_UPDATE_LABEL).plist 2>/dev/null || true
 	@launchctl bootout gui/$$(id -u)/$(MACHINE_CHECK_LABEL) 2>/dev/null || true
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(MACHINE_CHECK_LABEL).plist 2>/dev/null || true
+	@# 자동 갱신 작업이 부른 sync (DOTFILES_AUTO_UPDATE_RUNNING) 는 그 작업을 bootout 하지 않는다 — 실행 중인 작업을 bootout 하면 launchd 가 죽인다.
+	@# 그때는 등록이 없을 때만 건다 (예약 설정의 변경은 다음에 손으로 sync 할 때 반영)
+	@if [ -z "$$DOTFILES_AUTO_UPDATE_RUNNING" ]; then \
+	    launchctl bootout gui/$$(id -u)/$(AUTO_UPDATE_LABEL) 2>/dev/null || true; \
+	    launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(AUTO_UPDATE_LABEL).plist 2>/dev/null || true; \
+	elif ! launchctl print gui/$$(id -u)/$(AUTO_UPDATE_LABEL) >/dev/null 2>&1; then \
+	    launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(AUTO_UPDATE_LABEL).plist 2>/dev/null || true; \
+	fi
 
 	@# Claude 플러그인 맞추기 — settings.json 에서 켠 플러그인 중 없는 것 설치 + 장치별 장비 등록 (launchd 등) 다시 걸기
 	@bash $(DOTFILES)/scripts/claude-plugins-sync.sh
@@ -259,6 +287,7 @@ sync: ohmyzsh ohmytmux
 clean:
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
 	@launchctl bootout gui/$$(id -u)/$(MACHINE_CHECK_LABEL) 2>/dev/null || true
+	@launchctl bootout gui/$$(id -u)/$(AUTO_UPDATE_LABEL) 2>/dev/null || true
 	@grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md 2>/dev/null && rm -f $(HOME)/.codex/AGENTS.override.md || true
 	@for entry in $(LINKS_SINGLE); do \
 	    rm -f "$(HOME)/$${entry##*:}"; \

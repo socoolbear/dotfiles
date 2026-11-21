@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.socoolbear.dotfiles-auto-update</string>
+
+  <!-- dotfiles 위치 · 사용자 이름에 의존하지 않도록 ~/.local/bin 심링크를 경유해 실행 -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>exec "$HOME/.local/bin/dotfiles-auto-update"</string>
+  </array>
+
+  <!-- 예약 시각: 매일 11:00.
+       새벽 예약은 맥이 잠깐 깬 상태 (darkwake) 에서 떠 곧 다시 잠들고 네트워크도 없을 수 있다 (Homebrew 예약 갱신에서 겪음).
+       오전 업무 시간은 사람이 쓰고 있어 깨어 있을 가능성이 크고, 받은 변경이 그날 세션부터 쓰인다.
+       그 시각에 잠들어 있었으면 launchd 가 깨어난 직후 한 번 실행한다 — 원격에 닿지 못하면 상태만 적고 다음 날 다시 한다. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>11</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <!-- 예약 시각에만 실행. 로그인/로드 직후 실행은 금지 -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>LowPriorityIO</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

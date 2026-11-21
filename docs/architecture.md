@@ -57,6 +57,25 @@ dotfiles-doctor 의 장비 상태 점검 (`.claude/skills/dotfiles-doctor/script
 - 로그: `~/Library/Logs/dotfiles-machine-check.log` (1MB 초과 시 `.1` 로 1 회 로테이션). 즉시 실행 / 로그 확인 / 메일 시험: `make machine-check`, `make machine-check-log`, `dotfiles-machine-check --test-mail` (제목에 "(시험)", 실패 표시 파일은 건드리지 않음)
 - 등록 · 해제는 Homebrew 예약과 같이 `make sync` (`bootout` → `bootstrap`) · `make clean` (`bootout`). 끄려면 `launchctl bootout gui/$(id -u)/com.socoolbear.dotfiles-machine-check` (다음 `make sync` 때 다시 등록됩니다). 점검은 두고 메일만 받지 않으려면 Gmail 에서 제목 `dotfiles 장비 점검` 을 거르는 필터를 겁니다
 
+## 자동 갱신 (launchd + 메뉴 막대)
+
+dotfiles · cc-marketplace 체크아웃 · Claude 플러그인을 Claude 세션과 별개로 하루 1회 받습니다. **안전할 때만 조용히 받고, 못 받았을 때만 메뉴 막대에 뜹니다** — 평소에는 아무것도 보이지 않습니다.
+
+- `launchd/com.socoolbear.dotfiles-auto-update.plist` — **매일 11:00**. 장비 점검과 같은 이유 (새벽 darkwake 는 곧 다시 잠들고 네트워크가 없을 수 있음) 로 사람이 쓰는 오전으로 잡았고, 받은 변경이 그날 세션부터 쓰입니다. 잠들어 있었으면 깨어난 직후 한 번 돕니다
+- `scripts/dotfiles-auto-update.sh` (`~/.local/bin/dotfiles-auto-update`) 의 대상:
+  1. **dotfiles** — `git fetch` 뒤 조건이 맞으면 `git merge --ff-only` 하고 `make sync`. `make sync` 가 실패하면 실패로 적고 다음 실행 때 다시 돌립니다. Brewfile 이 바뀌었으면 설치하지 않고 "make update 필요" 로만 적습니다 (다음 실행이 `brew bundle check` 로 다시 보고, 다 깔렸으면 지움)
+  2. **cc-marketplace 체크아웃** — `~/.claude/workstyle` 이 체크아웃을 가리키는 심링크일 때만 (경로는 그 링크에서 찾음). 같은 조건으로 ff-only
+  3. **Claude 플러그인** — 세션 시작 때의 자동 갱신과 같은 범위: `autoUpdate` 가 켜진 마켓플레이스 (값이 없으면 공식 마켓플레이스만) 를 `claude plugin marketplace update` 하고 그 마켓플레이스의 켜 둔 플러그인을 `claude plugin update` 합니다. 새 명령 승인을 요구하는 플러그인은 `-y` 로 넘기지 않고 손 필요로 둡니다. `claude plugin` 이 `settings.json` 키 순서를 바꾸면 내용이 같을 때 원래 글로 되돌립니다
+- **받는 조건 (셋 다)**: 미커밋 · 미추적 변경이 없다 / 기본 브랜치에 있다 / 원격보다 앞선 커밋이 없다. 하나라도 어긋나면 fetch 만 하고 작업 트리는 건드리지 않습니다 (reset · stash · clean 을 쓰지 않음). 받기 전 커밋은 로그에 남기고 되돌리기는 사람이 합니다 (`git reset --keep <커밋>`)
+- **스스로를 갱신합니다.** dotfiles 를 받으면 새 판을 `exec` 로 다시 불러 나머지 단계를 새 판이 하고, 끝줄은 `main "$@"; exit $?` 한 줄이라 바뀐 파일의 뒷부분을 읽지 않습니다
+- **`make sync` 가 자기 작업을 죽이지 않게** — 실행 중인 launchd 작업을 `bootout` 하면 launchd 가 그 작업을 죽입니다. 그래서 자동 갱신이 부른 `make sync` (`DOTFILES_AUTO_UPDATE_RUNNING=1`) 는 이 작업을 다시 걸지 않고 등록이 없을 때만 겁니다. 예약 설정 (plist) 의 변경은 다음에 손으로 `make sync` 할 때 반영됩니다
+- **1Password 승인 창이 뜨지 않게** — GitHub 의 SSH 원격 (`git@github.com:` · `ssh://git@github.com/`) 은 HTTPS 로 바꿔 받습니다 (`GIT_CONFIG_*` 환경 변수, 저장소 설정은 그대로). 받기만 하므로 공개 저장소는 인증이 필요 없습니다. 그래도 SSH 로 남는 원격 (다른 호스트 · ssh 설정의 별칭) 은 받지 않고 손 필요로 둡니다
+- **상태 파일** `~/.local/state/dotfiles-update/status` — 대상마다 `최신 / 받음 / 손 필요 (이유) / 실패 (이유) / 받아오지 못함 / 건너뜀` 과 그 상태가 시작된 시각, 마지막 실행 시각. `make auto-update-log` 가 사람이 읽기 좋게 보여 줍니다. 없는 것 (체크아웃 · claude) 은 건너뜀, 없는 명령 (`git` · `make` · `jq`) 은 실패입니다
+- **메뉴 막대** `swiftbar/dotfiles-update.5m.sh` — 상태 파일만 읽습니다 (네트워크 · git 없음). 손 필요 · 실패, 24시간 넘게 이어진 "받아오지 못함" (깨어난 직후 · 오프라인은 넘김), 3일 넘게 돌지 않은 자동 갱신이 있을 때만 `↓N` 을 띄우고, 없으면 아무것도 출력하지 않아 SwiftBar 가 항목을 두지 않습니다. 메뉴: 대상별 상태, "지금 업데이트" (같은 조건 — 미커밋 변경은 덮지 않음), "로그 열기", Brewfile 표시의 "확인함 (표시 지우기)"
+- **장비 점검** (`machine.sh` §4) — 자동 갱신이 3일 넘게 돌지 않았거나 손 필요 · 실패 · 받아오지 못함이 3일 넘게 이어지면 WARN (주 1회 메일), 그보다 짧으면 INFO, 상태 파일이 없으면 INFO
+- 잠금 (`~/.local/state/dotfiles-update/lock`) 으로 실행이 겹치지 않습니다. 로그: `~/Library/Logs/dotfiles-auto-update.log` (1MB 초과 시 `.1` 로 로테이션)
+- 등록 · 해제는 다른 예약과 같이 `make sync` · `make clean`. 끄려면 `launchctl bootout gui/$(id -u)/com.socoolbear.dotfiles-auto-update` (다음 `make sync` 때 다시 등록됩니다)
+
 저장소 안에서 끝나는 점검 (`doctor.sh --repo-only`) 은 GitHub Actions `.github/workflows/check.yml` 이 push · PR · 주 1회 (월 09:00 KST) 돌립니다. 끄려면 GitHub 저장소의 Actions 탭에서 그 workflow 를 Disable 합니다.
 
 ## oh-my-tmux 주의사항

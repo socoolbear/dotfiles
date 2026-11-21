@@ -32,6 +32,8 @@ make fresh
 | `make brew-cleanup-force` | `Brewfile` 에 없는 패키지 실제 제거 |
 | `make brew-scheduled-update` | 예약 갱신 작업을 지금 즉시 실행 (예약 대기 없이) |
 | `make brew-scheduled-update-log` | 예약 갱신 작업 최근 로그 출력 |
+| `make auto-update` | dotfiles · cc-marketplace · 플러그인 자동 갱신을 지금 즉시 실행 (안전할 때만 받음) |
+| `make auto-update-log` | 자동 갱신 상태와 최근 로그 출력 |
 | `make sync` | 심볼릭 링크 생성 (oh-my-zsh, oh-my-tmux 자동 설치 포함) |
 | `make mise` | `mise/config.toml` 의 글로벌 도구 설치 (node, go) |
 | `make npm` | NPM globals 설치 (`npm/globals.txt` 매니페스트 + `@nestjs/cli`) |

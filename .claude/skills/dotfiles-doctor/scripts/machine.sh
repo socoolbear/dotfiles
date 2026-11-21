@@ -14,6 +14,8 @@ PLUGINS_DIR="${H}/.claude/plugins"
 ALLOW_FILE="${H}/.config/dotfiles/mcp-plaintext-allow"
 BREW_LOG="${H}/Library/Logs/brew-scheduled-update.log"
 MAIL_FAILED_FLAG="${H}/.local/state/dotfiles-machine-check/mail-failed"
+UPDATE_STATUS="${H}/.local/state/dotfiles-update/status"
+UPDATE_STALE_DAYS=3
 GUARD_LOGS="${H}/.cc-safety-net/logs"
 BACKUP_DIR="${H}/backup_dotfiles"
 NOW=$(date +%s)
@@ -225,7 +227,8 @@ else
 fi
 
 # --- 4. 예약 작업 ---
-# dotfiles 의 launchd 작업이 등록돼 있는가, Homebrew 예약 갱신이 최근 48시간 안에 돌았고 오래 걸리거나 실패하지 않았는가.
+# dotfiles 의 launchd 작업이 등록돼 있는가, Homebrew 예약 갱신이 최근 48시간 안에 돌았고 오래 걸리거나 실패하지 않았는가,
+# dotfiles 자동 갱신이 며칠째 돌지 않았거나 손 필요 · 실패가 며칠째 이어지지 않는가.
 echo "## 4. 예약 작업"
 
 for plist in "${DOTFILES}"/launchd/*.plist; do
@@ -285,6 +288,32 @@ else
   done <<< "${runs}"
 
   (( recent > 0 )) || warn "Homebrew 예약 갱신: 최근 48시간 안에 실행 기록 없음 (launchd 작업 · 로그 확인)"
+fi
+
+# dotfiles 자동 갱신 (scripts/dotfiles-auto-update.sh) 이 남긴 상태 파일. 메뉴 막대를 못 본 채 지나간 것을 주 1회 메일로 잡는다
+if [[ ! -f "${UPDATE_STATUS}" ]]; then
+  info "dotfiles 자동 갱신: 상태 파일 없음 — 아직 한 번도 돌지 않음 (make auto-update)"
+else
+  last_update=$(awk -F'\t' '$1 == "last_run" { print $3 }' "${UPDATE_STATUS}")
+  update_days=$(( (NOW - ${last_update:-0}) / 86400 ))
+  (( update_days > UPDATE_STALE_DAYS )) && warn "dotfiles 자동 갱신: ${update_days}일 넘게 돌지 않음 (make auto-update-log · launchd 작업 확인)"
+
+  while IFS=$'\t' read -r target state detail since; do
+    case "${state}" in
+      (manual) label="손 필요" ;;
+      (failed) label="실패" ;;
+      (unreachable) label="받아오지 못함" ;;
+      (*) continue ;;
+    esac
+
+    stuck_days=$(( (NOW - ${since:-${NOW}}) / 86400 ))
+
+    if (( stuck_days > UPDATE_STALE_DAYS )); then
+      warn "dotfiles 자동 갱신: ${target} — ${label} ${stuck_days}일째 (${detail:0:120})"
+    else
+      info "dotfiles 자동 갱신: ${target} — ${label} (${detail:0:120})"
+    fi
+  done < <(grep -v '^last_run' "${UPDATE_STATUS}")
 fi
 
 # 주 1회 장비 점검은 결과를 메일로만 알린다. 메일을 못 보냈으면 그 스크립트가 남긴 표시 파일을 여기서 WARN 으로 올린다 (조용히 묻히지 않게)

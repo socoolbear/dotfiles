@@ -1,5 +1,6 @@
 .PHONY: all clean sync ohmyzsh ohmytmux backup brew brew-core brew-apps \
         brew-cleanup brew-cleanup-force brew-scheduled-update brew-scheduled-update-log \
+        machine-check machine-check-log \
         mise npm macos sleepguard bootstrap fresh update help
 
 # Makefile 위치 기반 (cwd 와 독립) — make -C / -f 에서도 안전
@@ -7,6 +8,9 @@ DOTFILES := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
 # Homebrew 예약 갱신 작업의 launchd 라벨 (sync / clean / brew-scheduled-update 가 공유)
 BREW_SCHEDULED_UPDATE_LABEL := com.socoolbear.brew-scheduled-update
+
+# 주 1회 장비 점검 작업의 launchd 라벨 (sync / clean 이 공유)
+MACHINE_CHECK_LABEL := com.socoolbear.dotfiles-machine-check
 
 # sync 가 만든 ~/.codex/AGENTS.override.md 표시 (clean 과 sync 가 이 표시가 있는 파일만 지운다)
 CODEX_OVERRIDE_MARK := <!-- make sync 가 claude/AGENTS.md + ~/.config/claude/deploy-targets.md 로 만든 파일 -->
@@ -33,6 +37,8 @@ help:
 	@echo "    brew-cleanup-force  Brewfile 에 없는 패키지 실제 제거"
 	@echo "    brew-scheduled-update        예약 갱신 작업을 지금 즉시 실행 (예약 대기 없이)"
 	@echo "    brew-scheduled-update-log    예약 갱신 작업 최근 로그 출력"
+	@echo "    machine-check       주 1회 장비 점검을 지금 즉시 실행 (예약 대기 없이)"
+	@echo "    machine-check-log   장비 점검 최근 로그 출력"
 	@echo "    mise          mise/config.toml 의 글로벌 도구 설치 (node, go)"
 	@echo "    npm           NPM globals (npm/globals.txt + @nestjs/cli)"
 	@echo "    macos         macOS 시스템 기본값 (macos/defaults.sh)"
@@ -73,6 +79,17 @@ brew-scheduled-update-log:
 	@tail -n 40 $(HOME)/Library/Logs/brew-scheduled-update.log 2>/dev/null || echo "아직 로그가 없습니다."
 
 #--------------------------------------------------------------------------
+# 장비 점검 예약 (launchd 가 주 1회 dotfiles-doctor 의 machine.sh 를 돌린다)
+#--------------------------------------------------------------------------
+
+machine-check:
+	@bash $(DOTFILES)/scripts/machine-check-scheduled.sh
+	@echo "==> 완료. 로그: ~/Library/Logs/dotfiles-machine-check.log"
+
+machine-check-log:
+	@tail -n 40 $(HOME)/Library/Logs/dotfiles-machine-check.log 2>/dev/null || echo "아직 로그가 없습니다."
+
+#--------------------------------------------------------------------------
 # 심볼릭 링크 매니페스트 (sync / clean 공유)
 # 형식: <source-relative-to-DOTFILES>:<target-relative-to-HOME>
 #--------------------------------------------------------------------------
@@ -90,12 +107,14 @@ LINKS_SINGLE := \
     claude/CLAUDE.md:.claude/CLAUDE.md \
     mise/config.toml:.config/mise/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
+    scripts/machine-check-scheduled.sh:.local/bin/dotfiles-machine-check \
     scripts/sleepguard-toggle.sh:.local/bin/sleepguard \
     scripts/mcp-lazy.mjs:.local/bin/mcp-lazy \
     scripts/mcp-secret-env.sh:.local/bin/mcp-secret-env \
     mcp/dbhub-pg-readonly.toml:.config/dbhub/pg-readonly.toml \
     mcp/dbhub-mysql-readonly.toml:.config/dbhub/mysql-readonly.toml \
-    launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
+    launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist \
+    launchd/com.socoolbear.dotfiles-machine-check.plist:Library/LaunchAgents/com.socoolbear.dotfiles-machine-check.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)
 LINKS_DIR := \
@@ -223,6 +242,8 @@ sync: ohmyzsh ohmytmux
 	@# launchd 예약 작업 재등록 (심링크 생성만으로는 등록되지 않음 — bootout 후 bootstrap 으로 멱등)
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
 	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(BREW_SCHEDULED_UPDATE_LABEL).plist 2>/dev/null || true
+	@launchctl bootout gui/$$(id -u)/$(MACHINE_CHECK_LABEL) 2>/dev/null || true
+	@launchctl bootstrap gui/$$(id -u) $(HOME)/Library/LaunchAgents/$(MACHINE_CHECK_LABEL).plist 2>/dev/null || true
 
 	@# Claude 플러그인 맞추기 — settings.json 에서 켠 플러그인 중 없는 것 설치 + 장치별 장비 등록 (launchd 등) 다시 걸기
 	@bash $(DOTFILES)/scripts/claude-plugins-sync.sh
@@ -236,6 +257,7 @@ sync: ohmyzsh ohmytmux
 
 clean:
 	@launchctl bootout gui/$$(id -u)/$(BREW_SCHEDULED_UPDATE_LABEL) 2>/dev/null || true
+	@launchctl bootout gui/$$(id -u)/$(MACHINE_CHECK_LABEL) 2>/dev/null || true
 	@grep -qxF "$(CODEX_OVERRIDE_MARK)" $(HOME)/.codex/AGENTS.override.md 2>/dev/null && rm -f $(HOME)/.codex/AGENTS.override.md || true
 	@for entry in $(LINKS_SINGLE); do \
 	    rm -f "$(HOME)/$${entry##*:}"; \

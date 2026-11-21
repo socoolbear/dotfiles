@@ -32,6 +32,15 @@ run_limited() {
   fi
 }
 
+# --- 0. 점검에 쓰는 명령 ---
+# launchd 예약 실행처럼 PATH 가 짧은 곳에서 명령을 못 찾으면, 그 명령을 쓰는 점검이 조용히 0건으로 끝난다.
+# 모두 Brewfile · mise 가 까는 명령이라 없으면 설치나 PATH 를 볼 일이다.
+echo "## 0. 점검에 쓰는 명령"
+
+for required in jq git gh npm node; do
+  command -v "${required}" >/dev/null 2>&1 || warn "명령 없음: ${required} — 이 명령을 쓰는 점검이 빠진다 (설치 · PATH 확인)"
+done
+
 # --- 1. MCP 설정의 평문 비밀값 ---
 # 전역 · 프로젝트별 mcpServers 를 본다. 판정: 접속 문자열 안의 비밀번호 · URL 쿼리의 토큰 · 비밀 이름의 env/header 값이 1Password 참조 (op://) 나 ${…} 참조가 아닌 것.
 # 예외는 저장소 밖 목록 (서버:키 한 줄씩) — 서버 이름을 공개 저장소에 넣지 않는다.

@@ -1,0 +1,40 @@
+name: check
+
+# 저장소 안의 내용만으로 판정되는 점검 — dotfiles-doctor 의 doctor.sh --repo-only.
+# 셸 · JSON · zsh · git 설정 · plist 문법, make -n sync, Makefile 링크 원본, settings.json 이 부르는 스크립트,
+# 문서 속 경로, 스킬 frontmatter, 저장소 구성 (docs/structure.md 표), gitleaks (작업 트리 + git 이력), 개인정보 형식.
+#
+# 장비를 보는 점검 (링크 · ~/.claude · 예약 작업 · MCP 설정) 은 launchd 의 주 1회 장비 점검 (make machine-check) 이 맡는다.
+# 금지어 (회사 · 사람 이름) 점검은 목록이 저장소 밖 비공개 파일이라 여기서는 돌지 않는다 — git 이력에 남은 기준선도 그래서 CI 를 막지 않는다.
+# plist 는 python plistlib 로 읽으므로 macOS 러너 없이 ubuntu 로 충분하다.
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 1"   # 매주 월요일 00:00 UTC (한국 09:00) — gitleaks 규칙 갱신 등 저장소 밖 변화도 주 1회 본다
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GITLEAKS_VERSION: "8.30.1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # gitleaks 가 git 이력 전체를 본다
+      - name: 점검 도구 설치 (zsh · gitleaks)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq zsh
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
+      - name: doctor.sh --repo-only
+        env:
+          DOTFILES: ${{ github.workspace }}
+        run: bash .claude/skills/dotfiles-doctor/scripts/doctor.sh --repo-only

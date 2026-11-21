@@ -35,6 +35,7 @@ readonly UPGRADE_ATTEMPTS=2
 readonly RETRY_DELAY_SECONDS=60
 
 readonly NOTIFY_TITLE="Homebrew 예약 갱신"
+readonly NOTIFY_GROUP="brew-scheduled-update"
 
 failedSteps=()
 
@@ -110,7 +111,30 @@ retry() {
     done
 }
 
+findNotifier() {
+    local candidate
+
+    for candidate in /opt/homebrew/bin/terminal-notifier /usr/local/bin/terminal-notifier; do
+        if [[ -x "${candidate}" ]]; then
+            echo "${candidate}"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# terminal-notifier (Brewfile) 로 띄우면 누르면 로그가 열리고, 같은 그룹의 이전 알림을 바꿔 쌓이지 않는다.
+# terminal-notifier 는 시스템 설정 > 알림 에서 허용돼 있어야 한다 — 허용되지 않았으면 exit 3 으로 끝난다.
+# 그때와 terminal-notifier 가 없을 때는 osascript 로 띄운다 (누르면 스크립트 편집기가 열린다 — 실패 알림 본문이 로그 명령을 담는다).
 notify() {
+    local notifier
+
+    if notifier=$(findNotifier) \
+        && "${notifier}" -title "${NOTIFY_TITLE}" -message "$1 — 누르면 로그" -group "${NOTIFY_GROUP}" -open "file://${LOG}" >/dev/null 2>&1; then
+        return 0
+    fi
+
     /usr/bin/osascript - "$1" "${NOTIFY_TITLE}" >/dev/null 2>&1 <<'APPLESCRIPT' || true
 on run argv
     display notification (item 1 of argv) with title (item 2 of argv)

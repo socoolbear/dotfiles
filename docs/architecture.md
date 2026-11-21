@@ -42,8 +42,21 @@ launchd 는 예약 시각에 맥이 잠들어 있었으면 **깨어난 직후** 
 - 예약을 기다리지 않고 즉시 실행 / 로그 확인: `make brew-scheduled-update`, `make brew-scheduled-update-log`
 - 예약 등록은 심링크만으로 되지 않으므로 `make sync` 가 `launchctl bootout` → `bootstrap` 으로 재등록합니다 (멱등). `make clean` 은 `bootout` 후 심링크를 제거합니다.
 - 등록 상태 확인: `launchctl print gui/$(id -u)/com.socoolbear.brew-scheduled-update`
+- 알림은 `terminal-notifier` (Brewfile) 로 띄워 누르면 로그가 열립니다. terminal-notifier 가 없거나 시스템 설정 > 알림 에서 허용되지 않았으면 (exit 3) `osascript` 로 띄우고, 이 알림은 누르면 스크립트 편집기가 열리므로 본문의 로그 명령을 씁니다
 
 > 과거에 쓰던 `brew autoupdate` (homebrew/autoupdate 탭) 는 로그인 시 + 24시간 간격이라 실행 시각을 지정할 수 없어 제거했습니다. 새 장비에서 실수로 다시 깔았다면 `brew autoupdate delete` 로 지우세요.
+
+## 주 1회 장비 점검 (launchd)
+
+dotfiles-doctor 의 장비 상태 점검 (`.claude/skills/dotfiles-doctor/scripts/machine.sh` — MCP 평문 비밀값 · 폐기된 MCP 패키지 · 플러그인 정합 · 예약 작업 · 가드 기록 · 비밀값 사본 · cc-marketplace 요약) 을 주 1회 자동으로 돌립니다. 홈 폴더를 보는 점검이라 GitHub Actions 같은 원격에서는 못 합니다.
+
+- `launchd/com.socoolbear.dotfiles-machine-check.plist` — **매주 월요일 14:00**. 새벽 예약은 darkwake 에서 떠 곧 다시 잠들고 네트워크가 없을 수 있어 사람이 쓰는 평일 낮으로 잡았습니다. 그 시각에 잠들어 있었으면 깨어난 직후 한 번 돌고, 언제 돌아도 되는 점검이라 시각을 거르지 않습니다
+- `scripts/machine-check-scheduled.sh` (`~/.local/bin/dotfiles-machine-check`) — launchd 의 짧은 PATH 에 Homebrew · mise 경로를 더하고, 링크를 따라 저장소 위치를 찾아 `machine.sh` 를 부릅니다. 전체 출력은 로그에, **FAIL · WARN 이 1건 이상일 때만** 가장 심한 항목 한 줄과 건수를 알림으로 띄웁니다 (위 Homebrew 알림과 같은 방식 — 본문 끝에 "누르면 로그" 또는 `make machine-check-log` 안내. 어느 쪽으로 띄웠는지 로그에 `알림:` 줄로 남김)
+- 없는 것은 실패로 치지 않습니다: 네트워크가 없으면 npm 폐기 표시 · cc-marketplace CI 결과는 INFO 로 건너뛰고, `gh` 인증이 없어도 INFO, cc-marketplace 체크아웃 · 가드 기록 · MCP 설정이 없으면 그 항목을 건너뜁니다. 반대로 점검에 쓰는 명령 (`jq` · `git` · `gh` · `npm` · `node`) 을 못 찾으면 WARN 입니다 — 조용히 0건이 되지 않게
+- 로그: `~/Library/Logs/dotfiles-machine-check.log` (1MB 초과 시 `.1` 로 1 회 로테이션). 즉시 실행 / 로그 확인 / 알림 시험: `make machine-check`, `make machine-check-log`, `dotfiles-machine-check --test-notify`
+- 등록 · 해제는 Homebrew 예약과 같이 `make sync` (`bootout` → `bootstrap`) · `make clean` (`bootout`). 끄려면 `launchctl bootout gui/$(id -u)/com.socoolbear.dotfiles-machine-check` (다음 `make sync` 때 다시 등록됩니다)
+
+저장소 안에서 끝나는 점검 (`doctor.sh --repo-only`) 은 GitHub Actions `.github/workflows/check.yml` 이 push · PR · 주 1회 (월 09:00 KST) 돌립니다. 끄려면 GitHub 저장소의 Actions 탭에서 그 workflow 를 Disable 합니다.
 
 ## oh-my-tmux 주의사항
 

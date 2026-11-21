@@ -2,8 +2,16 @@
 # dotfiles 의 기계적 점검 — 읽기 전용. 아무것도 고치지 않는다.
 # 출력: [FAIL] 확실한 고장 / [WARN] 사람이 판단할 것 / [INFO] 판단 재료. FAIL 이 하나라도 있으면 exit 1.
 #
+#
+# --repo-only: 저장소 안의 내용만으로 판정되는 점검만 돈다 (GitHub Actions 용 — .github/workflows/check.yml).
+#   건너뛰는 것: 장비에 놓인 링크 (1 · 2절의 $HOME 쪽), ~/.claude 쪽 파일, Claude Code 버전, 금지어 (목록이 저장소 밖 비공개 파일이라 CI 에 없다).
+#   gitleaks 가 없으면 WARN 이 아니라 FAIL 이다 — CI 에서 비밀키 점검이 조용히 빠지지 않게.
+#
 # set -e 를 쓰지 않는 이유: 점검 하나가 실패해도 나머지 점검을 끝까지 돌려야 한다.
 set -uo pipefail
+
+repo_only=0
+[[ "${1:-}" == "--repo-only" ]] && repo_only=1
 
 DOTFILES="${DOTFILES:-${HOME}/.dotfiles}"
 GITLEAKS_CONFIG_FILE="$(cd "$(dirname "$0")" && pwd)/gitleaks.toml"   # cd 전에 이 스크립트 위치 기준으로 잡는다
@@ -32,6 +40,7 @@ for entry in $(print_make_var LINKS_SINGLE) $(print_make_var LINKS_DIR); do
   dst="${HOME}/${entry##*:}"
 
   [[ -e "${src}" ]] || { fail "원본 없음: ${entry%%:*} (Makefile 매핑만 남음)"; continue; }
+  (( repo_only )) && continue
 
   if [[ ! -L "${dst}" ]]; then
     warn "링크 아님: ~/${entry##*:} (make sync 미실행이거나 실파일이 막고 있음)"
@@ -45,10 +54,15 @@ echo "## 2. 끊긴 심볼릭 링크"
 
 # 링크가 놓이는 디렉토리 (Makefile 매핑 대상의 상위 + 와일드카드 + Alfred) 를 훑어,
 # dotfiles 를 가리키는데 원본이 없는 링크를 찾는다 (매핑에서 빠진 낡은 링크 포함)
-link_parents=$(
-  for entry in $(print_make_var LINKS_SINGLE) $(print_make_var LINKS_DIR); do dirname "${HOME}/${entry##*:}"; done
-  printf '%s\n' "${HOME}/.claude/commands" "${HOME}/.claude/skills" "${HOME}/.claude/agents" "$(print_make_var ALFRED_WORKFLOWS_DIR)"
-)
+if (( repo_only )); then
+  info "장비에 놓인 링크를 보는 점검 — --repo-only 에서 건너뜀"
+  link_parents=""
+else
+  link_parents=$(
+    for entry in $(print_make_var LINKS_SINGLE) $(print_make_var LINKS_DIR); do dirname "${HOME}/${entry##*:}"; done
+    printf '%s\n' "${HOME}/.claude/commands" "${HOME}/.claude/skills" "${HOME}/.claude/agents" "$(print_make_var ALFRED_WORKFLOWS_DIR)"
+  )
+fi
 
 while IFS= read -r dir; do
   [[ -d "${dir}" ]] || continue
@@ -75,8 +89,17 @@ done < <(git ls-files '*.json')
 zsh -n zsh/zshrc 2>/dev/null || fail "zsh 문법 오류: zsh/zshrc"
 git config -f git/gitconfig --list >/dev/null 2>&1 || fail "git 설정 파싱 오류: git/gitconfig"
 
+# plutil 이 없는 곳 (Linux CI) 에서는 python 의 plistlib 로 읽는다
+lint_plist() {
+  if command -v plutil >/dev/null 2>&1; then
+    plutil -lint "${1}" >/dev/null 2>&1
+  else
+    python3 -c 'import plistlib, sys; plistlib.load(open(sys.argv[1], "rb"))' "${1}" >/dev/null 2>&1
+  fi
+}
+
 while IFS= read -r f; do
-  plutil -lint "${f}" >/dev/null 2>&1 || fail "plist 문법 오류: ${f}"
+  lint_plist "${f}" || fail "plist 문법 오류: ${f}"
 done < <(git ls-files '*.plist')
 
 make -n sync >/dev/null 2>&1 || fail "make -n sync 실패"
@@ -90,7 +113,7 @@ done < <(jq -r '.. | .command? // empty' claude/settings.json | grep -oE '~/\.cl
 
 # 홈 하위에서 연 세션은 상위 디렉토리를 훑다가 ~/.claude/AGENTS.md 를 프로젝트 지시로 한 번 더 읽는다
 # (claude/CLAUDE.md 의 @AGENTS.md 와 중복 로딩). 공용 규칙은 import 로만 들어와야 한다
-[[ -e "${HOME}/.claude/AGENTS.md" || -L "${HOME}/.claude/AGENTS.md" ]] \
+(( ! repo_only )) && [[ -e "${HOME}/.claude/AGENTS.md" || -L "${HOME}/.claude/AGENTS.md" ]] \
   && fail "~/.claude/AGENTS.md 가 있음 — 홈 하위 세션에서 전역 지시가 두 번 로드된다 (make sync 가 링크면 지운다)"
 
 # --- 5. 문서가 가리키는 경로가 있는가 ---
@@ -112,6 +135,7 @@ while IFS= read -r doc; do
     [[ "${path}" == */* ]] || continue
 
     if [[ "${path}" == "~/"* ]]; then
+      (( repo_only )) && continue
       [[ "${path}" =~ ^~/\.claude/(docs|rules|scripts|agents|commands|skills)/ ]] || continue
       [[ -e "${HOME}/${path#\~/}" ]] || warn "${doc}: \`${ref}\` 없음"
       continue
@@ -135,10 +159,14 @@ done < <(git ls-files --cached --others --exclude-standard '.claude/skills/*/SKI
 # --- 6. 판단 재료: 현재 Claude Code 버전과 문서가 기준으로 삼은 버전 ---
 echo "## 6. 버전 기준"
 
-info "현재 Claude Code: $(claude --version 2>/dev/null | head -1)"
+if (( repo_only )); then
+  info "장비의 Claude Code 버전 비교 — --repo-only 에서 건너뜀"
+else
+  info "현재 Claude Code: $(claude --version 2>/dev/null | head -1)"
 
-grep -rnoE '[0-9]+\.[0-9]+\.[0-9]+\** (기준|에서)' claude .claude/skills 2>/dev/null \
-  | while IFS= read -r hit; do info "문서 기준 버전: ${hit}"; done
+  grep -rnoE '[0-9]+\.[0-9]+\.[0-9]+\** (기준|에서)' claude .claude/skills 2>/dev/null \
+    | while IFS= read -r hit; do info "문서 기준 버전: ${hit}"; done
+fi
 
 # --- 7. 저장소 구성: docs/structure.md 「디렉토리 개요」 표가 역할 목록이다 ---
 # 새 디렉토리가 생겨도 이 스크립트는 고칠 필요가 없다. 표에 없는 디렉토리를 WARN 으로 올린다.
@@ -220,11 +248,15 @@ if command -v gitleaks >/dev/null 2>&1; then
 
   print_worktree | gitleaks stdin -c "${GITLEAKS_CONFIG_FILE}" --redact --no-banner --log-level error --exit-code 3 >/dev/null 2>&1
   report_gitleaks "미커밋·미추적 변경" "git diff HEAD | gitleaks stdin -c ${config_display} --redact -v (미추적 파일도)" "${PIPESTATUS[1]}"
+elif (( repo_only )); then
+  fail "gitleaks 없음 — CI 에서 비밀키 점검을 건너뛸 수 없다 (workflow 의 설치 단계 확인)"
 else
   warn "gitleaks 없음 — 비밀키 점검 건너뜀 (make brew)"
 fi
 
-if [[ -s "${sensitive_words}" ]]; then
+if (( repo_only )); then
+  info "금지어 점검 — 목록이 저장소 밖 비공개 파일이라 --repo-only 에서 건너뜀"
+elif [[ -s "${sensitive_words}" ]]; then
   words=$(grep -vE '^[[:space:]]*(#|$)' "${sensitive_words}")
 
   while IFS= read -r hit; do

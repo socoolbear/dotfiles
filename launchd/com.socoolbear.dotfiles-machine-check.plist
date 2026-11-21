@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.socoolbear.dotfiles-machine-check</string>
+
+  <!-- dotfiles 위치 · 사용자 이름에 의존하지 않도록 ~/.local/bin 심링크를 경유해 실행 -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>exec "$HOME/.local/bin/dotfiles-machine-check"</string>
+  </array>
+
+  <!-- 예약 시각: 매주 월요일 14:00.
+       새벽 예약은 맥이 잠깐 깬 상태 (darkwake) 에서 떠 곧 다시 잠들고 네트워크도 없을 수 있다 (Homebrew 예약 갱신에서 겪음).
+       평일 낮은 사람이 쓰고 있어 깨어 있을 가능성이 크고, 알림도 바로 본다.
+       그 시각에 잠들어 있었으면 launchd 가 깨어난 직후 한 번 실행한다 — 이 점검은 언제 돌아도 되므로 시각을 거르지 않는다. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key>
+    <integer>1</integer>
+    <key>Hour</key>
+    <integer>14</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <!-- 예약 시각에만 실행. 로그인/로드 직후 실행은 금지 -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>LowPriorityIO</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

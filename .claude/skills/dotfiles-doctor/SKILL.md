@@ -45,6 +45,11 @@ description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·
 - 출력의 MCP 서버 이름은 커밋 메시지·저장소 문서에 옮기지 않는다 (회사 서버 이름이 공개 저장소에 남는다). 보고와 처방서 (gitignore 됨) 에만 쓴다
 - `cc-marketplace:` 로 시작하는 줄은 그 저장소의 `health.sh` 결과다 (시험을 돌리지 않는 정적 점검). 처방서에 넣지 않고 보고에 "cc-marketplace evolve 대상" 으로 적는다
 
+### 자동 실행
+
+- `machine.sh` 는 launchd 가 **주 1회 (월 14:00) 자동으로** 돌린다 (`scripts/machine-check-scheduled.sh`, `make sync` 가 등록). FAIL · WARN 이 있으면 macOS 알림이 온다 (로그 `~/Library/Logs/dotfiles-machine-check.log`). **알림이 오면 이 스킬로 확인한다** — 로그만 보려면 `make machine-check-log`, 지금 다시 돌리려면 `make machine-check`
+- `doctor.sh --repo-only` (저장소 안에서 끝나는 점검만) 는 GitHub Actions (`.github/workflows/check.yml`) 가 push · PR · 주 1회 돌린다. 실패하면 GitHub 가 메일을 보낸다
+
 ### claude/ 점검 기준 (장비 접착)
 
 dotfiles 의 `claude/` 에는 장비 접착 (`settings.json` · 전역 `CLAUDE.md` 의 불러오기 줄 · `scripts/` 의 statusline · tmux 상태 · `docs/lessons.md` · `mods/`) 만 남아 있다. 취향 규칙과 작업 장치 (workstyle 의 규칙 글 · 훅 · 에이전트 · 명령, deploy-guard) 는 cc-marketplace 저장소에 있고, 그 진화 점검은 그 저장소의 `evolve` 스킬이 맡는다 — 이 스킬에 있던 규칙·위임·지시 점검 기준은 그 저장소의 workstyle 진화 기록 (docs/evolution/workstyle.md) 「점검 기준 (dotfiles-doctor 에서 옮김)」 으로 옮겼다. 거기서 고칠 것을 찾으면 처방서에 항목으로 만들지 말고 보고에 "cc-marketplace evolve 대상" 으로 적는다.

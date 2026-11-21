@@ -12,7 +12,7 @@ if [[ "${3:-}" != "--" || $# -lt 4 ]]; then
   exit 2
 fi
 
-# op:// 참조는 지연 시작 프록시를 거친다 — 세션이 뜰 때가 아니라 첫 쿼리 때 1Password 를 부른다 (mcp-*-reader 와 같은 방식)
+# op:// 참조는 지연 시작 프록시를 거친다 — 세션이 뜰 때가 아니라 첫 쿼리 때 1Password 를 부른다 (2026-11-19 사용자 결정)
 if [[ "${secretRef}" == op://* && -z "${MCP_LAZY_CHILD:-}" ]]; then
   exec "${HOME}/.local/bin/mcp-lazy" "${0##*/} ${secretRef} ${*:4}" -- "${0}" "$@"
 fi

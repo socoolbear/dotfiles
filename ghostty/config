@@ -12,7 +12,7 @@ grapheme-width-method = "unicode"
 
 font-family = "JetBrainsMono Nerd Font"
 font-size = 14
-# 창 복원은 term-session 한 곳에서 (Ghostty 가 따로 되살리면 zsh 가 빈 tmux 세션을 새로 만들어 겹침)
+# 창을 되살리지 않음 (되살린 창마다 zsh 가 빈 tmux 세션을 새로 만들어 쌓임 — ZSH_TMUX_AUTOCONNECT=false)
 window-save-state = never
 
 # 한글 입력 상태에서도 Ctrl+문자가 입력기에 먹히지 않고 제어 문자로 가도록 물리 키로 바인딩

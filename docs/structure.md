@@ -11,7 +11,7 @@
 | `ghostty/` | Ghostty 터미널 | `~/.config/ghostty/` | ✅ |
 | `karabiner/` | 키보드 리맵핑 | `~/.config/karabiner/` | ✅ |
 | `swiftbar/` | SwiftBar 메뉴바 플러그인 (잠자기 방지 토글) | `~/.swiftbar-plugins/` | ✅ |
-| `alfred/` | Alfred 워크플로우 (터미널 세션 저장·복원) | `~/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/<name>` | ✅ |
+| `alfred/` | Alfred 워크플로우 (지금은 없음 — `alfred/workflows/<name>/` 로 넣으면 `make sync` 가 등록) | `~/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows/<name>` | ✅ |
 | `claude/` | Claude Code 글로벌 설정 | `~/.claude/` | ✅ (부분) |
 | `mise/` | mise 글로벌 도구 매니페스트 (node, go 등) | `~/.config/mise/config.toml` | ✅ |
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
@@ -44,7 +44,7 @@
 | `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 위 `mcp-mysql-reader` 와 아래 `mcp-secret-env` 가 거친다)* |
 | `scripts/mcp-secret-env.sh` | `~/.local/bin/mcp-secret-env` *(비밀 값을 1Password · 키체인에서 꺼내 환경 변수 하나로 넘기고 MCP 서버를 실행 — 시험 DB MCP 와 운영 조회용 PostgreSQL MCP 가 쓴다)* |
 | `mcp/dbhub-pg-readonly.toml` | `~/.config/dbhub/pg-readonly.toml` *(dbhub PostgreSQL MCP 의 읽기 전용 설정 — 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
-| `scripts/term-session.sh` | `~/.local/bin/term-session` |
+| `mcp/dbhub-mysql-readonly.toml` | `~/.config/dbhub/mysql-readonly.toml` *(dbhub MySQL MCP 의 읽기 전용 설정 — 운영 조회용 MySQL MCP 가 쓴다. 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 
 > 슬래시 명령 · 스킬 · 에이전트는 dotfiles 가 링크하지 않는다 — 작업 장치는 cc-marketplace 플러그인 (workstyle 등) 이 싣는다. `~/.local/bin/workstyle` · `loop-metrics` 는 `make sync` 가 부르는 `workstyle install` 이 만드는 실행 파일이다.

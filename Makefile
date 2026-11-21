@@ -95,7 +95,7 @@ LINKS_SINGLE := \
     scripts/mcp-lazy.mjs:.local/bin/mcp-lazy \
     scripts/mcp-secret-env.sh:.local/bin/mcp-secret-env \
     mcp/dbhub-pg-readonly.toml:.config/dbhub/pg-readonly.toml \
-    scripts/term-session.sh:.local/bin/term-session \
+    mcp/dbhub-mysql-readonly.toml:.config/dbhub/mysql-readonly.toml \
     launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
 
 # 디렉토리 — rm -rf 후 재링크 (내부 파일 변경을 즉시 반영)

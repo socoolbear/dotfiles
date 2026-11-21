@@ -102,7 +102,6 @@ mise trust ~/.dotfiles/mise/config.toml
   - **dotfiles 워크플로우** (`alfred/workflows/*`): Alfred 를 한 번 실행한 뒤 `make sync` 하면 자동 등록
     - Alfred GUI 로 dotfiles 워크플로우를 편집하면 심링크를 따라 dotfiles 의 `info.plist` 가 바로 바뀝니다 → `git diff` 확인 후 커밋
     - Alfred 자체 환경설정 동기화 폴더 (iCloud/Dropbox) 를 쓰는 장비에서는 자동 등록이 안 됩니다 (Makefile 은 기본 경로만 봄)
-    - **터미널 세션 저장·복원** (`ts` 키워드, `scripts/term-session.sh`): 처음 실행할 때 Alfred → Ghostty 자동화 권한을 허용해야 함
 - **Obsidian**: vault 설정
 - **JetBrains**:
   - 터미널 폰트 (JetBrains Mono 13pt)

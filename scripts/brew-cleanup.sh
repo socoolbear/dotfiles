@@ -63,7 +63,8 @@ echo "==> 합친 Brewfile: ${MERGED_FILES[*]}"
 if [[ -z "${FORCE}" ]]; then
     echo "==> dry-run (실제 제거하려면 --force 또는 --zap)"
     # cleanup 은 제거 대상이 있으면 exit 1 — 정상이므로 || true
-    brew bundle cleanup --file="${TMP}" || true
+    # stdin 을 막는다: Homebrew 는 터미널에서 --force 없이도 확인창을 띄우고, y 를 누르면 실제로 지운다
+    brew bundle cleanup --file="${TMP}" </dev/null || true
 else
     echo "==> 실제 제거 진행 (${FORCE} ${ZAP})"
     brew bundle cleanup --file="${TMP}" ${FORCE} ${ZAP}

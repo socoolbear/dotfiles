@@ -1,0 +1,16 @@
+# dbhub (PostgreSQL MCP) 읽기 전용 설정 — 서버별 접속 정보는 ~/.claude.json 의 env 로 받는다.
+# PG_PASSWORD 는 mcp-secret-env 가 1Password 에서 꺼내 넘긴다. 이 파일에 값을 쓰지 않는다.
+# readonly = true 는 세 겹으로 막는다: 문장 분류 · 세션 default_transaction_read_only=on · BEGIN READ ONLY
+[[sources]]
+id = "main"
+type = "postgres"
+host = "${PG_HOST}"
+port = "${PG_PORT}"
+database = "${PG_DB}"
+user = "${PG_USER}"
+password = "${PG_PASSWORD}"
+
+[[tools]]
+name = "execute_sql"
+source = "main"
+readonly = true

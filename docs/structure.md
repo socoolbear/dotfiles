@@ -18,6 +18,7 @@
 | `git/` | Git 설정 (alias / delta / include) | `~/.gitconfig`, `~/.gitignore_global` | ✅ |
 | `launchd/` | launchd 예약 작업 정의 (Homebrew 예약 갱신) | `~/Library/LaunchAgents/` | ✅ |
 | `scripts/` | Makefile / launchd / MCP 설정이 호출하는 유틸 스크립트 | `~/.local/bin/` (일부) | ✅ (부분) |
+| `mcp/` | MCP 서버 설정 파일 (dbhub 읽기 전용 설정) | `~/.config/dbhub/` | ✅ |
 | `macos/` | macOS 시스템 기본값 스크립트 (`defaults.sh`, `make macos` 가 실행) | — | ❌ (스크립트 직접 실행) |
 | `docs/` | 저장소 문서 (목록은 `AGENTS.md` 상세 가이드 표) | — | ❌ (문서 전용) |
 | `.claude/` | 프로젝트 로컬 Claude 설정 | 로컬 전용 | — |
@@ -41,7 +42,9 @@
 | `scripts/sleepguard-toggle.sh` | `~/.local/bin/sleepguard` |
 | `scripts/mcp-mysql-reader.sh` | `~/.local/bin/mcp-mysql-reader` |
 | `scripts/mcp-pg-reader.sh` | `~/.local/bin/mcp-pg-reader` |
-| `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 위 두 실행기가 거친다)* |
+| `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 위 두 실행기와 아래 `mcp-secret-env` 가 거친다)* |
+| `scripts/mcp-secret-env.sh` | `~/.local/bin/mcp-secret-env` *(비밀 값을 1Password · 키체인에서 꺼내 환경 변수 하나로 넘기고 MCP 서버를 실행 — 시험 DB MCP 가 쓴다)* |
+| `mcp/dbhub-pg-readonly.toml` | `~/.config/dbhub/pg-readonly.toml` *(dbhub PostgreSQL MCP 의 읽기 전용 설정 — 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
 | `scripts/term-session.sh` | `~/.local/bin/term-session` |
 | `launchd/com.socoolbear.brew-scheduled-update.plist` | `~/Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist` |
 

@@ -94,6 +94,8 @@ LINKS_SINGLE := \
     scripts/mcp-mysql-reader.sh:.local/bin/mcp-mysql-reader \
     scripts/mcp-pg-reader.sh:.local/bin/mcp-pg-reader \
     scripts/mcp-lazy.mjs:.local/bin/mcp-lazy \
+    scripts/mcp-secret-env.sh:.local/bin/mcp-secret-env \
+    mcp/dbhub-pg-readonly.toml:.config/dbhub/pg-readonly.toml \
     scripts/term-session.sh:.local/bin/term-session \
     launchd/com.socoolbear.brew-scheduled-update.plist:Library/LaunchAgents/com.socoolbear.brew-scheduled-update.plist
 

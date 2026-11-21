@@ -22,7 +22,7 @@ readonly DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 readonly LABEL_PREFIX="com.socoolbear."
 readonly GENERATED_MARK="<!-- dotfiles-generated: make sync 가 dotfiles 의 launchd/ 틀로 만든 파일 — 고치려면 틀을 고치고 make sync -->"
 
-# 자동 갱신 작업이 부른 make sync 는 그 작업을 bootout 하지 않는다 — 실행 중인 작업을 bootout 하면 launchd 가 죽인다
+# 실행 중인 작업은 bootout 하지 않는다 (isRunningJob) — 자동 갱신이 부른 make sync 는 DOTFILES_AUTO_UPDATE_RUNNING=1 로 알린다
 readonly AUTO_UPDATE_LABEL="com.socoolbear.dotfiles-auto-update"
 
 log() {
@@ -43,12 +43,23 @@ requireSafeHome() {
     fi
 }
 
-# 지금 이 프로세스를 띄운 launchd 작업인가 (launchd 는 띄운 작업의 라벨을 XPC_SERVICE_NAME 에 넣는다)
+# 인자: 라벨. launchd 에 걸려 있는가
+isLoaded() {
+    launchctl print "gui/$(id -u)/$1" >/dev/null 2>&1
+}
+
+# 인자: 라벨. 지금 실행 중인가 — 실행 중인 작업을 bootout 하면 launchd 가 죽인다 (brew upgrade · 자동 갱신이 중간에 끊긴다).
+# 이 프로세스를 띄운 작업 (launchd 는 띄운 작업의 라벨을 XPC_SERVICE_NAME 에 넣는다) · 자동 갱신이 부른 make sync ·
+# launchd 가 running 으로 보는 작업 (launchctl print 의 맨 위 "state = running" 줄) 이 그렇다
 isRunningJob() {
     local label=$1
+    local printed
 
     [[ "${label}" == "${XPC_SERVICE_NAME:-}" ]] && return 0
-    [[ -n "${DOTFILES_AUTO_UPDATE_RUNNING:-}" && "${label}" == "${AUTO_UPDATE_LABEL}" ]]
+    [[ -n "${DOTFILES_AUTO_UPDATE_RUNNING:-}" && "${label}" == "${AUTO_UPDATE_LABEL}" ]] && return 0
+
+    printed=$(launchctl print "gui/$(id -u)/${label}" 2>/dev/null) || return 1
+    grep -qx $'\tstate = running' <<<"${printed}"
 }
 
 # 인자: 틀 경로, 출력 경로. 첫 줄 (XML 선언) 다음에 표식을 넣고 @HOME@ 을 홈 경로로 채운다
@@ -90,24 +101,17 @@ removeAgent() {
     log "${label}: 내리고 plist 를 치움 (${reason})"
 }
 
-# 인자: 라벨. 다시 건다 — bootout 뒤 bootstrap 이라 몇 번 돌려도 같다
-registerAgent() {
+# 인자: 라벨. 놓인 plist 를 건다
+bootstrapAgent() {
     local label=$1
-    local plist="${HOME}/Library/LaunchAgents/${label}.plist"
-    local domain="gui/$(id -u)"
 
-    if isRunningJob "${label}"; then
-        # 실행 중인 작업은 등록이 없을 때만 건다 (예약 설정의 변경은 다음에 손으로 sync 할 때 반영)
-        launchctl print "${domain}/${label}" >/dev/null 2>&1 \
-            || launchctl bootstrap "${domain}" "${plist}" 2>/dev/null || true
-        return
-    fi
-
-    launchctl bootout "${domain}/${label}" 2>/dev/null || true
-    launchctl bootstrap "${domain}" "${plist}" 2>/dev/null || log "${label}: 등록 실패 (launchctl bootstrap)"
+    launchctl bootstrap "gui/$(id -u)" "${HOME}/Library/LaunchAgents/${label}.plist" 2>/dev/null \
+        || log "${label}: 등록 실패 (launchctl bootstrap)"
 }
 
-# 인자: 틀 경로. 만든 내용이 지금 것과 다를 때만 바꿔 놓는다 (심링크였으면 파일로 바뀐다)
+# 인자: 틀 경로. 만든 내용이 지금 것과 다를 때만 바꿔 놓고 다시 건다 (심링크였으면 파일로 바뀐다).
+# 내용이 같으면 걸려 있지 않을 때만 건다. 내용이 다른데 작업이 실행 중이면 파일도 바꾸지 않고 넘긴다 —
+# 놓인 plist 가 틀과 계속 달라서 다음 make sync 가 다시 시도한다
 installAgent() {
     local template=$1
     local label
@@ -127,12 +131,20 @@ installAgent() {
 
     if [[ ! -L "${plist}" ]] && cmp -s "${staged}" "${plist}"; then
         rm -f -- "${staged}"
-    else
-        chmod 644 "${staged}"
-        mv -f -- "${staged}" "${plist}"
+        isLoaded "${label}" || bootstrapAgent "${label}"
+        return
     fi
 
-    registerAgent "${label}"
+    if isRunningJob "${label}"; then
+        rm -f -- "${staged}"
+        log "${label}: 예약 설정이 바뀌었지만 지금 실행 중이라 다시 걸지 않음 — 다음 make sync 때 다시 걸림"
+        return
+    fi
+
+    chmod 644 "${staged}"
+    mv -f -- "${staged}" "${plist}"
+    launchctl bootout "gui/$(id -u)/${label}" 2>/dev/null || true
+    bootstrapAgent "${label}"
 }
 
 sync() {

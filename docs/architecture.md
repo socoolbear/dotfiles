@@ -9,13 +9,13 @@
 
 ## launchd 예약 작업 등록 (생성 · 자동 정리)
 
-`launchd/*.plist` 는 **틀**입니다. `make sync` 가 부르는 `scripts/launchd-agents.sh sync` 가 틀의 `@HOME@` 을 그 장비의 홈 경로로 채워 `~/Library/LaunchAgents/` 에 plist 를 만들고 `bootout` → `bootstrap` 으로 다시 겁니다 (내용이 같으면 파일은 다시 쓰지 않음 — 멱등). `launchd/` 에 있는 틀이 곧 등록 목록입니다.
+`launchd/*.plist` 는 **틀**입니다. `make sync` 가 부르는 `scripts/launchd-agents.sh sync` 가 틀의 `@HOME@` 을 그 장비의 홈 경로로 채워 `~/Library/LaunchAgents/` 에 plist 를 만들고, 내용이 바뀌었으면 `bootout` → `bootstrap` 으로 다시 겁니다 (내용이 같으면 파일을 다시 쓰지 않고, 걸려 있지 않을 때만 겁니다 — 멱등). `launchd/` 에 있는 틀이 곧 등록 목록입니다.
 
 - **왜 생성인가** — 시스템 설정 > 일반 > 로그인 항목 및 확장 프로그램 의 백그라운드 항목 이름은 plist 가 실행하는 파일 (`ProgramArguments` 첫 칸) 의 끝 이름입니다 (`sfltool dumpbtm` 의 `Name` · `Executable Path` 로 확인, 심링크는 풀지 않음). plist 는 `$HOME` 을 풀지 못해 예전에는 `/bin/bash -c 'exec "$HOME/.local/bin/…"'` 를 거쳤고, 그래서 셋 다 "bash" 로 떴습니다. 지금은 `~/.local/bin/<작업 이름>` 을 직접 불러 `brew-scheduled-update` · `dotfiles-machine-check` · `dotfiles-auto-update` 로 뜹니다. 저장소에는 틀만 있고 절대 경로가 든 plist 는 장비에만 있습니다
 - **표식** — 만든 plist 의 둘째 줄에 `<!-- dotfiles-generated: … -->` 주석을 넣습니다. 자동 정리 · `make clean` 은 이 표식이 있거나 이 저장소의 `launchd/` 를 가리키는 링크인 것만 지웁니다
 - **자동 정리** — 라벨이 `com.socoolbear.` 로 시작하고 틀이 없는 plist 가운데 ① 이 저장소의 `launchd/` 를 가리키는 끊긴 심링크 (생성 방식 이전에 걸었던 작업을 저장소에서 지운 경우) ② 표식이 든 파일 은 `bootout` 하고 지웁니다. 치운 것은 `==> launchd: <라벨>: 내리고 plist 를 치움 (사유)` 로 출력돼 손으로 돌린 `make sync` 는 터미널에, 자동 갱신이 부른 것은 `~/Library/Logs/dotfiles-auto-update.log` 에 남습니다. 둘 다 아니면 (다른 저장소 · 앱이 깐 것, 표식 없는 파일) 건드리지 않습니다 — 실행 파일이 없는 남의 예약 작업은 장비 점검 (`machine.sh` §4) 이 WARN 으로 알리기만 합니다
 - **지우는 경로** — 폴더 (`$HOME/Library/LaunchAgents`) 와 접두사 (`com.socoolbear.`) 는 고정 문자열이고, 지우는 대상은 그 폴더의 `com.socoolbear.*.plist` 글롭에 걸린 파일 하나씩입니다 (`rm -f`, `-r` 없음). `HOME` 이 비었거나 `/` · 상대 경로 · 없는 폴더면 아무것도 하지 않고 멈춥니다
-- **실행 중인 작업은 내리지 않음** — 실행 중인 작업을 `bootout` 하면 launchd 가 죽입니다. 자동 갱신이 부른 `make sync` (`DOTFILES_AUTO_UPDATE_RUNNING=1`) 는 자동 갱신 작업을 등록이 없을 때만 걸고, launchd 가 띄운 프로세스 (`XPC_SERVICE_NAME` = 그 라벨) 는 자기 라벨을 정리하지 않습니다
+- **실행 중인 작업은 내리지 않음** — 실행 중인 작업을 `bootout` 하면 launchd 가 죽입니다 (Homebrew 갱신의 `brew upgrade` · 자동 갱신이 중간에 끊김). 그래서 `launchctl print` 의 맨 위 `state = running` 인 작업, 자동 갱신이 부른 `make sync` (`DOTFILES_AUTO_UPDATE_RUNNING=1`) 의 자동 갱신 작업, launchd 가 띄운 프로세스 (`XPC_SERVICE_NAME` = 그 라벨) 의 자기 라벨은 다시 걸지도 치우지도 않습니다. 예약 설정이 바뀌었는데 실행 중이라 건너뛰면 `==> launchd: <라벨>: … 다음 make sync 때 다시 걸림` 을 출력하고 놓인 plist 도 바꾸지 않아, 틀과 계속 달라 다음 `make sync` 가 다시 시도합니다 (치우기 · `make clean` 도 같음)
 - **로그인 항목 목록의 줄** — 작업을 내리고 plist 를 지우면 백그라운드 항목 DB 의 그 줄도 1분 안쪽에 빠집니다 (2026-11-21 시험). 실행 파일만 바꿔 다시 걸면 같은 줄의 이름이 바뀝니다. 그래도 남은 줄은 그 화면에서 스위치를 끕니다 — `sfltool resetbtm` 은 모든 앱의 항목을 초기화하므로 쓰지 않습니다
 - **되돌리기** — 예전 방식으로 돌아가려면 이 변경 커밋을 되돌리고 `make sync` (생성된 파일은 그대로 두고 심링크를 걸지 않으므로 먼저 `make clean` 또는 `scripts/launchd-agents.sh clean`)
 - **새 작업 추가** — `launchd/com.socoolbear.<이름>.plist` 틀을 만들고 (`ProgramArguments` 첫 칸 `@HOME@/.local/bin/<이름>`, 실행 파일은 `LINKS_SINGLE` 로 `~/.local/bin/` 에 링크) `make sync`. 지우면 다음 `make sync` 가 내리고 치웁니다

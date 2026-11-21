@@ -11,6 +11,13 @@
 # 하나라도 어긋나면 작업 트리를 건드리지 않는다 (fetch 만 한다). reset · checkout -- · stash · clean 은 쓰지 않는다.
 # 받기 전 커밋은 로그에 남긴다. 되돌리기는 사람이 한다 (git reset --keep <커밋>).
 #
+# 원격 점검 확인 — 깨진 커밋이 모든 장비로 퍼지지 않게, 받으려는 원격 커밋의 GitHub Actions 결과가 성공일 때만 받는다.
+# 인증 없는 API 를 받을 커밋이 있을 때만 대상마다 1회 부른다 (GET /repos/{owner}/{repo}/actions/runs?head_sha=…).
+# 예약 실행 (schedule) 은 빼고 workflow 마다 최신 실행을 본다 — 전부 success · skipped · neutral 이면 받고,
+# 하나라도 실패면 손 필요, 도는 중 · 아직 실행 없음 · 확인 못함 (네트워크 · API 한도 · 응답 꼴) 은 받지 않고
+# "받아오지 못함" 으로 적는다 (메뉴 막대는 하루 넘게 이어질 때만 띄운다). 그 커밋에 workflow 파일이 없으면 확인 없이 받는다.
+# 끄기: DOTFILES_AUTO_UPDATE_CI_GATE=0
+#
 # dotfiles 를 받으면 make sync 를 돌린다. Brewfile 이 바뀌었으면 설치하지 않고 "make update 필요" 로만 적는다.
 #
 # 스스로를 갱신하는 스크립트다. dotfiles 를 받은 뒤에는 새 판을 exec 로 다시 불러 나머지 단계를 새 판이 하게 한다
@@ -41,6 +48,9 @@ readonly SWIFTBAR_PLUGIN="dotfiles-update"
 # 실패 경로 시험용으로 바꿀 수 있다 (없는 명령 이름을 넣어 "명령 없음" 을 시험)
 readonly CLAUDE_BIN="${DOTFILES_AUTO_UPDATE_CLAUDE:-claude}"
 readonly REQUIRED_COMMANDS="${DOTFILES_AUTO_UPDATE_REQUIRE:-git make}"
+readonly CI_GATE="${DOTFILES_AUTO_UPDATE_CI_GATE:-1}"
+readonly CURL_BIN="${DOTFILES_AUTO_UPDATE_CURL:-curl}"
+readonly GITHUB_API_TIMEOUT_SECONDS=20
 
 log() {
     printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >>"${LOG}"
@@ -191,6 +201,116 @@ isUnattendedUrl() {
     esac
 }
 
+# 인자: 원격 주소. GitHub 원격이면 owner/repo 를 출력한다
+githubSlug() {
+    local slug
+
+    case "$1" in
+        https://github.com/*) slug=${1#https://github.com/} ;;
+        git@github.com:*) slug=${1#git@github.com:} ;;
+        ssh://git@github.com/*) slug=${1#ssh://git@github.com/} ;;
+        *) return 1 ;;
+    esac
+
+    slug=${slug%/}
+    slug=${slug%.git}
+    [[ "${slug}" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || return 1
+    echo "${slug}"
+}
+
+# 인자: owner/repo, 커밋. 그 커밋의 Actions 실행 결과를 판정해 "<판정>\t<설명>" 한 줄로 출력한다
+#   판정: success · failure · pending (도는 중 · 실행 없음) · unknown (확인 못함)
+checkVerdict() {
+    local slug=$1
+    local sha=$2
+
+    command -v "${CURL_BIN}" >/dev/null 2>&1 || { printf 'unknown\t명령 없음: curl\n'; return 0; }
+    command -v jq >/dev/null 2>&1 || { printf 'unknown\t명령 없음: jq\n'; return 0; }
+
+    local response
+    if ! response=$("${CURL_BIN}" -sS --max-time "${GITHUB_API_TIMEOUT_SECONDS}" \
+        -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' \
+        -w '\n%{http_code}' "https://api.github.com/repos/${slug}/actions/runs?head_sha=${sha}&per_page=100" 2>&1); then
+        printf 'unknown\tGitHub API 에 닿지 못함: %s\n' "$(head -n 1 <<<"${response}" | cut -c1-120)"
+        return 0
+    fi
+
+    local code=${response##*$'\n'}
+    local body=${response%$'\n'*}
+
+    case "${code}" in
+        200) ;;
+        403 | 429) printf 'unknown\tGitHub API 한도 초과 (HTTP %s)\n' "${code}"; return 0 ;;
+        *) printf 'unknown\tGitHub API 응답 HTTP %s\n' "${code}"; return 0 ;;
+    esac
+
+    local verdict
+    if ! verdict=$(jq -r '
+        def passed: .conclusion == "success" or .conclusion == "skipped" or .conclusion == "neutral";
+        if (.workflow_runs | type) != "array" then "unknown\tGitHub API 응답 꼴이 다름"
+        else
+            [.workflow_runs[] | select(.event != "schedule")] | group_by(.workflow_id) | map(max_by(.id))
+            | if length == 0 then "pending\t아직 점검 실행이 없음"
+              elif any(.[]; .status != "completed") then "pending\t점검이 도는 중: \(map(select(.status != "completed") | .name) | join(", "))"
+              elif all(.[]; passed) then "success\t\(map(.name) | join(", "))"
+              else "failure\t\(map(select(passed | not) | "\(.name) (\(.conclusion))") | join(", "))"
+              end
+        end' <<<"${body}" 2>/dev/null); then
+        verdict=$'unknown\tGitHub API 응답을 읽지 못함'
+    fi
+
+    echo "${verdict}"
+}
+
+# 인자: 대상, 저장소, 기본 브랜치, 받을 커밋 설명. 받으려는 원격 커밋의 점검이 받아도 되는 상태면 0, 아니면 상태를 적고 1
+remoteChecksPassed() {
+    local target=$1
+    local repo=$2
+    local branch=$3
+    local waiting=$4
+
+    if [[ "${CI_GATE}" == 0 ]]; then
+        log "${target}: 원격 점검 확인 꺼짐 (DOTFILES_AUTO_UPDATE_CI_GATE=0) — 확인 없이 받음"
+        return 0
+    fi
+
+    local sha workflows
+    sha=$(git -C "${repo}" rev-parse "origin/${branch}")
+    workflows=$(git -C "${repo}" ls-tree --name-only "${sha}" .github/workflows/)
+
+    if ! grep -qE '\.ya?ml$' <<<"${workflows}"; then
+        log "${target}: 원격 커밋 ${sha:0:12} 에 점검 workflow 없음 — 확인 없이 받음"
+        return 0
+    fi
+
+    local slug
+    if ! slug=$(githubSlug "$(git -C "${repo}" config --get remote.origin.url)"); then
+        setStatus "${target}" manual "GitHub 가 아닌 원격이라 원격 점검 결과를 확인할 수 없어 받지 않음 — 직접 git pull${waiting}"
+        return 1
+    fi
+
+    local verdict detail
+    IFS=$'\t' read -r verdict detail < <(checkVerdict "${slug}" "${sha}")
+
+    case "${verdict}" in
+        success)
+            log "${target}: 원격 커밋 ${sha:0:12} 점검 성공 (${detail})"
+            return 0
+            ;;
+        failure)
+            setStatus "${target}" manual "원격 최신 커밋 ${sha:0:12} 의 점검 실패: ${detail} — 고친 커밋을 push 하면 다음 실행 때 받음${waiting}"
+            ;;
+        pending)
+            setStatus "${target}" unreachable "원격 커밋 ${sha:0:12} 의 점검을 기다리는 중 (${detail}) — 다음 실행 때 다시 봄${waiting}"
+            ;;
+        *)
+            setStatus "${target}" unreachable "원격 커밋 ${sha:0:12} 의 점검 결과를 확인하지 못해 받지 않음 (${detail:-판정 없음})${waiting}"
+            ;;
+    esac
+
+    return 1
+}
+
 # 인자: 대상 이름, 저장소. 받으면 0 을 돌려주고 받기 전 커밋을 PULLED_FROM 에 남긴다 (받지 않았으면 비운다)
 updateRepo() {
     local target=$1
@@ -245,6 +365,10 @@ updateRepo() {
     if (( behind == 0 )); then
         # 지난번 make sync 가 실패해 다시 돌릴 차례면 그 실패 표시 (와 시작 시각) 를 그대로 둔다 — runSyncIfPending 이 정리한다
         [[ "${target}" == dotfiles && -f "${SYNC_PENDING}" ]] || setStatus "${target}" latest "최신"
+        return 1
+    fi
+
+    if ! remoteChecksPassed "${target}" "${repo}" "${branch}" "${waiting}"; then
         return 1
     fi
 

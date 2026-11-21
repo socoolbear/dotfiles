@@ -326,7 +326,8 @@ runSyncIfPending() {
         rm -f "${SYNC_PENDING}"
         log "make sync: 성공"
 
-        if grep -q $'^dotfiles\tfailed\t' "${STATUS}" 2>/dev/null; then
+        # 이번에 받은 경우 (updated) 가 아니면 다시 돌린 것이다 — 남아 있던 실패 표시를 최신으로 바꾼다
+        if ! grep -q $'^dotfiles\tupdated\t' "${STATUS}" 2>/dev/null; then
             setStatus dotfiles latest "최신 (지난번에 실패한 make sync 를 다시 돌려 성공)"
         fi
 

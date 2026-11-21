@@ -158,6 +158,8 @@ sudo rm /etc/sudoers.d/pmset-sleep  # NOPASSWD 룰 제거 (make clean 은 건드
 
 SwiftBar 첫 실행 시 플러그인 폴더를 물으면 `~/.swiftbar-plugins` 를 지정하세요 (`make sleepguard` 가 `defaults` 로도 지정하지만, 앱이 먼저 뜬 경우 재시작이 필요합니다).
 
+SwiftBar 메뉴의 "Disable Plugin" 으로 끈 항목 (잠자기 방지 · 자동 갱신 표시) 은 메뉴 막대에서 사라져 다시 켤 메뉴가 없습니다. 되살리려면 `defaults delete com.ameba.SwiftBar DisabledPlugins && killall SwiftBar; open -a SwiftBar` (끈 항목 전부 되살림). 새로 추가한 플러그인이 안 보일 때도 SwiftBar 를 다시 켜면 읽습니다.
+
 ## 선택 사항
 
 - **macOS 시스템 기본값**: `make macos` 가 처리 (`macos/defaults.sh`)

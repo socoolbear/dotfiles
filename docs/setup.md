@@ -55,6 +55,7 @@ mkdir -p ~/code ~/.local/bin
 - 시크릿 환경 변수: `cp zsh/private.export.example ~/.private-exports` 후 토큰 입력 (NTFY/EXA/GitHub 등). zshrc 가 자동 로드합니다.
 - 배포 분류 (비공개): `~/.config/claude/deploy-targets` (배포 점검 훅 대상) 와 `deploy-targets.md` (Claude·Codex 가 읽는 repo 별 표) 의 원본은 비공개 워크스페이스 repo 의 `policy/` 에 있습니다. 워크스페이스를 clone 한 뒤 심링크 두 개를 걸고 (`ln -s <워크스페이스>/policy/deploy-targets ~/.config/claude/deploy-targets`, `.md` 도 같게) `make sync` 를 다시 돌립니다. 워크스페이스가 없는 장비는 cc-marketplace 저장소의 `plugins/deploy-guard/skills/deploy/references/deploy-targets*.example` 을 복사해 실파일로 씁니다. 회사 repo 이름은 사내 보안 정책상 공개 저장소에 넣지 않습니다. 운영 배포 대상이 없는 장비는 `prod` 줄 대신 `no-prod` 한 줄을 둡니다. 파일이 없으면 훅이 main·master·dev push 를 모두 운영 배포로 보고 확인창을 띄우고, 다른 브랜치로 가는 PR 머지는 미분류로 한 번 멈춥니다. repo 별 배포 스크립트 (FTP 업로드 등) 뒤에도 직접 QA 알림을 받으려면 `~/.config/claude/deploy-qa-patterns` 도 옮깁니다 (형식은 같은 폴더의 `deploy-qa-patterns.example`).
 - doctor 금지어 목록: 기존 장비의 `~/.config/dotfiles/sensitive-words` (공개 저장소에 들어가면 안 되는 회사·사람 이름, 한 줄에 정규식 하나) 를 옮겨 둡니다. 저장소에 적으면 그 자체로 노출이라 저장소 밖에 둡니다.
+- doctor MCP 평문 예외 목록: MCP 설정에 평문이어도 되는 값이 있으면 (로컬 docker 기본 비밀번호 등) `~/.config/dotfiles/mcp-plaintext-allow` 에 `서버:키` 를 한 줄씩 적습니다 (권한 600). 없으면 `machine.sh` 가 그 값을 FAIL 로 올립니다. 서버 이름이 회사 이름을 담을 수 있어 저장소 밖에 둡니다.
 - `~/.zsh_history` 마이그레이션은 [migration.md 의 zsh history 섹션](migration.md#zsh-history-동기화-옵션-비교) 참조 (atuin 권장).
 - **atuin login** (sync 사용 시): `atuin login -u <username>` → 비밀번호 + sync key 입력. 이어서 `atuin sync` 로 기존 히스토리 가져오기. sync key 는 기존 머신에서 `atuin key` 로 확인.
 
@@ -129,7 +130,7 @@ plugin 관리는 `/plugin` 명령어로 일원화 — 변경사항은 committed 
 프로젝트 로컬 skill (`.claude/skills/`, dotfiles repo 안에서만 트리거):
 
 - `setup-env` — dotfiles 의 환경 세팅 워크플로우 진입점. "환경 세팅해줘", "dotfiles 동기화", "make update" 같은 표현으로 트리거됩니다.
-- `dotfiles-doctor` — 끊긴 링크·Makefile 매핑·문법을 기계적으로 점검하고, claude/ 하네스를 현재 Claude Code 버전에 맞게 정리합니다. "dotfiles 점검", "하네스 최신화" 같은 표현으로 트리거됩니다. 이 저장소에서 세션을 열면 훅 (`.claude/settings.json`) 이 마지막 실행 이후 Claude Code 버전 변경 · 30일 경과 · `doctor.sh` FAIL 중 하나라도 있으면 실행을 제안합니다 (실행은 하지 않음).
+- `dotfiles-doctor` — 끊긴 링크·Makefile 매핑·문법을 기계적으로 점검하고, claude/ 하네스를 현재 Claude Code 버전에 맞게 정리합니다. 이 장비의 상태 (MCP 평문 비밀값·폐기된 MCP 패키지·플러그인 정합·예약 작업·비밀값 사본, cc-marketplace 체크아웃이 있으면 그 저장소의 `health.sh` 요약) 도 `machine.sh` 로 점검해 보고만 합니다. "dotfiles 점검", "하네스 최신화" 같은 표현으로 트리거됩니다. 이 저장소에서 세션을 열면 훅 (`.claude/settings.json`) 이 마지막 실행 이후 Claude Code 버전 변경 · 30일 경과 · `doctor.sh` FAIL 중 하나라도 있으면 실행을 제안합니다 (실행은 하지 않음).
 
 ### 잠자기 방지 (sleepguard)
 

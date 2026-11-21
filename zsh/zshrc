@@ -145,7 +145,10 @@ cct() {
 
     ssh -T git@github.com 2>&1 | head -1  # 인증 성공이어도 exit 1 (정상)
 
-    scratch=$(mktemp -d)
+    # 빈 값이면 git -C "" 가 지금 폴더에서 돌아 그 저장소에 빈 커밋을 만든다
+    scratch=$(mktemp -d) || return 1
+    [[ -n "${scratch}" ]] || return 1
+
     git -C "${scratch}" init -q && git -C "${scratch}" commit -q --allow-empty -m warmup
     rm -rf "${scratch}"
 

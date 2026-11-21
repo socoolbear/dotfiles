@@ -81,6 +81,11 @@ dotfiles · cc-marketplace 체크아웃 · Claude 플러그인을 Claude 세션�
   2. **cc-marketplace 체크아웃** — `~/.claude/workstyle` 이 체크아웃을 가리키는 심링크일 때만 (경로는 그 링크에서 찾음). 같은 조건으로 ff-only
   3. **Claude 플러그인** — 세션 시작 때의 자동 갱신과 같은 범위: `autoUpdate` 가 켜진 마켓플레이스 (값이 없으면 공식 마켓플레이스만) 를 `claude plugin marketplace update` 하고 그 마켓플레이스의 켜 둔 플러그인을 `claude plugin update` 합니다. 새 명령 승인을 요구하는 플러그인은 `-y` 로 넘기지 않고 손 필요로 둡니다. `claude plugin` 이 `settings.json` 키 순서를 바꾸면 내용이 같을 때 원래 글로 되돌립니다
 - **받는 조건 (셋 다)**: 미커밋 · 미추적 변경이 없다 / 기본 브랜치에 있다 / 원격보다 앞선 커밋이 없다. 하나라도 어긋나면 fetch 만 하고 작업 트리는 건드리지 않습니다 (reset · stash · clean 을 쓰지 않음). 받기 전 커밋은 로그에 남기고 되돌리기는 사람이 합니다 (`git reset --keep <커밋>`)
+- **원격 점검이 성공한 커밋만 받습니다** — 깨진 커밋 (예: `zshrc` 문법 오류) 이 모든 장비의 셸을 한꺼번에 깨뜨리지 않게, 받을 커밋이 있으면 받기 전에 그 원격 커밋의 GitHub Actions 결과를 인증 없는 API (`GET /repos/{owner}/{repo}/actions/runs?head_sha=<커밋>`, 대상마다 1회 — 시간당 60회 한도 안) 로 봅니다. check-runs API 는 실행 계기 (event) 를 주지 않아 Actions runs 를 씁니다. 예약 실행 (schedule) 은 빼고 workflow 마다 최신 실행을 봅니다 (workflow 이름을 박지 않음 — dotfiles 는 `check`, cc-marketplace 는 `verify`)
+  - 전부 `success` · `skipped` · `neutral` → 받음. 하나라도 실패 (`failure` · `cancelled` · `timed_out` 등) → 손 필요 (작업 트리는 그대로, 고친 커밋을 push 하면 다음 실행 때 받음)
+  - 도는 중 · 아직 실행 없음, 확인 못함 (네트워크 · API 한도 403/429 · 응답 꼴 이상 · `curl`/`jq` 없음) → 받지 않고 "받아오지 못함" — 원격 미도달과 같이 메뉴 막대는 하루 넘게 이어질 때만 띄웁니다
+  - 그 커밋에 `.github/workflows/*.yml` 이 없으면 확인 없이 받고, GitHub 가 아닌 원격은 손 필요
+  - 끄기: `DOTFILES_AUTO_UPDATE_CI_GATE=0 dotfiles-auto-update` (그 실행만). 한계: `paths` 조건으로 실행이 없는 커밋은 "실행 없음" 으로 기다리다 하루 뒤 메뉴 막대에 뜸 (지금 두 저장소의 workflow 에는 `paths` 조건이 없음). GitHub Actions 밖의 점검 (다른 앱의 check · commit status) 은 보지 않음
 - **스스로를 갱신합니다.** dotfiles 를 받으면 새 판을 `exec` 로 다시 불러 나머지 단계를 새 판이 하고, 끝줄은 `main "$@"; exit $?` 한 줄이라 바뀐 파일의 뒷부분을 읽지 않습니다
 - **`make sync` 가 자기 작업을 죽이지 않게** — 실행 중인 launchd 작업을 `bootout` 하면 launchd 가 그 작업을 죽입니다. 그래서 자동 갱신이 부른 `make sync` (`DOTFILES_AUTO_UPDATE_RUNNING=1`) 는 이 작업을 다시 걸지 않고 등록이 없을 때만 겁니다. 예약 설정 (plist) 의 변경은 다음에 손으로 `make sync` 할 때 반영됩니다
 - **1Password 승인 창이 뜨지 않게** — GitHub 의 SSH 원격 (`git@github.com:` · `ssh://git@github.com/`) 은 HTTPS 로 바꿔 받습니다 (`GIT_CONFIG_*` 환경 변수, 저장소 설정은 그대로). 받기만 하므로 공개 저장소는 인증이 필요 없습니다. 그래도 SSH 로 남는 원격 (다른 호스트 · ssh 설정의 별칭) 은 받지 않고 손 필요로 둡니다

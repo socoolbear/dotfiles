@@ -19,6 +19,11 @@ import { createInterface } from 'node:readline'
 const HANDSHAKE_ID = 'mcp-lazy-handshake'
 const METHOD_NOT_FOUND = -32601
 const LIST_METHODS = new Set(['tools/list', 'resources/list', 'resources/templates/list', 'prompts/list'])
+const EMPTY_LIST_RESULTS = {
+  'resources/list': { resources: [] },
+  'resources/templates/list': { resourceTemplates: [] },
+  'prompts/list': { prompts: [] },
+}
 
 const separatorIndex = process.argv.indexOf('--')
 
@@ -218,6 +223,13 @@ function handleClientLine(line) {
 
   if (cache?.lists?.[message.method] && !message.params?.cursor) {
     sendToClient({ jsonrpc: '2.0', id: message.id, ...cache.lists[message.method] })
+    return
+  }
+
+  // 캐시에 못 적은 부가 목록 (DB 연결 실패 · 여러 쪽짜리 resources 등) 은 빈 목록으로 답한다.
+  // 서버를 띄우면 세션이 뜰 때마다 비밀값을 읽어 (1Password 승인 창) 지연 시작이 무의미해진다. 도구 목록만은 서버를 띄워서라도 받는다
+  if (EMPTY_LIST_RESULTS[message.method]) {
+    sendToClient({ jsonrpc: '2.0', id: message.id, result: EMPTY_LIST_RESULTS[message.method] })
     return
   }
 

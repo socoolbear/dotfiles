@@ -15,6 +15,7 @@ ALLOW_FILE="${H}/.config/dotfiles/mcp-plaintext-allow"
 BREW_LOG="${H}/Library/Logs/brew-scheduled-update.log"
 MAIL_FAILED_FLAG="${H}/.local/state/dotfiles-machine-check/mail-failed"
 UPDATE_STATUS="${H}/.local/state/dotfiles-update/status"
+UPDATE_MAIL_FAILED_FLAG="${H}/.local/state/dotfiles-update/mail-failed"
 UPDATE_STALE_DAYS=3
 GUARD_LOGS="${H}/.cc-safety-net/logs"
 BACKUP_DIR="${H}/backup_dotfiles"
@@ -328,7 +329,7 @@ else
   update_days=$(( (NOW - ${last_update:-0}) / 86400 ))
   (( update_days > UPDATE_STALE_DAYS )) && warn "dotfiles 자동 갱신: ${update_days}일 넘게 돌지 않음 (make auto-update-log · launchd 작업 확인)"
 
-  while IFS=$'\t' read -r target state detail since; do
+  while IFS=$'\t' read -r target state detail since _menu_line; do
     case "${state}" in
       (manual) label="손 필요" ;;
       (failed) label="실패" ;;
@@ -349,6 +350,11 @@ fi
 # 주 1회 장비 점검은 결과를 메일로만 알린다. 메일을 못 보냈으면 그 스크립트가 남긴 표시 파일을 여기서 WARN 으로 올린다 (조용히 묻히지 않게)
 if [[ -f "${MAIL_FAILED_FLAG}" ]]; then
   warn "지난 장비 점검이 결과를 메일로 알리지 못함: $(head -c 200 "${MAIL_FAILED_FLAG}") — 로그 (make machine-check-log) 확인, 다음 발송이 성공하면 사라진다"
+fi
+
+# 자동 갱신도 확인할 것이 새로 생기면 메일로 알린다. 못 보냈으면 다음 실행 때 다시 보내고, 그동안 남은 표시 파일을 WARN 으로 올린다
+if [[ -f "${UPDATE_MAIL_FAILED_FLAG}" ]]; then
+  warn "dotfiles 자동 갱신이 확인할 것을 메일로 알리지 못함: $(head -c 200 "${UPDATE_MAIL_FAILED_FLAG}") — 로그 (make auto-update-log) 확인, 다음 발송이 성공하면 사라진다"
 fi
 
 # --- 5. 파괴적 명령 가드 (판단 재료) ---

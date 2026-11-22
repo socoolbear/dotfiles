@@ -7,29 +7,33 @@
 # SwiftBar 는 빈 출력이면 메뉴 막대에 항목을 두지 않는다.
 #
 # 띄우는 것: 손 필요 · 실패, 하루 넘게 이어진 "받아오지 못함", 3일 넘게 돌지 않은 자동 갱신.
+# 줄마다 상태 파일의 메뉴 줄 ("<대상>: <짧은 상태>") 만 쓴다 — 상세 (이름 · 이유 · 할 일) 는 로그와 메일에 있다.
+# 어떤 문구가 와도 메뉴가 화면 폭을 넘지 않게 MAX_CHARS 글자에서 자른다.
 #
 # <swiftbar.hideAbout>true</swiftbar.hideAbout>
 # <swiftbar.hideRunInTerminal>true</swiftbar.hideRunInTerminal>
 # <swiftbar.hideSwiftBar>true</swiftbar.hideSwiftBar>
 
 export PATH=/usr/bin:/bin:/usr/sbin
+export LC_ALL=en_US.UTF-8   # 한글을 바이트가 아니라 글자 단위로 자르게
 
 STATUS="${HOME}/.local/state/dotfiles-update/status"
 LOG="${HOME}/Library/Logs/dotfiles-auto-update.log"
 UPDATER="${HOME}/.local/bin/dotfiles-auto-update"
 UNREACHABLE_GRACE_SECONDS=$((24 * 3600))
 STALE_SECONDS=$((3 * 24 * 3600))
+MAX_CHARS=40
 
 [[ -f "${STATUS}" ]] || exit 0
 
 NOW=$(date +%s)
 
-# 손 필요한 줄: <대상>\t<메뉴 줄>
+# 띄울 줄: <대상>\t<메뉴 줄>. 메뉴 줄 칸 ($5) 이 없는 줄 (옛 판이 적은 줄) 은 "<대상>: <상세>" 로 쓴다
 ITEMS=$(awk -F'\t' -v now="${NOW}" -v grace="${UNREACHABLE_GRACE_SECONDS}" -v stale="${STALE_SECONDS}" '
-    $1 == "last_run" { if (now - $3 > stale) printf "자동 갱신\t자동 갱신이 %d일째 돌지 않음 — 지금 업데이트로 확인\n", (now - $3) / 86400; next }
-    $2 == "manual" { printf "%s\t%s: 손 필요 — %s\n", $1, $1, $3; next }
-    $2 == "failed" { printf "%s\t%s: 실패 — %s\n", $1, $1, $3; next }
-    $2 == "unreachable" && now - $4 > grace { printf "%s\t%s: 하루 넘게 받아오지 못함 — %s\n", $1, $1, $3; next }
+    $1 == "last_run" { if (now - $3 > stale) printf "자동 갱신\t자동 갱신: %d일째 돌지 않음\n", (now - $3) / 86400; next }
+    { line = (length($5) > 0 ? $5 : $1 ": " $3) }
+    $2 == "manual" || $2 == "failed" { printf "%s\t%s\n", $1, line; next }
+    $2 == "unreachable" && now - $4 > grace { printf "%s\t%s (하루 넘게)\n", $1, line; next }
 ' "${STATUS}")
 
 [[ -n "${ITEMS}" ]] || exit 0
@@ -41,6 +45,8 @@ echo "↓${COUNT} | sfimage=arrow.triangle.2.circlepath sfcolor=orange"
 echo "---"
 
 while IFS=$'\t' read -r target line; do
+    (( ${#line} <= MAX_CHARS )) || line="${line:0:$((MAX_CHARS - 1))}…"
+    line=${line//|/·}   # SwiftBar 는 | 뒤를 설정으로 읽는다
     echo "${line} | color=orange"
 
     # Brewfile 표시는 사람이 make update 를 했거나 넘기기로 했을 때 지운다 (다음 자동 갱신도 깔렸는지 다시 본다)

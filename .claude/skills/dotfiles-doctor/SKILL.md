@@ -49,7 +49,7 @@ description: dotfiles 저장소를 진단하고 정리한다 — 끊긴 링크·
 ### 자동 실행
 
 - `machine.sh` 는 launchd 가 **주 1회 (월 14:00) 자동으로** 돌린다 (`scripts/machine-check-scheduled.sh`, `make sync` 가 등록). FAIL · WARN 이 있으면 메일이 온다 (`claude -p` + claude.ai Gmail 커넥터, 제목 `dotfiles 장비 점검: FAIL n · WARN n (장비)`, 로그 `~/Library/Logs/dotfiles-machine-check.log`). 메일을 못 보내면 다음 점검이 `지난 장비 점검이 결과를 메일로 알리지 못함` WARN 을 낸다. **메일이 오면 이 스킬로 확인한다** — 로그만 보려면 `make machine-check-log`, 지금 다시 돌리려면 `make machine-check`
-- dotfiles · cc-marketplace 체크아웃 · 플러그인은 launchd 가 **매일 11:00 자동으로** 받는다 (`scripts/dotfiles-auto-update.sh`, 안전할 때만 ff-only — `docs/architecture.md` 「자동 갱신」). 못 받은 것은 상태 파일 `~/.local/state/dotfiles-update/status` 에 남고 메뉴 막대 (`swiftbar/dotfiles-update.5m.sh`) 에 뜬다. `machine.sh` 의 `dotfiles 자동 갱신:` WARN 은 그 상태가 3일 넘게 이어졌다는 뜻이다 — 이유 (미커밋 변경 · 다른 브랜치 · 앞선 커밋 · make sync 실패 · 원격 커밋의 GitHub Actions 점검 실패 · 점검 결과 확인 못함) 를 보고에 적고, 사용자의 작업이 걸린 저장소는 고치지 않고 `보고만` 으로 둔다. 확인: `make auto-update-log`
+- dotfiles · cc-marketplace 체크아웃 · 플러그인은 launchd 가 **매일 11:00 자동으로** 받는다 (`scripts/dotfiles-auto-update.sh`, 안전할 때만 ff-only — `docs/architecture.md` 「자동 갱신」). 못 받은 것은 상태 파일 `~/.local/state/dotfiles-update/status` 에 남고 메뉴 막대 (`swiftbar/dotfiles-update.5m.sh`) 에 짧게 뜨며, 새로 생기면 상세 (플러그인 이름 · 이유) 를 메일 한 통으로 받는다. 플러그인 "설치 안 됨" 은 `make sync` 로 푼다. `machine.sh` 의 `dotfiles 자동 갱신:` WARN 은 그 상태가 3일 넘게 이어졌다는 뜻이다 — 이유 (미커밋 변경 · 다른 브랜치 · 앞선 커밋 · make sync 실패 · 원격 커밋의 GitHub Actions 점검 실패 · 점검 결과 확인 못함 · 플러그인 설치 안 됨 · 갱신 실패) 를 보고에 적고, 사용자의 작업이 걸린 저장소는 고치지 않고 `보고만` 으로 둔다. 확인: `make auto-update-log`
 - `doctor.sh --repo-only` (저장소 안에서 끝나는 점검만) 는 GitHub Actions (`.github/workflows/check.yml`) 가 push · PR · 주 1회 돌린다. 실패하면 GitHub 가 메일을 보낸다
 
 ### claude/ 점검 기준 (장비 접착)

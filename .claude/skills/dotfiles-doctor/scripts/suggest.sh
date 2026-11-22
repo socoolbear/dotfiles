@@ -28,8 +28,9 @@ fi
 failCount=$(DOTFILES="${repo}" bash .claude/skills/dotfiles-doctor/scripts/doctor.sh 2>/dev/null | grep -c '^\[FAIL\]')
 [[ ${failCount} -gt 0 ]] && reasons+=("doctor.sh FAIL ${failCount}건")
 
-# 주 1회 장비 점검이 메일을 못 보냈으면 (machine-check-scheduled.sh 가 남긴 표시 파일) 여기서도 알린다 — 메일이 유일한 알림이다
+# 주 1회 장비 점검 · 자동 갱신이 메일을 못 보냈으면 (각 스크립트가 남긴 표시 파일) 여기서도 알린다 — 메일이 유일한 알림이다
 [[ -f "${HOME}/.local/state/dotfiles-machine-check/mail-failed" ]] && reasons+=("지난 장비 점검 메일 발송 실패")
+[[ -f "${HOME}/.local/state/dotfiles-update/mail-failed" ]] && reasons+=("자동 갱신 메일 발송 실패")
 
 [[ ${#reasons[@]} -eq 0 ]] && exit 0
 

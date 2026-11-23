@@ -18,7 +18,7 @@ make brew-cleanup        # Brewfile 에 없는 패키지 출력 (dry-run)
 make brew-cleanup-force  # Brewfile 에 없는 패키지 실제 제거
 make brew-scheduled-update     # Homebrew 예약 갱신을 지금 즉시 실행 (예약 대기 없이)
 make brew-scheduled-update-log # 예약 갱신 최근 로그 확인
-make machine-check     # 주 1회 장비 점검 (launchd, dotfiles-doctor 의 machine.sh) 을 지금 즉시 실행 — FAIL · WARN 이 있으면 메일
+make machine-check     # 주 1회 장비 점검 (launchd, dotfiles-doctor 의 machine.sh) 을 지금 즉시 실행 — 정해진 두 가지 (예약 작업 등록 · 자동 갱신 다시 돌리기) 는 고치고, 고친 것 · 직접 확인할 것이 있으면 메일
 make machine-check-log # 장비 점검 최근 로그 확인
 make auto-update       # dotfiles · cc-marketplace 체크아웃 · 플러그인 자동 갱신 (launchd 매일 11:00) 을 지금 즉시 실행 — 안전할 때만 받음
 make auto-update-log   # 자동 갱신 상태 (대상별 최신 / 받음 / 확인할 것과 상세) 와 최근 로그 확인

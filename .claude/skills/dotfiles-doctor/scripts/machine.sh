@@ -229,13 +229,14 @@ fi
 
 # --- 4. 예약 작업 ---
 # dotfiles 의 launchd 작업이 등록돼 있는가, Homebrew 예약 갱신이 최근 48시간 안에 돌았고 오래 걸리거나 실패하지 않았는가,
-# dotfiles 자동 갱신이 며칠째 돌지 않았거나 손 필요 · 실패가 며칠째 이어지지 않는가.
+# dotfiles 자동 갱신이 며칠째 돌지 않았거나 직접 확인 필요 · 실패가 며칠째 이어지지 않는가.
 echo "## 4. 예약 작업"
 
 for plist in "${DOTFILES}"/launchd/*.plist; do
   [[ -f "${plist}" ]] || continue
   label=$(plutil -extract Label raw "${plist}" 2>/dev/null)
   [[ -n "${label}" ]] || { warn "launchd Label 을 읽지 못함: ${plist##*/}"; continue; }
+  # 이 문구는 예약 점검 (scripts/machine-check-scheduled.sh 의 fixPattern) 이 찾아 고친다 — 바꾸면 거기도 바꾼다
   launchctl list "${label}" >/dev/null 2>&1 || fail "launchd 작업이 등록되지 않음: ${label} (make sync)"
 done
 
@@ -327,11 +328,12 @@ if [[ ! -f "${UPDATE_STATUS}" ]]; then
 else
   last_update=$(awk -F'\t' '$1 == "last_run" { print $3 }' "${UPDATE_STATUS}")
   update_days=$(( (NOW - ${last_update:-0}) / 86400 ))
+  # 이 문구도 예약 점검의 fixPattern 이 찾는다
   (( update_days > UPDATE_STALE_DAYS )) && warn "dotfiles 자동 갱신: ${update_days}일 넘게 돌지 않음 (make auto-update-log · launchd 작업 확인)"
 
   while IFS=$'\t' read -r target state detail since _menu_line; do
     case "${state}" in
-      (manual) label="손 필요" ;;
+      (manual) label="직접 확인 필요" ;;
       (failed) label="실패" ;;
       (unreachable) label="받아오지 못함" ;;
       (*) continue ;;

@@ -43,6 +43,14 @@ findSentMessageId() {
     ' "$1" 2>/dev/null | head -n 1
 }
 
+# 인자: 쓸 설정 파일. ~/.claude.json 의 로컬 MCP 서버 (DB 조회 서버 등) 를 모두 막는 설정을 적는다 — 읽지 못하면 빈 설정
+# 메일에 쓰지 않는 서버를 띄우지 않으려는 것이다 (비밀값 읽기 · 1Password 승인 창 · 운영 조회 서버 연결).
+# --strict-mcp-config 는 claude.ai Gmail 커넥터까지 빼서 쓰지 않는다. 차단 목록은 명령 배열 전체가 같아야 걸리므로 설정에서 그대로 옮긴다
+writeMcpDenySettings() {
+    jq '{deniedMcpServers: [.mcpServers // {} | .[] | if .command then {serverCommand: ([.command] + (.args // []))} elif .url then {serverUrl: .url} else empty end]}' \
+        "${HOME}/.claude.json" >"$1" 2>/dev/null || echo '{}' >"$1"
+}
+
 # 인자: 제목, 본문. 보냈으면 0, 못 보냈으면 이유를 출력하고 1
 sendMail() {
     local subject=$1
@@ -57,6 +65,8 @@ sendMail() {
 
     local workDir
     workDir=$(mktemp -d) || { echo "임시 폴더를 만들지 못함 (mktemp)"; return 1; }
+
+    writeMcpDenySettings "${workDir}/settings.json"
 
     local prompt
     prompt=$(printf '%s\n' \
@@ -75,6 +85,7 @@ sendMail() {
         --tools ToolSearch \
         --permission-mode dontAsk \
         --allowedTools "ToolSearch,${MAIL_TOOL}" \
+        --settings "${workDir}/settings.json" \
         --no-session-persistence \
         --max-turns 5 \
         --max-budget-usd 0.2 \

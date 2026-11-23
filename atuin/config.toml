@@ -1,0 +1,11 @@
+# atuin 설정 — 기본값과 다른 것만 둔다 (빠진 키는 atuin 기본값). 전체 키 목록: https://docs.atuin.sh/configuration/config/
+# 비밀값 (sync key · 로그인 세션) 은 ~/.local/share/atuin/ 에 따로 있어 이 파일에 들어가지 않는다.
+#
+# ↑ 키는 atuin 에 맡기지 않는다 — zsh/zshrc 가 `atuin init zsh --disable-up-arrow` 로 띄운다.
+# ↑ 키도 atuin 으로 쓰려면 그 옵션을 빼고 아래에 filter_mode_shell_up_key_binding = "host" 를 더한다.
+
+# Ctrl-R 검색은 이 장비에서 친 명령만 보여 준다 (다른 장비 기록은 sync 로 받아 두기만 한다)
+filter_mode = "host"
+
+# 검색에서 Enter 를 누르면 고른 명령을 바로 실행한다 (atuin 이 처음 만든 설정 파일의 값을 그대로 이어받음)
+enter_accept = true

@@ -121,6 +121,6 @@ dotfiles · cc-marketplace 체크아웃 · Claude 플러그인을 Claude 세션�
 
 ## `make backup` 의 한계
 
-`make backup` 은 호스트 로컬 데이터 (`~/.gitconfig_local`, `~/.private-exports`, doctor 금지어 목록 `~/.config/dotfiles/sensitive-words`, 비공개 배포 분류 `~/.config/claude/deploy-targets{,.md}` (워크스페이스 repo 의 `policy/` 로 가는 심링크면 그 내용을 복사) · 배포 QA 알림 패턴 `~/.config/claude/deploy-qa-patterns`) 와 zsh, vim, idea, tmux, git, ghostty, karabiner, mise, claude-notify 설정만 백업합니다. 다음은 백업 대상이 아니므로 필요시 직접 처리:
+`make backup` 은 호스트 로컬 데이터 (`~/.gitconfig_local`, `~/.private-exports`, doctor 금지어 목록 `~/.config/dotfiles/sensitive-words`, 비공개 배포 분류 `~/.config/claude/deploy-targets{,.md}` (워크스페이스 repo 의 `policy/` 로 가는 심링크면 그 내용을 복사) · 배포 QA 알림 패턴 `~/.config/claude/deploy-qa-patterns`) 와 zsh, vim, idea, tmux, git, ghostty, karabiner, mise, atuin, claude-notify 설정만 백업합니다. 다음은 백업 대상이 아니므로 필요시 직접 처리:
 
 - `~/.claude/` (settings.json 등)

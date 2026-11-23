@@ -13,6 +13,7 @@
 | `swiftbar/` | SwiftBar 메뉴바 플러그인 (잠자기 방지 토글, 자동 갱신이 손을 필요로 할 때만 뜨는 표시) | `~/.swiftbar-plugins/` | ✅ |
 | `claude/` | Claude Code 글로벌 설정 | `~/.claude/` | ✅ (부분) |
 | `mise/` | mise 글로벌 도구 매니페스트 (node, go 등) | `~/.config/mise/config.toml` | ✅ |
+| `atuin/` | atuin 셸 기록 검색 설정 (기본값과 다른 것만) | `~/.config/atuin/config.toml` | ✅ |
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
 | `git/` | Git 설정 (alias / delta / include) | `~/.gitconfig`, `~/.gitignore_global` | ✅ |
 | `launchd/` | launchd 예약 작업의 틀 (Homebrew 예약 갱신 · 주 1회 장비 점검 · 자동 갱신) | `~/Library/LaunchAgents/` 에 생성 *(심링크 아님 — `make sync` 가 `@HOME@` 을 채워 만든다, `docs/architecture.md` 「launchd 예약 작업 등록」)* | ✅ (생성) |
@@ -39,6 +40,7 @@
 | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
 | (workstyle 플러그인) `~/.claude/workstyle/AGENTS.md` | `~/.codex/AGENTS.md` — 취향 규칙은 workstyle 플러그인이 `~/.claude/workstyle/` 에 내놓고 (`claude/CLAUDE.md` 가 홈 기준 경로로 import), Codex 링크는 그 폴더의 `AGENTS.md` 를 가리킨다. 비공개 배포 표 `~/.config/claude/deploy-targets.md` 와 장비 규칙 `~/.config/claude/local-rules.md` (원본은 워크스페이스 repo 의 `policy/`) 는 `make sync` 가 `~/.codex/AGENTS.override.md` 로 합친다. |
 | `mise/config.toml` | `~/.config/mise/config.toml` |
+| `atuin/config.toml` | `~/.config/atuin/config.toml` |
 | `scripts/brew-scheduled-update.sh` | `~/.local/bin/brew-scheduled-update` |
 | `scripts/machine-check-scheduled.sh` | `~/.local/bin/dotfiles-machine-check` *(주 1회 장비 점검 — launchd 가 부른다)* |
 | `scripts/dotfiles-auto-update.sh` | `~/.local/bin/dotfiles-auto-update` *(매일 자동 갱신 — launchd 와 메뉴 막대의 "지금 업데이트" 가 부른다)* |

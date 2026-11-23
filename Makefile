@@ -116,6 +116,7 @@ LINKS_SINGLE := \
     claude/settings.json:.claude/settings.json \
     claude/CLAUDE.md:.claude/CLAUDE.md \
     mise/config.toml:.config/mise/config.toml \
+    atuin/config.toml:.config/atuin/config.toml \
     scripts/brew-scheduled-update.sh:.local/bin/brew-scheduled-update \
     scripts/machine-check-scheduled.sh:.local/bin/dotfiles-machine-check \
     scripts/dotfiles-auto-update.sh:.local/bin/dotfiles-auto-update \
@@ -351,6 +352,7 @@ backup:
 	-cp -L -i $(HOME)/.gitignore_global $(HOME)/backup_dotfiles/gitignore_global
 	-cp -L -i $(HOME)/.config/tmux/tmux.conf.local $(HOME)/backup_dotfiles/tmux.conf.local
 	-cp -L -i $(HOME)/.config/mise/config.toml $(HOME)/backup_dotfiles/mise-config.toml
+	-cp -L -i $(HOME)/.config/atuin/config.toml $(HOME)/backup_dotfiles/atuin-config.toml
 	# 디렉토리 (실파일 또는 심링크 모두 처리)
 	-cp -RL $(HOME)/.config/karabiner $(HOME)/backup_dotfiles/karabiner 2>/dev/null
 	-cp -RL $(HOME)/.config/ghostty $(HOME)/backup_dotfiles/ghostty 2>/dev/null

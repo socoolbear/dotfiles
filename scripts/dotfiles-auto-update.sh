@@ -3,10 +3,10 @@
 # dotfiles · cc-marketplace 체크아웃 · Claude 플러그인을 Claude 세션과 별개로 하루 1회 갱신하는 예약 작업
 # (launchd: com.socoolbear.dotfiles-auto-update).
 #
-# 안전할 때만 조용히 받고, 못 받았으면 상태 파일에 "손 필요" (manual) 로 적는다. 메뉴 막대 (swiftbar/dotfiles-update.5m.sh) 는
+# 안전할 때만 조용히 받고, 못 받았으면 상태 파일에 "직접 확인 필요" (manual) 로 적는다. 메뉴 막대 (swiftbar/dotfiles-update.5m.sh) 는
 # 그 파일의 짧은 메뉴 줄만 띄우고, 상세 (플러그인 이름 · 이유 · 할 일) 는 로그와 메일로 보낸다. 평소에는 아무것도 띄우지 않는다.
 #
-# 메일 — 확인할 것 (손 필요 · 실패 · 하루 넘게 받아오지 못함) 이 새로 생겼을 때만 한 통 (scripts/send-mail.sh, 장비 점검과 같은 것).
+# 메일 — 확인할 것 (직접 확인 필요 · 실패 · 하루 넘게 받아오지 못함) 이 새로 생겼을 때만 한 통 (scripts/send-mail.sh, 장비 점검과 같은 것).
 # 같은 상태가 이어지는 동안은 다시 보내지 않고 (보낸 것은 notified 에 적어 둔다), 상세가 바뀌면 새로 생긴 것으로 본다.
 # 풀린 것만으로는 보내지 않는다. 본문에는 스크립트가 분류한 이유만 넣고 명령의 오류 문장은 넣지 않는다 (로그에만).
 # 못 보냈으면 실패 표시 파일 (mail-failed) 을 두고 다음 실행 때 다시 보낸다 — 다음 machine.sh 가 그 파일을 WARN 으로 낸다.
@@ -20,7 +20,7 @@
 # 원격 점검 확인 — 깨진 커밋이 모든 장비로 퍼지지 않게, 받으려는 원격 커밋의 GitHub Actions 결과가 성공일 때만 받는다.
 # 인증 없는 API 를 받을 커밋이 있을 때만 대상마다 1회 부른다 (GET /repos/{owner}/{repo}/actions/runs?head_sha=…).
 # 예약 실행 (schedule) 은 빼고 workflow 마다 최신 실행을 본다 — 전부 success · skipped · neutral 이면 받고,
-# 하나라도 실패면 손 필요, 도는 중 · 아직 실행 없음 · 확인 못함 (네트워크 · API 한도 · 응답 꼴) 은 받지 않고
+# 하나라도 실패면 직접 확인 필요, 도는 중 · 아직 실행 없음 · 확인 못함 (네트워크 · API 한도 · 응답 꼴) 은 받지 않고
 # "받아오지 못함" 으로 적는다 (메뉴 막대는 하루 넘게 이어질 때만 띄운다). 그 커밋에 workflow 파일이 없으면 확인 없이 받는다.
 # 끄기: DOTFILES_AUTO_UPDATE_CI_GATE=0
 #
@@ -33,12 +33,12 @@
 # 여기서 부른 make sync 는 DOTFILES_AUTO_UPDATE_RUNNING=1 을 받아 이 작업의 다시 걸기를 건너뛴다 (scripts/launchd-agents.sh).
 #
 # 무인 실행에서 1Password SSH 에이전트의 승인 창이 뜨지 않도록 GitHub 의 SSH 원격 (git@github.com:) 은 HTTPS 로 바꿔 받는다
-# (받기만 하므로 공개 저장소면 인증이 필요 없다). 그래도 SSH 로 남는 원격 (다른 호스트 · ssh 설정의 별칭) 은 받지 않고 손 필요로 둔다.
+# (받기만 하므로 공개 저장소면 인증이 필요 없다). 그래도 SSH 로 남는 원격 (다른 호스트 · ssh 설정의 별칭) 은 받지 않고 직접 확인 필요로 둔다.
 #
 # 사용:
 #   dotfiles-auto-update                  지금 갱신 (make auto-update · 메뉴 막대의 "지금 업데이트" 도 같다)
 #   dotfiles-auto-update --status         상태 파일을 사람이 읽기 좋게 출력
-#   dotfiles-auto-update --dismiss <대상>  "손 필요" 표시 하나를 지운다 (Brewfile 표시처럼 사람이 확인하고 넘길 것)
+#   dotfiles-auto-update --dismiss <대상>  "직접 확인 필요" 표시 하나를 지운다 (Brewfile 표시처럼 사람이 확인하고 넘길 것)
 #   dotfiles-auto-update --test-mail      지금 상태로 "(시험)" 메일 한 통 (갱신은 하지 않음, notified · 실패 표시는 건드리지 않음)
 
 set -euo pipefail
@@ -97,7 +97,7 @@ runLimited() {
 # 상태 파일 — 탭으로 나눈 줄. 대상 줄: <대상> <상태> <상세> <그 상태가 시작된 epoch> <메뉴 줄>
 #   메뉴 줄: "<대상의 한국어 이름>: <짧은 상태>" — 메뉴 막대 · 메일 목록에 쓰는 한 줄. 이름 나열 · 할 일은 상세에만 둔다.
 #   상세: 메일 · 로그 · --status 에 쓰는 한 줄. 스크립트가 고른 문구만 넣는다 (명령의 오류 문장 · 경로는 로그에만)
-#   상태: latest (최신) · updated (받음) · manual (손 필요) · failed (실패) · skipped (없어서 건너뜀)
+#   상태: latest (최신) · updated (받음) · manual (직접 확인 필요) · failed (실패) · skipped (없어서 건너뜀)
 #         · unreachable (원격에 닿지 못함 — 깨어난 직후 · 오프라인일 수 있어 메뉴 막대는 하루 넘게 이어질 때만 띄운다)
 #   last_run 줄: last_run <시각> <epoch>
 #--------------------------------------------------------------------------
@@ -526,7 +526,7 @@ updateMarketplaceCheckout() {
 #--------------------------------------------------------------------------
 # 대상 ③ 설치된 Claude 플러그인 — 세션 시작 때의 자동 갱신과 같은 범위
 #   autoUpdate 가 켜진 마켓플레이스 (값이 없으면 공식 마켓플레이스만 켜진 것으로 본다 — Claude Code 기본값) 를 갱신하고,
-#   그 마켓플레이스에서 켜 둔 플러그인을 갱신한다. 플러그인이 새 명령 승인을 요구하면 -y 로 넘기지 않고 손 필요로 둔다.
+#   그 마켓플레이스에서 켜 둔 플러그인을 갱신한다. 플러그인이 새 명령 승인을 요구하면 -y 로 넘기지 않고 직접 확인 필요로 둔다.
 #   실패는 --json 결과의 failureCode 로 나눈다. 켜져 있지만 설치되지 않은 것 (not_installed) 은 갱신 실패가 아니라
 #   "설치 안 됨" 으로 따로 센다 — 설치는 make sync (scripts/claude-plugins-sync.sh) 의 몫이라 여기서 하지 않는다
 #   (무인 실행이 새 플러그인의 훅 · 명령을 들이지 않게).

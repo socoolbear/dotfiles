@@ -7,6 +7,7 @@
 // 동작:
 //   - 캐시가 없으면 서버를 바로 띄워 그대로 중계하고, initialize · 목록 (tools/list 등) 응답을 캐시에 적는다
 //   - 캐시가 있으면 initialize · 목록 요청에 캐시로 답하고, 그 밖의 첫 요청 (tools/call 등) 이 올 때 서버를 띄운다
+//   - initialize 전에 온 요청 (server/discover 등) 에는 서버를 띄우지 않고 "그런 메서드 없음" 으로 답한다
 //   - 서버의 도구 목록이 바뀌었으면 캐시 파일 (~/.cache/mcp-lazy/) 을 지운다 — 다음 실행이 다시 적는다
 // 서버는 MCP_LAZY_CHILD=1 로 실행된다 (실행 스크립트가 자기 자신을 다시 프록시로 감싸지 않게).
 import { spawn } from 'node:child_process'
@@ -198,6 +199,16 @@ function handleClientLine(line) {
 
   if (message.method === 'initialize') {
     handleInitialize(message)
+    return
+  }
+
+  // initialize 전에 온 요청 (Claude Code 가 먼저 보내는 server/discover 버전 확인 등) 은 서버를 깨우지 않고 "그런 메서드 없음" 으로 답한다.
+  // 깨우면 세션이 뜰 때마다 비밀값을 읽고 (1Password 승인 창), 받은 쪽은 이 답을 보고 바로 initialize 로 넘어간다
+  if (!initializeRequest) {
+    if (message.id !== undefined) {
+      sendToClient({ jsonrpc: '2.0', id: message.id, error: { code: METHOD_NOT_FOUND, message: 'Method not found' } })
+    }
+
     return
   }
 

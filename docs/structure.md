@@ -46,7 +46,7 @@
 | `scripts/dotfiles-auto-update.sh` | `~/.local/bin/dotfiles-auto-update` *(매일 자동 갱신 — launchd 와 메뉴 막대의 "지금 업데이트" 가 부른다)* |
 | `scripts/sleepguard-toggle.sh` | `~/.local/bin/sleepguard` |
 | `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 아래 `mcp-secret-env` 가 거친다)* |
-| `scripts/mcp-secret-env.sh` | `~/.local/bin/mcp-secret-env` *(비밀 값을 1Password · 키체인에서 꺼내 환경 변수 하나로 넘기고 MCP 서버를 실행 — 시험 DB MCP 와 운영 조회용 PostgreSQL · MySQL MCP 가 쓴다)* |
+| `scripts/mcp-secret-env.sh` | `~/.local/bin/mcp-secret-env` *(비밀 값을 1Password · 키체인에서 꺼내 환경 변수 하나로 넘기고 MCP 서버를 실행 — 시험 DB MCP 와 운영 조회용 PostgreSQL · MySQL MCP 가 쓴다. 1Password 에서 꺼낸 값은 키체인에 8시간 보관해 승인 창을 한 번만 띄운다)* |
 | `mcp/dbhub-pg-readonly.toml` | `~/.config/dbhub/pg-readonly.toml` *(dbhub PostgreSQL MCP 의 읽기 전용 설정 — 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
 | `mcp/dbhub-mysql-readonly.toml` | `~/.config/dbhub/mysql-readonly.toml` *(dbhub MySQL MCP 의 읽기 전용 설정 — 운영 조회용 MySQL MCP 가 쓴다. 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
 

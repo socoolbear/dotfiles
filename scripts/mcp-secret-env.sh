@@ -17,9 +17,45 @@ if [[ "${secretRef}" == op://* && -z "${MCP_LAZY_CHILD:-}" ]]; then
   exec "${HOME}/.local/bin/mcp-lazy" "${0##*/} ${secretRef} ${*:4}" -- "${0}" "$@"
 fi
 
+# op:// 로 꺼낸 값은 로그인 키체인에 8시간 보관해 다시 쓴다 (2026-11-24 사용자 결정 — 써 보고 유지 여부를 정한다).
+# 터미널 없는 프로세스 (Claude 의 Bash 호출 등) 는 op 를 부를 때마다 1Password 승인 창이 새로 뜨기 때문이다.
+# 보관 항목의 서비스 이름은 "mcp-secret-env <op:// 참조>". 1Password 쪽 값을 바꿨으면 security delete-generic-password -s "<그 이름>" 으로 지운다
+CACHE_SECONDS=28800
+
+readCachedSecret() {
+  local service="${1}"
+  local attributes savedAt
+
+  attributes="$(security find-generic-password -s "${service}" 2>/dev/null)" || return 1
+  savedAt="$(sed -n 's/.*"icmt"<blob>="\([0-9]*\)".*/\1/p' <<< "${attributes}")"
+
+  if [[ -z "${savedAt}" ]] || (( $(date +%s) - savedAt >= CACHE_SECONDS )); then
+    return 1
+  fi
+
+  security find-generic-password -s "${service}" -w
+}
+
+readOpSecret() {
+  local ref="${1}"
+  local service="mcp-secret-env ${ref}"
+  local value
+
+  if readCachedSecret "${service}"; then
+    return
+  fi
+
+  # 이 함수는 $(...) 안에서 돌아 set -e 가 듣지 않는다 — 승인을 취소해 op 가 실패하면 빈 값을 보관하지 않고 바로 실패로 끝낸다
+  value="$(op read "${ref}")" || return 1
+
+  # 값은 명령줄 인자가 아니라 표준 입력으로 넘긴다 (ps 에 보이지 않게). security 는 입력·재입력으로 두 번 읽고, -j 에 보관 시각을 적는다
+  printf '%s\n%s\n' "${value}" "${value}" | security add-generic-password -U -s "${service}" -a "${USER}" -j "$(date +%s)" -w >/dev/null 2>&1 || true
+  printf '%s\n' "${value}"
+}
+
 readSecret() {
   if [[ "${1}" == op://* ]]; then
-    op read "${1}"
+    readOpSecret "${1}"
   else
     security find-generic-password -s "${1}" -w
   fi

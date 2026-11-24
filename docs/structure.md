@@ -16,7 +16,7 @@
 | `atuin/` | atuin 셸 기록 검색 설정 (기본값과 다른 것만) | `~/.config/atuin/config.toml` | ✅ |
 | `npm/` | 글로벌 NPM 패키지 매니페스트 (`make npm` 이 사용) | — | ❌ (repo 내부 참조) |
 | `git/` | Git 설정 (alias / delta / include) | `~/.gitconfig`, `~/.gitignore_global` | ✅ |
-| `launchd/` | launchd 예약 작업의 틀 (Homebrew 예약 갱신 · 주 1회 장비 점검 · 자동 갱신) | `~/Library/LaunchAgents/` 에 생성 *(심링크 아님 — `make sync` 가 `@HOME@` 을 채워 만든다, `docs/architecture.md` 「launchd 예약 작업 등록」)* | ✅ (생성) |
+| `launchd/` | launchd 예약 작업의 틀 (Homebrew 예약 갱신 · 주 1회 장비 점검 · 자동 갱신 · 1시간마다 키체인 비밀값 사본 정리) | `~/Library/LaunchAgents/` 에 생성 *(심링크 아님 — `make sync` 가 `@HOME@` 을 채워 만든다, `docs/architecture.md` 「launchd 예약 작업 등록」)* | ✅ (생성) |
 | `scripts/` | Makefile / launchd / MCP 설정이 호출하는 유틸 스크립트 | `~/.local/bin/` (일부) | ✅ (부분) |
 | `mcp/` | MCP 서버 설정 파일 (dbhub 읽기 전용 설정) | `~/.config/dbhub/` | ✅ |
 | `macos/` | macOS 시스템 기본값 스크립트 (`defaults.sh`, `make macos` 가 실행) | — | ❌ (스크립트 직접 실행) |
@@ -46,7 +46,7 @@
 | `scripts/dotfiles-auto-update.sh` | `~/.local/bin/dotfiles-auto-update` *(매일 자동 갱신 — launchd 와 메뉴 막대의 "지금 업데이트" 가 부른다)* |
 | `scripts/sleepguard-toggle.sh` | `~/.local/bin/sleepguard` |
 | `scripts/mcp-lazy.mjs` | `~/.local/bin/mcp-lazy` *(지연 시작 MCP 프록시 — `op://` 참조를 쓰는 아래 `mcp-secret-env` 가 거친다)* |
-| `scripts/mcp-secret-env.sh` | `~/.local/bin/mcp-secret-env` *(비밀 값을 1Password · 키체인에서 꺼내 환경 변수 하나로 넘기고 MCP 서버를 실행 — 시험 DB MCP 와 운영 조회용 PostgreSQL · MySQL MCP 가 쓴다. 1Password 에서 꺼낸 값은 키체인에 8시간 보관해 승인 창을 한 번만 띄운다)* |
+| `scripts/mcp-secret-env.sh` | `~/.local/bin/mcp-secret-env` *(비밀 값을 1Password · 키체인에서 꺼내 환경 변수 하나로 넘기고 MCP 서버를 실행 — 시험 DB MCP 와 운영 조회용 PostgreSQL · MySQL MCP 가 쓴다. 1Password 에서 꺼낸 값은 키체인에 8시간 보관해 승인 창을 한 번만 띄우고, 지난 사본은 launchd 가 1시간마다 `--sweep` 으로 지운다)* |
 | `mcp/dbhub-pg-readonly.toml` | `~/.config/dbhub/pg-readonly.toml` *(dbhub PostgreSQL MCP 의 읽기 전용 설정 — 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
 | `mcp/dbhub-mysql-readonly.toml` | `~/.config/dbhub/mysql-readonly.toml` *(dbhub MySQL MCP 의 읽기 전용 설정 — 운영 조회용 MySQL MCP 가 쓴다. 접속 정보는 `~/.claude.json` 의 env 로 받는다)* |
 

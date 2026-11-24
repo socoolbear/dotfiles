@@ -42,16 +42,37 @@ readOpSecret() {
   local value
 
   if isFreshCache "${service}"; then
-    security find-generic-password -s "${service}" -w
-    return
+    value="$(security find-generic-password -s "${service}" -w 2>/dev/null)" || value=""
+
+    if [[ -n "${value}" ]]; then
+      printf '%s\n' "${value}"
+      return
+    fi
   fi
 
-  # 이 함수는 $(...) 안에서 돌아 set -e 가 듣지 않는다 — 승인을 취소해 op 가 실패하면 빈 값을 보관하지 않고 바로 실패로 끝낸다
+  # 이 함수는 $(...) 안에서 돌아 set -e 가 듣지 않는다 — 승인을 취소해 op 가 실패하거나 빈 값이면 보관하지 않고 실패로 끝낸다
   value="$(op read "${ref}")" || return 1
 
-  # 값은 명령줄 인자가 아니라 표준 입력으로 넘긴다 (ps 에 보이지 않게). security 는 입력·재입력으로 두 번 읽고, -j 에 보관 시각을 적는다
-  printf '%s\n%s\n' "${value}" "${value}" | security add-generic-password -U -s "${service}" -a "${USER}" -j "$(date +%s)" -w >/dev/null 2>&1 || true
+  if [[ -z "${value}" ]]; then
+    echo "${0##*/}: ${ref} 의 값이 비어 있습니다" >&2
+    return 1
+  fi
+
+  saveCache "${service}" "${value}"
   printf '%s\n' "${value}"
+}
+
+# 값은 명령줄 인자가 아니라 security -i 의 표준 입력으로 넘긴다 (ps 에 보이지 않게).
+# add-generic-password -w 를 값 없이 쓰면 터미널이 붙은 프로세스 (Claude 세션이 띄운 MCP 서버) 에서 표준 입력이 아니라 터미널에 입력을 묻고 멈춘다
+saveCache() {
+  local service="${1}"
+  local value="${2}"
+  local escaped
+
+  escaped="${value//\\/\\\\}"
+  escaped="${escaped//\"/\\\"}"
+  printf 'add-generic-password -U -s "%s" -a "%s" -j "%s" -w "%s"\n' "${service}" "${USER}" "$(date +%s)" "${escaped}" \
+    | security -i >/dev/null 2>&1 || true
 }
 
 readSecret() {

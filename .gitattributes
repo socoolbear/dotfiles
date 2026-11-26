@@ -1,0 +1,2 @@
+# 커밋할 때 비공개 항목을 뺀다 — scripts/claude-settings-clean.sh, 설정은 Makefile sync
+claude/settings.json filter=claude-private

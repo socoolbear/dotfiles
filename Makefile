@@ -179,6 +179,11 @@ sync: ohmyzsh ohmytmux
 	@mkdir -p $(HOME)/.local/bin $(HOME)/.config $(HOME)/.config/mise \
 	          $(HOME)/.claude
 
+	@# claude/settings.json 커밋 때 비공개 항목 (외부 도구가 넣은 회사 전용 훅·권한) 을 빼는 git 필터 — .gitattributes 가 건다
+	@git -C $(DOTFILES) config filter.claude-private.clean 'bash scripts/claude-settings-clean.sh'
+	@git -C $(DOTFILES) config filter.claude-private.smudge cat
+	@git -C $(DOTFILES) config filter.claude-private.required true
+
 	@# ~/.codex/AGENTS.md 가 실파일이면 백업 (아래 ln -sf 가 덮어쓰므로 — 이전엔 Codex 가 손으로 만든 실파일이었다)
 	@if [ -e $(HOME)/.codex/AGENTS.md ] && [ ! -L $(HOME)/.codex/AGENTS.md ]; then \
 		mv $(HOME)/.codex/AGENTS.md $(HOME)/.codex/AGENTS.md.bak; \

@@ -181,8 +181,10 @@ acquireLock() {
 
 # shellcheck disable=SC2329 # trap 으로 부른다
 releaseLock() {
-    [[ "$(cat "${LOCK}/pid" 2>/dev/null || true)" == "$$" ]] && rm -rf "${LOCK}"
-    return 0
+    [[ "$(cat "${LOCK}/pid" 2>/dev/null || true)" == "$$" ]] || return 0
+
+    rm -rf "${LOCK}"
+    refreshMenuBar   # 메뉴 막대의 "갱신 중" 을 바로 거둔다
 }
 
 #--------------------------------------------------------------------------
@@ -837,6 +839,7 @@ main() {
     if [[ -z "${stage}" ]]; then
         rotateLog
         log "===== 시작 ====="
+        refreshMenuBar   # 메뉴 막대에 "갱신 중" 을 바로 띄운다
         # 갱신이 끝날 때까지 맥이 잠들지 않게 한다 (exec 뒤에도 pid 가 같아 계속 지켜진다)
         /usr/bin/caffeinate -i -w $$ &
     fi

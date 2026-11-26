@@ -6,7 +6,7 @@
 # pane 옵션
 #   @claude_state  busy | wait | done | (없음)   — 메인 에이전트의 상태
 #   @claude_agents " <agent_id> <agent_id>"      — 지금 일하고 있는 서브에이전트 · 팀메이트 목록
-#   @claude_bg     실행 중인 백그라운드 셸 수     — 에이전트가 셸에 일을 맡기고 대기 중일 때 (Stop · SubagentStop 입력의 background_tasks)
+#   @claude_bg     실행 중인 백그라운드 셸·모니터 수 — 에이전트가 셸·Monitor 에 일을 맡기고 대기 중일 때 (Stop · SubagentStop 입력의 background_tasks)
 #
 # 훅 입력에 agent_id 가 있으면 서브에이전트 · 팀메이트의 이벤트다. 메인 상태와 섞지 않고 목록만 고친다.
 # 개수를 세지 않고 ID 목록을 쓰는 이유: 팀메이트는 턴이 끝날 때마다 SubagentStop 이 오지만
@@ -40,12 +40,15 @@ input=$(cat)
 
 # 구분자로 '|' 를 쓴다: IFS 가 공백문자면 빈 필드가 뭉개져 밀린다.
 # liveAgents: 아직 살아 있는 백그라운드 에이전트 · 팀메이트 수 (Stop 입력의 background_tasks, 셸·모니터 제외)
-# bgShells: 실행 중인 백그라운드 셸 수 (background_tasks 가 없는 이벤트는 빈 값)
+# bgShells: 실행 중인 백그라운드 셸·모니터 수 (background_tasks 가 없는 이벤트는 빈 값)
+#   Monitor 스크립트는 2.1.329 부터 shell 이 아닌 monitor 로 온다. monitor 에는 MCP·WebSocket 감시 (Artifact 지켜보기처럼 세션 내내 도는 것 포함) 도 섞여
+#   오므로, 셸 스크립트에만 붙는 command 가 있는 monitor 만 센다 — Monitor 도구의 ws 소스도 command 가 없어 세지 않는다 (훅 입력으로는 Artifact 지켜보기와 가를 수 없음).
+#   플러그인의 monitors (manifest 키 또는 monitors/monitors.json) 는 세션 내내 돌 수 있어 그런 플러그인을 켜면 ⏳ 가 계속 켜질 수 있다
 IFS='|' read -r agentId liveAgents bgShells < <(
   printf '%s' "${input}" | jq -r '
     [ (.agent_id // "" | gsub("[^A-Za-z0-9_-]"; "")),
       ([.background_tasks[]? | select(.status == "running" and (.type | test("shell|bash|monitor") | not))] | length),
-      (if has("background_tasks") then [.background_tasks[] | select(.status == "running" and (.type | test("shell|bash")))] | length else "" end) ]
+      (if has("background_tasks") then [.background_tasks[] | select(.status == "running" and ((.type | test("shell|bash")) or (.type == "monitor" and has("command"))))] | length else "" end) ]
     | join("|")' 2>/dev/null
 )
 
@@ -62,7 +65,7 @@ removeAgent() {
   tmuxCmd set -pF -t "${TMUX_PANE}" @claude_agents "#{s/ ${agentId}//:@claude_agents}"
 }
 
-# background_tasks 가 있는 이벤트 (Stop · SubagentStop) 마다 셸 수를 갱신한다. 세션 전체 목록이라 마지막 값이 최신이다
+# background_tasks 가 있는 이벤트 (Stop · SubagentStop) 마다 셸·모니터 수를 갱신한다. 세션 전체 목록이라 마지막 값이 최신이다
 if [[ -n "${bgShells}" ]]; then
   tmuxCmd set -p -t "${TMUX_PANE}" @claude_bg "${bgShells}"
 fi

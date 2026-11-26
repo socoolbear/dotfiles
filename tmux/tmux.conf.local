@@ -42,9 +42,9 @@ bind r source-file ~/.config/tmux/tmux.conf \; display-message 'tmux.conf reload
 bind B display-popup -E -w 90% -h 85% "$HOME/.local/bin/workstyle board | less -R"
 
 # -- Claude Code 작업 상태 표시 (창 목록) --
-# claude/scripts/tmux-claude-state.sh 가 Claude 훅에서 pane 옵션(@claude_state = 메인 상태, @claude_agents = 일하는 서브에이전트·팀메이트 ID 목록, @claude_bg = 백그라운드 셸 수)을 기록하고,
+# claude/scripts/tmux-claude-state.sh 가 Claude 훅에서 pane 옵션(@claude_state = 메인 상태, @claude_agents = 일하는 서브에이전트·팀메이트 ID 목록, @claude_bg = 백그라운드 셸·모니터 수)을 기록하고,
 # 아래 포맷이 창 안의 모든 pane(메인 · 팀 에이전트 pane)을 모아 창 이름 앞에 표시한다.
-#   🌑🌒…🌘 (1초마다 회전) 작업 중 (메인 · 서브에이전트 · 팀메이트) · ⏳ 백그라운드 셸만 실행 중 · 🔔 권한/질문 응답 대기 · ✅ 끝났는데 아직 안 본 창
+#   🌑🌒…🌘 (1초마다 회전) 작업 중 (메인 · 서브에이전트 · 팀메이트) · ⏳ 백그라운드 셸·Monitor 스크립트만 실행 중 · 🔔 권한/질문 응답 대기 · ✅ 끝났는데 아직 안 본 창
 # '%' 가 들어간 포맷은 window-status-format 에 직접 넣지 않고 옵션에 담아 #{E:} 로 참조한다 (strftime 처리 회피).
 set -g status-interval 1                  # gpakosz 기본값 10 → 1 (스피너 애니메이션)
 set -g @claude_sec '%s'
